@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, Menu, X, LogIn } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Search Records', path: '/search' },
+    { name: 'Public Services', path: '/services' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -18,8 +18,8 @@ function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="bg-accent p-2 rounded-lg shadow-md group-hover:shadow-xl transition-all duration-300">
-              <Shield className="h-6 w-6 text-primary" strokeWidth={2.5} />
+            <div className="h-10 w-10 overflow-hidden rounded-xl bg-white/10 p-0.5 shadow-md group-hover:shadow-xl transition-all duration-300">
+              <img src="/images/ssor-logo.png" alt="SSOR Logo" className="h-full w-full object-cover rounded-lg" />
             </div>
             <div>
               <span className="text-xl font-bold text-white tracking-wide font-heading">SSOR</span>
@@ -47,7 +47,7 @@ function Navbar() {
               className="bg-accent hover:bg-yellow-400 text-primary font-semibold px-5 py-2 rounded-xl text-sm transition-all duration-300 shadow-md hover:shadow-xl inline-flex items-center gap-2"
             >
               <LogIn className="h-4 w-4" />
-              Officer Login
+              Login
             </Link>
           </div>
 
@@ -82,7 +82,7 @@ function Navbar() {
             >
               <span className="inline-flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
-                Officer Login
+                Login
               </span>
             </Link>
           </div>
