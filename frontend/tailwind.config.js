@@ -20,6 +20,17 @@ module.exports = {
         heading: ['Inter', 'Poppins', 'sans-serif'],
         body: ['Inter', 'Roboto', 'sans-serif'],
       },
+      keyframes: {
+        wave: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        'wave-slow': 'wave 25s linear infinite',
+        'wave-medium': 'wave 15s linear infinite',
+        'wave-fast': 'wave 10s linear infinite',
+      },
     },
   },
   plugins: [],

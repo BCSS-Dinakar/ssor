@@ -94,10 +94,21 @@ function LandingPage() {
           </div>
         </div>
 
-        {/* Bottom wave */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 80L48 74.7C96 69 192 59 288 53.3C384 48 480 48 576 53.3C672 59 768 69 864 69.3C960 69 1056 59 1152 53.3C1248 48 1344 48 1392 48L1440 48V80H1392C1344 80 1248 80 1152 80C1056 80 960 80 864 80C768 80 672 80 576 80C480 80 384 80 288 80C192 80 96 80 48 80H0Z" fill="#F8FAFC" />
+        {/* Bottom animated waves */}
+        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-[0] z-10 pointer-events-none h-[80px] md:h-[120px] lg:h-[150px]">
+          {/* Layer 1 (Back) */}
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-slow" viewBox="0 0 2400 120" preserveAspectRatio="none">
+            <path fill="#f8fafc" fillOpacity="0.3" d="M0,60 C300,100 300,20 600,60 C900,100 900,20 1200,60 C1500,100 1500,20 1800,60 C2100,100 2100,20 2400,60 L2400,120 L0,120 Z" />
+          </svg>
+          
+          {/* Layer 2 (Middle) */}
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-medium" viewBox="0 0 2400 120" preserveAspectRatio="none">
+            <path fill="#f8fafc" fillOpacity="0.5" d="M0,80 C200,110 400,50 600,80 C800,110 1000,50 1200,80 C1400,110 1600,50 1800,80 C2000,110 2200,50 2400,80 L2400,120 L0,120 Z" />
+          </svg>
+          
+          {/* Layer 3 (Front) */}
+          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-fast" viewBox="0 0 2400 120" preserveAspectRatio="none">
+            <path fill="#f8fafc" fillOpacity="1" d="M0,90 C600,120 600,60 1200,90 C1800,120 1800,60 2400,90 L2400,120 L0,120 Z" />
           </svg>
         </div>
       </section>
