@@ -49,7 +49,7 @@ function AboutPage() {
               </div>
               <h2 className="section-title text-left">Protecting communities through verified intelligence</h2>
               <p className="text-muted leading-relaxed mt-4">
-                The SSOR exists to bridge a critical gap — enabling institutions to make safer recruitment decisions and
+                The SSOR exists to bridge a critical gap — enabling organizations to make safer recruitment decisions and
                 empowering the police to monitor high-risk offenders through structured, legally-compliant processes.
               </p>
               <p className="text-muted leading-relaxed mt-4">
@@ -189,7 +189,7 @@ function AboutPage() {
               Want to learn more?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Explore public services or get in touch with the SSOR team for institutional partnerships,
+              Explore public services or get in touch with the SSOR team for organization partnerships,
               research collaboration, or media enquiries.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

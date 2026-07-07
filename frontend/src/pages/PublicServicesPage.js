@@ -30,12 +30,15 @@ function PublicServicesPage() {
             Public <span className="text-accent">Services</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Secure, controlled-access services for institutions and parents to ensure safety while upholding data privacy standards.
+            Secure, controlled-access services for organizations and parents to ensure safety while upholding data privacy standards.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/login" className="btn-accent px-8 py-4">
-              Access Institutional Portal
+            <Link to="/login?role=organization" className="btn-accent px-8 py-4">
+              Login as Organization
               <ArrowRight className="h-4 w-4 ml-2" />
+            </Link>
+            <Link to="/login?role=public" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
+              Login as Public
             </Link>
             <a href="#services" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
               View All Services
@@ -72,8 +75,8 @@ function PublicServicesPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/login" className="btn-primary w-full justify-center text-sm mt-auto">
-                  Apply Now
+                <Link to={service.cta.to} className="btn-primary w-full justify-center text-sm mt-auto">
+                  {service.cta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -129,7 +132,7 @@ function PublicServicesPage() {
               <ul className="mt-6 space-y-4">
                 {[
                   { icon: Clock, text: 'Standard processing time is 7 working days. Urgent child-facing role checks may be expedited to 3 days.' },
-                  { icon: FileText, text: 'Keep your institution licence, authorised signatory ID, and candidate consent forms ready before applying.' },
+                  { icon: FileText, text: 'Keep your organization licence, authorised signatory ID, and candidate consent forms ready before applying.' },
                   { icon: Lock, text: 'All information submitted is encrypted and accessible only to authorised police officers.' },
                   { icon: Scale, text: 'Every disclosure meets the legal tests of legality, necessity, and proportionality under the DPDP Act, 2023.' },
                 ].map((item) => (
@@ -197,15 +200,15 @@ function PublicServicesPage() {
               Ready to get started?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Create your account to apply for clearance certificates, request limited disclosure, or register your institution.
+              Create a public account for limited disclosure, or register your organization to apply for clearance certificates.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/login" className="btn-accent text-base px-8 py-4">
+              <Link to="/login?role=organization&mode=register" className="btn-accent text-base px-8 py-4">
                 <FileCheck className="h-5 w-5" />
-                Apply for Clearance
+                Register Organization
               </Link>
-              <Link to="/login" className="btn-secondary text-base px-8 py-4">
-                Create Account
+              <Link to="/login?role=public&mode=register" className="btn-secondary text-base px-8 py-4">
+                Create Public Account
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </div>

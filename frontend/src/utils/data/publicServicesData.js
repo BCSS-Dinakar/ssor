@@ -14,7 +14,7 @@ export const services = [
     title: 'Employment Clearance Certificate',
     description:
       'Schools, crèches, sports academies and caregiver agencies can request a verified clear / refer decision before employing any person in a child-facing role.',
-    audience: 'Institutions',
+    audience: 'Organizations',
     audienceColor: 'bg-blue-100 text-secondary',
     accent: 'from-secondary to-blue-400',
     iconBg: 'bg-blue-50',
@@ -25,6 +25,7 @@ export const services = [
       'Receive clear / refer result within 7 working days',
       'Licence-linked digital certificate issued',
     ],
+    cta: { label: 'Login as Organization', to: '/login?role=organization' },
   },
   {
     icon: Search,
@@ -42,23 +43,25 @@ export const services = [
       'Confidential — no general public lookup',
       'Disclosure is protocol-bound and auditable',
     ],
+    cta: { label: 'Login as Public', to: '/login?role=public' },
   },
   {
     icon: Building2,
-    title: 'Institution Registration',
+    title: 'Organization Registration',
     description:
-      'Register your institution to access safe-recruitment verification services. All institution accounts are licence-linked and verified by the police.',
-    audience: 'New Institutions',
+      'Register your organization to access safe-recruitment verification services. All organization accounts are licence-linked and verified by the police.',
+    audience: 'New Organizations',
     audienceColor: 'bg-amber-100 text-amber-700',
     accent: 'from-accent to-yellow-300',
     iconBg: 'bg-amber-50',
     iconColor: 'text-accent',
     points: [
-      'Submit institutional licence & registration details',
-      'Police verification of institution credentials',
-      'Receive approved institution portal access',
+      'Submit licence & registration details',
+      'Police verification of organization credentials',
+      'Receive approved organization portal access',
       'Manage multiple clearance requests from one dashboard',
     ],
+    cta: { label: 'Register Organization', to: '/login?role=organization&mode=register' },
   },
 ];
 
@@ -81,14 +84,14 @@ export const steps = [
   {
     icon: BadgeCheck,
     title: 'Certificate Issued',
-    text: 'A digitally signed clearance certificate is issued, linked to your institution licence and verifiable online.',
+    text: 'A digitally signed clearance certificate is issued, linked to your organization licence and verifiable online.',
   },
 ];
 
 export const faqs = [
   {
     q: 'Who can apply for a clearance certificate?',
-    a: 'Any registered institution (school, crèche, sports academy, transport operator, caregiver agency) with a valid licence can apply for employment clearance checks.',
+    a: 'Any registered organization (school, crèche, sports academy, transport operator, caregiver agency) with a valid licence can apply for employment clearance checks.',
   },
   {
     q: 'How long does verification take?',
@@ -104,6 +107,6 @@ export const faqs = [
   },
   {
     q: 'What documents do I need?',
-    a: 'For institution registration: licence/registration certificate, authorised signatory ID, institution address proof. For clearance: candidate details and consent form.',
+    a: 'For organization registration: licence/registration certificate, authorised signatory ID, and organization address proof. For clearance: candidate details and consent form.',
   },
 ];

@@ -19,7 +19,7 @@ export const contactChannels = [
     title: 'Email Support',
     items: [
       { label: 'General Enquiries', value: 'support@ssor.telangana.gov.in' },
-      { label: 'Institution Registration', value: 'institutions@ssor.telangana.gov.in' },
+      { label: 'Organization Registration', value: 'organizations@ssor.telangana.gov.in' },
       { label: 'Technical Support', value: 'tech@ssor.telangana.gov.in' },
     ],
     accent: 'from-secondary to-blue-400',

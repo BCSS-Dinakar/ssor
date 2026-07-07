@@ -44,7 +44,7 @@ function ContactPage() {
             Contact Us
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            For enquiries about public services, institution registration, technical support, or media — reach us through the channels below.
+            For enquiries about public services, organization registration, technical support, or media — reach us through the channels below.
           </p>
         </div>
       </PageHero>
@@ -94,7 +94,7 @@ function ContactPage() {
               <div className="space-y-4">
                 {[
                   { icon: Clock, title: 'Response Time', text: 'We aim to respond to all enquiries within 2 working days.' },
-                  { icon: Building2, title: 'Institution Queries', text: 'For bulk clearance or partnership enquiries, select "Institution Registration" as the category.' },
+                  { icon: Building2, title: 'Organization Queries', text: 'For bulk clearance or partnership enquiries, select "Organization Registration" as the category.' },
                   { icon: AlertTriangle, title: 'Emergencies', text: 'This form is NOT for reporting crimes. For emergencies, call 100 / 112 or Childline 1098.' },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -179,7 +179,7 @@ function ContactPage() {
                         <option>General Enquiry</option>
                         <option>Clearance Certificate</option>
                         <option>Limited Disclosure</option>
-                        <option>Institution Registration</option>
+                        <option>Organization Registration</option>
                         <option>Technical Support</option>
                         <option>Media / Press</option>
                         <option>Other</option>
