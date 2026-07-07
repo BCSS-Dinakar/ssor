@@ -27,7 +27,7 @@ export const accessLevels = [
   },
   {
     icon: Building2,
-    title: 'Institutions',
+    title: 'Organizations',
     tag: 'Clearance Check',
     tagClass: 'bg-blue-100 text-secondary',
     accent: 'from-secondary to-blue-400',
@@ -35,8 +35,8 @@ export const accessLevels = [
     iconColor: 'text-secondary',
     description:
       'Schools, creches, sports academies, transport operators and caregiver agencies obtain a verified clear / refer decision through the police — never a list of names.',
-    points: ['Employment clearance certificates', 'Safe-recruitment verification', 'Licence-linked institution accounts'],
-    cta: { label: 'Public Services', to: '/services' },
+    points: ['Employment clearance certificates', 'Safe-recruitment verification', 'Licence-linked organization accounts'],
+    cta: { label: 'Login', to: '/login?role=organization' },
     ctaClass: 'btn-secondary',
   },
   {
@@ -50,7 +50,7 @@ export const accessLevels = [
     description:
       'Where a registered offender presents an identified risk to a specific child, a parent or guardian may request limited disclosure under a written protocol, reviewed case by case.',
     points: ['Request for a specific, identified risk', 'Reviewed by an officer of DSP rank', 'Confidential — no public lookup'],
-    cta: { label: 'Public Services', to: '/services' },
+    cta: { label: 'Login', to: '/login?role=public' },
     ctaClass: 'btn-secondary',
   },
 ];

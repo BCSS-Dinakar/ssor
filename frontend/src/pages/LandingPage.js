@@ -45,14 +45,14 @@ function LandingPage() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading leading-tight">
                 One register.
                 <br />
-                Two doorways.
+                Three doorways.
                 <br />
                 <span className="text-accent">Strict access.</span>
               </h1>
               <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-xl lg:mx-0 mx-auto leading-relaxed">
                 A conviction-based, colour-coded Sexual Offender Register built to protect women and
-                children — enabling verified background checks for institutions and structured
-                monitoring for the police, without ever becoming an open public list.
+                children — enabling verified background checks for organizations, limited disclosure
+                for parents and guardians, and structured monitoring for the police.
               </p>
 
               <div className="mt-10 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
@@ -337,7 +337,7 @@ function LandingPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {[
               { value: '4,067', label: 'Registered offenders', icon: Database, color: 'text-blue-400' },
-              { value: '1,284', label: 'Institutions verified (YTD)', icon: Building2, color: 'text-green-400' },
+              { value: '1,284', label: 'Organizations verified (YTD)', icon: Building2, color: 'text-green-400' },
               { value: '3,106', label: 'Clearance checks issued', icon: FileCheck, color: 'text-amber-400' },
               { value: '100%', label: 'Access events logged', icon: Activity, color: 'text-pink-400' },
             ].map((stat) => (
@@ -363,7 +363,7 @@ function LandingPage() {
               Ready to access the portal?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Citizens and institutions can create an account for verified services. Police officers sign in with
+              Public users and organizations can create an account for verified services. Police officers sign in with
               department-provisioned credentials.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -371,9 +371,13 @@ function LandingPage() {
                 <LogIn className="h-5 w-5" />
                 Login
               </Link>
-              <Link to="/login" className="btn-secondary text-base px-8 py-4">
-                Create Account
+              <Link to="/login?role=public&mode=register" className="btn-secondary text-base px-8 py-4">
+                Create Public Account
                 <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link to="/login?role=organization&mode=register" className="btn-accent text-base px-8 py-4">
+                Register Organization
+                <Building2 className="h-5 w-5" />
               </Link>
             </div>
           </div>
