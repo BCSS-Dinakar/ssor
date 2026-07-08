@@ -10,35 +10,36 @@ SSOR is a controlled-access register designed to protect women and children. It 
 
 The system provides **two separate portals**:
 
-- **Citizen & Institution Portal** — For schools, creches, transport operators, care employers, parents, and guardians
-- **Police & Administration Portal** — Restricted to authorised officers with recorded clearance (every action is audited)
+- **Citizen & Organization Portal** — For schools, creches, transport operators, care employers, parents, and guardians.
+- **Police & Administration Portal** — Restricted to authorised officers with recorded clearance (every action is audited).
 
 ---
 
 ## Features
 
-### Citizen & Institution Services
+### Organization Portal
 
 | Feature | Description |
 |---|---|
-| **Clearance Certificate** | Apply for a background-verification certificate for employees/volunteers in child- or women-facing roles |
-| **Track Application** | Check the status of a clearance request using a reference number |
-| **Limited Disclosure** | Request the police to check a specific, identified risk to a particular child |
-| **Report an Offence** | Report a sexual offence or unsafe conduct (anonymous reporting supported) |
-| **Institution Registration** | Register a school, creche, or academy for a licence-linked clearance account |
-| **Awareness & Resources** | Guidance on safe recruitment, POCSO obligations, and support services |
+| **Dashboard** | Overview of clearance statistics, compliance status, and active personnel. |
+| **Submit New Verification** | Apply for a background-verification certificate for employees/volunteers in child- or women-facing roles. |
+| **Verification Requests** | Track the live status of submitted vetting applications. |
+| **Verified Personnel** | Manage and review the roster of all cleared employees. |
+| **Compliance & Support** | Access the organization's safety certificates and system help. |
+| **Legal Resources** | Guidance on safe recruitment, POCSO obligations, and support services. |
+| **Organization Profile** | Manage the licence credentials and registered location details. |
 
-### Police & Administration
+### Police & Administration Portal
 
 | Feature | Description |
 |---|---|
-| **Dashboard** | Live overview with stat cards, risk-tier donut chart, pending queues, and recent activity |
-| **Offender Register** | Searchable, filterable register of all convicted offender records with full detail modals |
-| **New Registration** | Register a convicted offender (requires a valid conviction order reference) |
-| **Clearance Requests** | Process institutional clearance applications — verify candidates against the register |
-| **Disclosure Requests** | Approve or decline limited disclosure requests (requires DSP rank or above) |
-| **Access Audit Log** | Immutable, tamper-proof log of every access event |
-| **Retention & Review** | Track records approaching their review or expiry date |
+| **Dashboard** | Live overview with stat cards, risk-tier donut chart, pending queues, and recent activity. |
+| **Registry Database** | Searchable, filterable register of all convicted offender records with full detail modals. |
+| **Add Offender Record** | Register a convicted offender (requires a valid conviction order reference). |
+| **Pending Verifications** | Process organization vetting applications using fuzzy automated database scans and manual cross-verification. |
+| **Verification History** | Review past vetting decisions and officer feedback logs. |
+| **Organization Approvals** | Verify and approve new institutional registrations before granting them portal access. |
+| **System Audit Log** | Immutable, tamper-proof log of every access event by officers. |
 
 ---
 
@@ -77,20 +78,9 @@ The register is built on the following statutory framework:
 1. **Conviction-based entry only** — No accused person is listed; only convicted offenders
 2. **Proportionality** — Every entry and disclosure satisfies the tests of legality, necessity, and proportionality (Puttaswamy)
 3. **Juvenile protection** — No juvenile is placed in any disclosable or public tier
-4. **Correction & expungement** — Records can be corrected or expunged on acquittal, wrongful entry, or retention expiry
+4. **Correction & expungement** — Records can be corrected or expunged on acquittal or wrongful entry
 5. **Audit of access** — Every access is logged and auditable, with disciplinary and penal consequences for misuse
-6. **Rehabilitation** — Classification does not operate as a permanent, disproportionate stigma
-7. **No public search** — Institutions receive only a verified clear/refer result through the police; offender details are never published
-
----
-
-## Access Control — Three Levels
-
-| Level | Who | What |
-|---|---|---|
-| **Full Access** | Authorised police officers with recorded clearance | Complete register access, record management, all admin functions |
-| **Clearance Checks** | Schools, creches, sports academies, transport operators, caregivers | Background verification via police — receive only clear/refer decision |
-| **Limited Disclosure** | Named parent, guardian, or institution head | Permitted only where a registered offender presents an identified risk to a particular child, under written protocol |
+6. **No public search** — Organizations receive only a verified clear/refer result through the police; offender details are never published
 
 ---
 
@@ -99,32 +89,10 @@ The register is built on the following statutory framework:
 | Layer | Technology |
 |---|---|
 | **Frontend** | React.js (Create React App) |
-| **Styling** | Tailwind CSS |
+| **Styling** | Tailwind CSS (with Lucide icons) |
 | **Fonts** | Archivo (display), Inter (body), IBM Plex Mono (monospace) |
 | **Routing** | React Router |
-
----
-
-## Project Structure
-
-```
-ssor/
-├── frontend/               # React application
-│   ├── public/
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Page-level components
-│   │   ├── utils/          # Utility functions and constants
-│   │   ├── App.js          # Root component with routing
-│   │   ├── index.js        # Entry point
-│   │   └── index.css       # Global styles
-│   ├── tailwind.config.js
-│   └── package.json
-├── README.md
-└── reference/
-    ├── SOR Portal prototype.html          # UI/UX prototype
-    └── Sexual_Offender_Register_Concept_Note.docx  # Policy concept note
-```
+| **State Management** | React Context API |
 
 ---
 
@@ -168,31 +136,18 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 | `offence` | Offence of conviction |
 | `courtCase` | Court case reference (e.g. `CC 412/2024`) |
 | `convictionDate` | Date of conviction |
-| `retentionPeriod` | Duration record is held (per tier) |
-| `status` | Active / Due review / Closed |
-| `nextReview` | Next scheduled review date |
-| `biometrics` | Fingerprints, DNA (where lawfully collected) |
 
-### Clearance Request
+### Vetting Request (Clearances)
 | Field | Description |
 |---|---|
 | `id` | Reference number (e.g. `CLR-2026-00471`) |
-| `institution` | Requesting institution name |
-| `type` | Institution type (School, Creche, Sports academy, etc.) |
+| `org` | Requesting organization name |
+| `type` | Organization type (School, Creche, Transport, etc.) |
 | `role` | Role being filled |
 | `candidate` | Candidate name |
-| `submittedDate` | Date of submission |
-| `status` | Pending / Cleared / Referred |
-
-### Disclosure Request
-| Field | Description |
-|---|---|
-| `id` | Reference number (e.g. `DIS-2026-0033`) |
-| `requestedBy` | Requester identity and relationship |
-| `concern` | Person of concern and nature of risk |
-| `riskType` | Specific (identified) or General |
-| `submittedDate` | Date of submission |
-| `status` | Pending / Approved / Declined |
+| `submitted` | Date of submission |
+| `status` | `pending` / `verifying` / `cleared` / `rejected` |
+| `reason` | Officer feedback / log of vetting outcome |
 
 ---
 
@@ -210,7 +165,5 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 ## License
 
 This project is developed for the Government of Telangana, State Police. All rights reserved.
-
----
 
 > **Disclaimer:** This is a prototype for demonstration purposes. All records shown in test data are fictional. Section numbers and statutory references should be verified against the current official text.
