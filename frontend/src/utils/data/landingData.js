@@ -1,4 +1,4 @@
-import { Shield, Building2, Users, Database, Scale, Fingerprint, Lock } from 'lucide-react';
+import { Shield, Building2, Database, Scale, Fingerprint, Lock } from 'lucide-react';
 
 export const legalFramework = [
   'BNS 2023',
@@ -21,7 +21,7 @@ export const accessLevels = [
     iconColor: 'text-accent',
     description:
       'Authorised officers with recorded clearance manage the register, run searches and process requests. Every action is written to an immutable audit log.',
-    points: ['Register dashboard & risk-tier analytics', 'Search, manage & review records', 'Access audit & retention control'],
+    points: ['Register portal & risk-tier analytics', 'Search, manage & review records', 'Access audit & retention control'],
     cta: { label: 'Login', to: '/login' },
     ctaClass: 'btn-primary',
   },
@@ -37,20 +37,6 @@ export const accessLevels = [
       'Schools, creches, sports academies, transport operators and caregiver agencies obtain a verified clear / refer decision through the police — never a list of names.',
     points: ['Employment clearance certificates', 'Safe-recruitment verification', 'Licence-linked organization accounts'],
     cta: { label: 'Login', to: '/login?role=organization' },
-    ctaClass: 'btn-secondary',
-  },
-  {
-    icon: Users,
-    title: 'Parents & Guardians',
-    tag: 'Limited Disclosure',
-    tagClass: 'bg-emerald-100 text-emerald-700',
-    accent: 'from-emerald-500 to-teal-400',
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    description:
-      'Where a registered offender presents an identified risk to a specific child, a parent or guardian may request limited disclosure under a written protocol, reviewed case by case.',
-    points: ['Request for a specific, identified risk', 'Reviewed by an officer of DSP rank', 'Confidential — no public lookup'],
-    cta: { label: 'Login', to: '/login?role=public' },
     ctaClass: 'btn-secondary',
   },
 ];

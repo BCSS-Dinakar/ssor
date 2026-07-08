@@ -189,13 +189,13 @@ function AboutPage() {
               Want to learn more?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Explore public services or get in touch with the SSOR team for organization partnerships,
+              Explore organization services or get in touch with the SSOR team for organization partnerships,
               research collaboration, or media enquiries.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/services" className="btn-accent text-base px-8 py-4">
                 <FileCheck className="h-5 w-5" />
-                Public Services
+                Organization Services
               </Link>
               <Link to="/contact" className="btn-secondary text-base px-8 py-4">
                 Contact Us

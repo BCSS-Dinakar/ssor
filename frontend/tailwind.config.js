@@ -20,16 +20,26 @@ module.exports = {
         heading: ['Inter', 'Poppins', 'sans-serif'],
         body: ['Inter', 'Roboto', 'sans-serif'],
       },
+      spacing: {
+        '4.5': '1.125rem',
+      },
       keyframes: {
         wave: {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
+        },
+        swing: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(12deg)' },
+          '75%': { transform: 'rotate(-12deg)' },
         },
       },
       animation: {
         'wave-slow': 'wave 25s linear infinite',
         'wave-medium': 'wave 15s linear infinite',
         'wave-fast': 'wave 10s linear infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'swing': 'swing 2s ease-in-out infinite',
       },
     },
   },

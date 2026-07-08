@@ -1,7 +1,6 @@
-import { Users, Building2, Shield } from 'lucide-react';
+import { Building2, Shield } from 'lucide-react';
 
 export const ROLES = [
-  { id: 'public', label: 'Public', sub: 'Parents & guardians', Icon: Users },
   { id: 'organization', label: 'Organization', sub: 'Institutions & employers', Icon: Building2 },
   { id: 'police', label: 'Police Officer', sub: 'Departmental access', Icon: Shield },
 ];
@@ -29,55 +28,46 @@ export const SECURITY_QUESTIONS = [
 
 export const DEMO_OTP = '123456';
 
-export const PUBLIC_REG_STEPS = ['Personal', 'Account', 'Security'];
-export const ORG_REG_STEPS = ['Organization', 'Signatory', 'Account', 'Security'];
+export const ORG_REG_STEPS = ['Organization', 'Address', 'Contact', 'Administrator', 'Documents', 'Review', 'Declaration'];
 
-export function emptyPublicReg() {
-  return {
-    name: '',
-    mobile: '',
-    email: '',
-    gender: '',
-    dob: '',
-    address: '',
-    loginId: '',
-    password: '',
-    confirm: '',
-    q1: '',
-    a1: '',
-    q2: '',
-    a2: '',
-    captcha: '',
-    otp: '',
-  };
-}
 
 export function emptyOrgReg() {
   return {
-    orgName: '',
-    orgType: '',
-    licenceNo: '',
-    address: '',
-    city: '',
-    pinCode: '',
-    policeStation: '',
-    signatoryName: '',
-    designation: '',
-    idType: '',
-    idNumber: '',
-    mobile: '',
-    email: '',
+    orgName: 'Little Scholars Academy',
+    orgType: 'School',
+    parentOrg: 'LSA Educational Trust',
+    department: 'Primary Section',
+    jurisdiction: 'Banjara Hills PS',
+    country: 'India',
+    state: 'Telangana',
+    district: 'Hyderabad',
+    city: 'Hyderabad',
+    address: 'Road No 12, Banjara Hills',
+    pinCode: '500034',
+    officialEmail: 'info@littlescholars.edu.in',
+    officialPhone: '040-23344556',
+    altPhone: '040-23344557',
+    website: 'https://littlescholars.edu.in',
+    adminName: 'Ravi Kumar',
+    designation: 'Principal',
+    empId: 'LSA-001',
+    adminEmail: 'principal@littlescholars.edu.in',
+    mobile: '9876543210',
+    loginId: 'lsa_admin',
+    password: 'password123',
+    confirm: 'password123',
+    authLetter: null,
+    govCert: null,
+    supportingDocs: null,
+    acceptTerms: false,
+    acceptPrivacy: false,
+    confirmInfo: false,
     otp: '',
-    loginId: '',
-    password: '',
-    confirm: '',
-    q1: '',
-    a1: '',
-    q2: '',
-    a2: '',
     captcha: '',
   };
 }
+
+
 
 export function getLoginSuccessMessage(role) {
   if (role === 'police') {
@@ -86,7 +76,7 @@ export function getLoginSuccessMessage(role) {
   if (role === 'organization') {
     return 'Signed in (demo). The Organization portal would open here — manage clearance requests and track verifications.';
   }
-  return 'Signed in (demo). The Public Services portal would open here.';
+  return 'Signed in (demo). The Organization Services portal would open here.';
 }
 
 export function getLoginDescription(role) {

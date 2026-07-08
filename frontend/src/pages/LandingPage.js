@@ -58,7 +58,7 @@ function LandingPage() {
               <div className="mt-10 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
                 <Link to="/services" className="btn-accent text-base px-8 py-4">
                   <Building2 className="h-5 w-5" />
-                  Public Services
+                  Organization Services
                 </Link>
                 <Link to="/login" className="btn-primary text-base px-8 py-4 bg-white/10 border border-white/20 hover:bg-white/20">
                   <LogIn className="h-5 w-5" />
@@ -363,17 +363,13 @@ function LandingPage() {
               Ready to access the portal?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Public users and organizations can create an account for verified services. Police officers sign in with
+              Organizations can create an account for verified services. Police officers sign in with
               department-provisioned credentials.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/login" className="btn-primary text-base px-8 py-4">
                 <LogIn className="h-5 w-5" />
                 Login
-              </Link>
-              <Link to="/login?role=public&mode=register" className="btn-secondary text-base px-8 py-4">
-                Create Public Account
-                <ArrowRight className="h-5 w-5" />
               </Link>
               <Link to="/login?role=organization&mode=register" className="btn-accent text-base px-8 py-4">
                 Register Organization

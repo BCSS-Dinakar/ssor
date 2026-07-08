@@ -1,21 +1,80 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import MarketingLayout from './layout/MarketingLayout';
+import PortalLayout from './layout/PortalLayout';
 import LandingPage from './pages/LandingPage';
+import OrganizationServicesPage from './pages/OrganizationServicesPage';
 import LoginPage from './pages/LoginPage';
-import PublicServicesPage from './pages/PublicServicesPage';
+
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+
+import PortalIndex from './pages/portal/PortalIndex';
+import Profile from './pages/portal/Profile';
+
+import RegistryDatabase from './pages/portal/police/RegistryDatabase';
+import AddOffenderRecord from './pages/portal/police/AddOffenderRecord';
+import PendingVerifications from './pages/portal/police/PendingVerifications';
+import VerificationHistory from './pages/portal/police/VerificationHistory';
+import OrganizationApprovals from './pages/portal/police/OrganizationApprovals';
+import OrganizationApprovalDetails from './pages/portal/police/OrganizationApprovalDetails';
+import OffenderDetail from './pages/portal/police/OffenderDetail';
+import VerificationVetting from './pages/portal/police/VerificationVetting';
+
+import SystemAuditLog from './pages/portal/police/SystemAuditLog';
+
+import SubmitVerification from './pages/portal/organization/SubmitVerification';
+import VerificationRequests from './pages/portal/organization/VerificationRequests';
+import VerifiedPersonnel from './pages/portal/organization/VerifiedPersonnel';
+import PersonnelDetails from './pages/portal/organization/PersonnelDetails';
+import VerificationDetails from './pages/portal/organization/VerificationDetails';
+import LegalResources from './pages/portal/organization/LegalResources';
+import ComplianceAndSupport from './pages/portal/organization/ComplianceAndSupport';
+
 
 function App() {
   return (
     <Router>
-      <Navbar />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        {/* Marketing site */}
+        <Route element={<MarketingLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/services" element={<OrganizationServicesPage />} />
+
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+        </Route>
+
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/services" element={<PublicServicesPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
+
+        {/* Protected role-based portal */}
+        <Route path="/portal" element={<PortalLayout />}>
+          <Route index element={<PortalIndex />} />
+          {/* Shared */}
+          <Route path="profile" element={<Profile />} />
+          {/* Police */}
+          <Route path="register" element={<RegistryDatabase />} />
+          <Route path="register/:id" element={<OffenderDetail />} />
+          <Route path="new" element={<AddOffenderRecord />} />
+          <Route path="clearances" element={<PendingVerifications />} />
+          <Route path="clearances/:id" element={<VerificationVetting />} />
+          <Route path="clearance-history" element={<VerificationHistory />} />
+          <Route path="clearance-history/:id" element={<VerificationVetting />} />
+          <Route path="org-verify" element={<OrganizationApprovals />} />
+          <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
+
+          <Route path="audit" element={<SystemAuditLog />} />
+          {/* Organization */}
+          <Route path="apply" element={<SubmitVerification />} />
+          <Route path="requests" element={<VerificationRequests />} />
+          <Route path="candidates" element={<VerifiedPersonnel />} />
+          <Route path="candidates/:id" element={<PersonnelDetails />} />
+          <Route path="track/:id" element={<VerificationDetails />} />
+          <Route path="resources" element={<LegalResources />} />
+          <Route path="compliance" element={<ComplianceAndSupport />} />
+
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

@@ -44,7 +44,7 @@ function ContactPage() {
             Contact Us
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            For enquiries about public services, organization registration, technical support, or media — reach us through the channels below.
+            For enquiries about organization registration, technical support, or media — reach us through the channels below.
           </p>
         </div>
       </PageHero>
@@ -280,7 +280,8 @@ function ContactPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { icon: ShieldCheck, title: 'Login', text: 'Access your account or the police portal.', to: '/login', color: 'text-accent', bg: 'bg-amber-50' },
-              { icon: Building2, title: 'Public Services', text: 'Apply for clearance or disclosure.', to: '/services', color: 'text-secondary', bg: 'bg-blue-50' },
+              { icon: Building2, title: 'Organization Services', text: 'Apply for clearance.', to: '/services', color: 'text-secondary', bg: 'bg-blue-50' },
+
               { icon: HelpCircle, title: 'About SSOR', text: 'Learn about the system and legal basis.', to: '/about', color: 'text-emerald-600', bg: 'bg-emerald-50' },
               { icon: Phone, title: 'Emergency', text: 'Call 100/112 for immediate police help.', to: '/contact', color: 'text-red-600', bg: 'bg-red-50' },
             ].map((link) => (

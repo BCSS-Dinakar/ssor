@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   Lock,
   User,
@@ -7,6 +8,8 @@ import {
   LogIn,
   UserPlus,
   CheckCircle2,
+  Clock,
+  Home,
   AlertTriangle,
   Info,
   ArrowLeft,
@@ -16,12 +19,8 @@ import {
 import {
   ROLES,
   ORG_TYPES,
-  SIGNATORY_ID_TYPES,
-  SECURITY_QUESTIONS,
   DEMO_OTP,
-  PUBLIC_REG_STEPS,
   ORG_REG_STEPS,
-  emptyPublicReg,
   emptyOrgReg,
   getLoginSuccessMessage,
   getLoginDescription,
@@ -36,18 +35,62 @@ function makeCaptcha() {
 
 function Field({ label, required, children, hint, className = '' }) {
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
-      <label className="text-sm font-semibold text-slate-700 tracking-wide">
-        {label} {required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      {children}
+    <div className={`flex flex-col h-full gap-2 ${className}`}>
+      <div className="flex-1 flex flex-col justify-end">
+        <label className="text-sm font-semibold text-slate-700 tracking-wide">
+          {label} {required && <span className="text-red-500 ml-0.5">*</span>}
+        </label>
+      </div>
+      <div className="w-full">
+        {children}
+      </div>
       {hint && <span className="text-xs text-slate-500 font-medium">{hint}</span>}
     </div>
   );
 }
 
-const inputClass =
-  'w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 focus:bg-white focus:border-secondary focus:ring-4 focus:ring-secondary/10 placeholder-slate-400';
+
+const baseInputClass = 'w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm outline-none transition-all duration-300 placeholder-slate-400';
+
+function getInputClass(val, type = 'text', matchVal = '') {
+  const value = val || '';
+  if (!value) {
+    return `${baseInputClass} border-slate-200 text-slate-800 focus:bg-white focus:border-secondary focus:ring-4 focus:ring-secondary/10`;
+  }
+  
+  let isValid = false;
+  let isWeak = false;
+
+  if (type === 'email') {
+    isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    isWeak = !isValid && value.length > 0;
+  } else if (type === 'phone') {
+    isValid = /^\d{10}$/.test(value);
+    isWeak = !isValid && value.length > 0;
+  } else if (type === 'pin') {
+    isValid = /^\d{6}$/.test(value);
+    isWeak = !isValid && value.length > 0;
+  } else if (type === 'password') {
+    isValid = value.length >= 8;
+    isWeak = !isValid && value.length > 0;
+  } else if (type === 'confirm') {
+    isValid = value === matchVal && value.length >= 8;
+    isWeak = !isValid && value.length > 0;
+  } else {
+    isValid = value.trim().length > 0;
+  }
+
+  if (isValid) {
+    return `${baseInputClass} border-emerald-500 bg-emerald-50/30 text-emerald-900 focus:ring-4 focus:ring-emerald-500/20`;
+  }
+  if (isWeak) {
+    return `${baseInputClass} border-amber-400 bg-amber-50/30 text-amber-900 focus:ring-4 focus:ring-amber-400/20`;
+  }
+  return `${baseInputClass} border-slate-200 text-slate-800 focus:border-secondary focus:ring-4 focus:ring-secondary/10`;
+}
+
+const inputClass = `${baseInputClass} border-slate-200 text-slate-800 focus:bg-white focus:border-secondary focus:ring-4 focus:ring-secondary/10 placeholder-slate-400`;
+
 
 function Captcha({ value, code, onChange, onRefresh }) {
   return (
@@ -135,65 +178,35 @@ function StepIndicator({ steps, currentStep }) {
   );
 }
 
-function SecurityFields({ reg, setReg, regCaptcha, refreshRegCaptcha }) {
-  return (
-    <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Field label="Security question 1" required>
-          <select className={inputClass} value={reg.q1} onChange={(e) => setReg({ ...reg, q1: e.target.value })}>
-            <option value="">Select</option>
-            {SECURITY_QUESTIONS.map((q) => (
-              <option key={q}>{q}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Security answer 1" required>
-          <input className={inputClass} value={reg.a1} onChange={(e) => setReg({ ...reg, a1: e.target.value })} />
-        </Field>
-        <Field label="Security question 2" required>
-          <select className={inputClass} value={reg.q2} onChange={(e) => setReg({ ...reg, q2: e.target.value })}>
-            <option value="">Select</option>
-            {SECURITY_QUESTIONS.map((q) => (
-              <option key={q}>{q}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Security answer 2" required>
-          <input className={inputClass} value={reg.a2} onChange={(e) => setReg({ ...reg, a2: e.target.value })} />
-        </Field>
-      </div>
-      <div className="border-t border-gray-100 pt-5">
-        <Captcha value={reg.captcha} code={regCaptcha} onChange={(v) => setReg({ ...reg, captcha: v })} onRefresh={refreshRegCaptcha} />
-      </div>
-    </div>
-  );
-}
-
 function LoginPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const roleParam = searchParams.get('role');
   const modeParam = searchParams.get('mode');
 
-  const initialRole = ['public', 'organization', 'police'].includes(roleParam) ? roleParam : 'public';
+  const initialRole = ['organization', 'police'].includes(roleParam) ? roleParam : 'organization';
   const initialMode = modeParam === 'register' && initialRole !== 'police' ? 'register' : 'login';
 
   const [role, setRole] = useState(initialRole);
   const [mode, setMode] = useState(initialMode);
 
-  const [loginForm, setLoginForm] = useState({ userId: '', password: '', officerId: '', captcha: '' });
+  const [initialCaptcha] = useState(makeCaptcha);
+  const [loginForm, setLoginForm] = useState({ userId: 'demo_user', password: 'password123', officerId: 'POL123', captcha: initialCaptcha });
   const [showPassword, setShowPassword] = useState(false);
-  const [loginCaptcha, setLoginCaptcha] = useState(makeCaptcha());
+  const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
 
-  const [publicReg, setPublicReg] = useState(emptyPublicReg());
+
   const [orgReg, setOrgReg] = useState(emptyOrgReg());
   const [regCaptcha, setRegCaptcha] = useState(makeCaptcha());
   const [regAlert, setRegAlert] = useState(null);
   const [otpSent, setOtpSent] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [regStep, setRegStep] = useState(1);
 
-  const maxRegStep = role === 'organization' ? ORG_REG_STEPS.length : PUBLIC_REG_STEPS.length;
-  const canRegister = role === 'public' || role === 'organization';
+  const maxRegStep = ORG_REG_STEPS.length;
+  const canRegister = role === 'organization';
 
   useEffect(() => {
     if (role === 'police') setMode('login');
@@ -201,7 +214,6 @@ function LoginPage() {
     setRegAlert(null);
     setRegStep(1);
     setOtpSent(false);
-    setPublicReg(emptyPublicReg());
     setOrgReg(emptyOrgReg());
     setRegCaptcha(makeCaptcha());
   }, [role]);
@@ -220,7 +232,6 @@ function LoginPage() {
 
   const refreshRegCaptchaState = useCallback(() => {
     setRegCaptcha(makeCaptcha());
-    setPublicReg((r) => ({ ...r, captcha: '' }));
     setOrgReg((r) => ({ ...r, captcha: '' }));
   }, []);
 
@@ -237,6 +248,8 @@ function LoginPage() {
       return setLoginAlert({ type: 'error', message: 'Captcha does not match. Please try again.' });
     }
     setLoginAlert({ type: 'success', message: getLoginSuccessMessage(role) });
+    login(role, { loginId: loginForm.userId.trim() });
+    setTimeout(() => navigate('/portal'), 700);
     return undefined;
   };
 
@@ -250,38 +263,23 @@ function LoginPage() {
   };
 
   const validateOtp = () => {
-    const otp = role === 'organization' ? orgReg.otp : publicReg.otp;
+    const otp = orgReg.otp;
     if (!otpSent) return setRegAlert({ type: 'error', message: 'Please request and enter the OTP sent to your mobile.' });
     if (otp.trim() !== DEMO_OTP) return setRegAlert({ type: 'error', message: `Invalid OTP. (Demo OTP is ${DEMO_OTP}.)` });
     return true;
   };
 
-  const validatePublicStep1 = () => {
-    if (!publicReg.name.trim() || !publicReg.mobile.trim() || !publicReg.gender || !publicReg.dob) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required personal details.' });
-    }
-    if (!/^\d{10}$/.test(publicReg.mobile.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
-    }
-    if (!validateOtp()) return false;
-    if (publicReg.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(publicReg.email.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid email address.' });
-    }
-    return true;
-  };
-
-  const validateAccountStep = (reg) => {
-    if (!reg.loginId.trim() || !reg.password || !reg.confirm) {
-      return setRegAlert({ type: 'error', message: 'Please fill all account details.' });
-    }
-    if (reg.password.length < 8) return setRegAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
-    if (reg.password !== reg.confirm) return setRegAlert({ type: 'error', message: 'Passwords do not match.' });
-    return true;
-  };
 
   const validateOrgStep1 = () => {
-    if (!orgReg.orgName.trim() || !orgReg.orgType || !orgReg.licenceNo.trim() || !orgReg.address.trim() || !orgReg.city.trim() || !orgReg.pinCode.trim()) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required organization details.' });
+    if (!orgReg.orgName.trim() || !orgReg.orgType) {
+      return setRegAlert({ type: 'error', message: 'Organization name and type are required.' });
+    }
+    return true;
+  };
+
+  const validateOrgStep2 = () => {
+    if (!orgReg.country || !orgReg.state || !orgReg.city || !orgReg.address.trim() || !orgReg.pinCode.trim()) {
+      return setRegAlert({ type: 'error', message: 'Please fill all required address details.' });
     }
     if (!/^\d{6}$/.test(orgReg.pinCode.trim())) {
       return setRegAlert({ type: 'error', message: 'Enter a valid 6-digit PIN code.' });
@@ -289,31 +287,41 @@ function LoginPage() {
     return true;
   };
 
-  const validateOrgStep2 = () => {
-    if (!orgReg.signatoryName.trim() || !orgReg.designation.trim() || !orgReg.mobile.trim() || !orgReg.email.trim()) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required signatory details.' });
+  const validateOrgStep3 = () => {
+    if (!orgReg.officialEmail.trim() || !orgReg.officialPhone.trim()) {
+      return setRegAlert({ type: 'error', message: 'Please fill all required contact details.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.officialEmail.trim())) {
+      return setRegAlert({ type: 'error', message: 'Enter a valid official email address.' });
+    }
+    return true;
+  };
+
+  const validateOrgStep4 = () => {
+    if (!orgReg.adminName.trim() || !orgReg.designation.trim() || !orgReg.empId.trim() || !orgReg.mobile.trim() || !orgReg.loginId.trim() || !orgReg.password || !orgReg.confirm) {
+      return setRegAlert({ type: 'error', message: 'Please fill all required administrator details.' });
     }
     if (!/^\d{10}$/.test(orgReg.mobile.trim())) {
       return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.email.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid official email address.' });
-    }
+    if (orgReg.password.length < 8) return setRegAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
+    if (orgReg.password !== orgReg.confirm) return setRegAlert({ type: 'error', message: 'Passwords do not match.' });
     if (!validateOtp()) return false;
     return true;
   };
+  
+  const validateOrgStep5 = () => {
+    // Basic frontend mock check
+    return true;
+  };
 
-  const validateSecurityStep = (reg) => {
-    const required = [
-      [reg.q1, 'Security question 1'],
-      [reg.a1, 'Security answer 1'],
-      [reg.q2, 'Security question 2'],
-      [reg.a2, 'Security answer 2'],
-    ];
-    const missing = required.find(([v]) => !String(v).trim());
-    if (missing) return setRegAlert({ type: 'error', message: `${missing[1]} is required.` });
-    if (reg.q1 === reg.q2) return setRegAlert({ type: 'error', message: 'Please choose two different security questions.' });
-    if (reg.captcha !== regCaptcha) {
+  const validateOrgStep6 = () => true;
+
+  const validateOrgStep7 = () => {
+    if (!orgReg.acceptTerms || !orgReg.acceptPrivacy || !orgReg.confirmInfo) {
+      return setRegAlert({ type: 'error', message: 'You must accept the terms and confirm the information.' });
+    }
+    if (orgReg.captcha !== regCaptcha) {
       refreshRegCaptchaState();
       return setRegAlert({ type: 'error', message: 'Captcha does not match. Please try again.' });
     }
@@ -322,14 +330,12 @@ function LoginPage() {
 
   const nextStep = () => {
     setRegAlert(null);
-    if (role === 'public') {
-      if (regStep === 1 && validatePublicStep1()) setRegStep(2);
-      else if (regStep === 2 && validateAccountStep(publicReg)) setRegStep(3);
-    } else if (role === 'organization') {
-      if (regStep === 1 && validateOrgStep1()) setRegStep(2);
-      else if (regStep === 2 && validateOrgStep2()) setRegStep(3);
-      else if (regStep === 3 && validateAccountStep(orgReg)) setRegStep(4);
-    }
+    if (regStep === 1 && validateOrgStep1()) setRegStep(2);
+    else if (regStep === 2 && validateOrgStep2()) setRegStep(3);
+    else if (regStep === 3 && validateOrgStep3()) setRegStep(4);
+    else if (regStep === 4 && validateOrgStep4()) setRegStep(5);
+    else if (regStep === 5 && validateOrgStep5()) setRegStep(6);
+    else if (regStep === 6 && validateOrgStep6()) setRegStep(7);
   };
 
   const prevStep = () => {
@@ -344,18 +350,12 @@ function LoginPage() {
       return;
     }
 
-    const reg = role === 'organization' ? orgReg : publicReg;
-    if (!validateSecurityStep(reg)) return;
+    if (!validateOrgStep7()) return;
 
     if (role === 'organization') {
       setRegAlert({
         type: 'success',
-        message: `Organization account created for ${orgReg.loginId} (demo). Police verification of institution credentials would follow.`,
-      });
-    } else {
-      setRegAlert({
-        type: 'success',
-        message: `Account created for ${publicReg.loginId} (demo). You can now sign in as a Public user.`,
+        message: `Pending Verification: Application submitted for ${orgReg.orgName}. SSOR Super Admin review pending.`,
       });
     }
   };
@@ -394,7 +394,7 @@ function LoginPage() {
               Secure, controlled-access sign in.
             </h1>
             <p className="text-blue-100/90 text-lg max-w-md leading-relaxed">
-              Government of Telangana, State Police. Public users, organizations and officers each access the register through their own doorway.
+              Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-blue-200/50 uppercase tracking-widest font-semibold">
@@ -483,7 +483,7 @@ function LoginPage() {
                     <div className="relative">
                       <User className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
-                        className={inputClass + ' pl-9'}
+                        className={getInputClass(loginForm.userId, 'text') + ' pl-9'}
                         placeholder={role === 'police' ? 'e.g. insp.naidu' : 'Your registered login ID'}
                         value={loginForm.userId}
                         onChange={(e) => setLoginForm({ ...loginForm, userId: e.target.value })}
@@ -507,7 +507,7 @@ function LoginPage() {
                       <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        className={inputClass + ' pl-9 pr-10'}
+                        className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
                         placeholder="Enter your password"
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
@@ -553,109 +553,43 @@ function LoginPage() {
                 </form>
               )}
 
-              {/* Public registration */}
-              {mode === 'register' && role === 'public' && (
-                <form onSubmit={handleRegister} className="space-y-5">
-                  <div>
-                    <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Citizen Registration</h2>
-                    <p className="text-sm text-slate-500 mt-2">Create an account to access verified public services.</p>
-                  </div>
-
-                  <StepIndicator steps={PUBLIC_REG_STEPS} currentStep={regStep} />
-                  <Alert type={regAlert?.type} message={regAlert?.message} />
-
-                  <div className="min-h-[240px]">
-                    {regStep === 1 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Name" required>
-                          <input className={inputClass} value={publicReg.name} onChange={(e) => setPublicReg({ ...publicReg, name: e.target.value })} placeholder="Full name" />
-                        </Field>
-                        <Field label="Mobile number" required>
-                          <div className="flex gap-2">
-                            <input
-                              className={inputClass}
-                              value={publicReg.mobile}
-                              onChange={(e) => setPublicReg({ ...publicReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                              placeholder="10-digit mobile"
-                              inputMode="numeric"
-                            />
-                            <button type="button" onClick={() => sendOtp(publicReg.mobile)} className="btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0">
-                              {otpSent ? 'Resend' : 'Send OTP'}
-                            </button>
-                          </div>
-                        </Field>
-                        <Field label="OTP verification code" required hint={`Demo OTP is ${DEMO_OTP}.`}>
-                          <input
-                            className={inputClass}
-                            value={publicReg.otp}
-                            onChange={(e) => setPublicReg({ ...publicReg, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                            placeholder="6-digit OTP"
-                            inputMode="numeric"
-                          />
-                        </Field>
-                        <Field label="Email ID">
-                          <input className={inputClass} value={publicReg.email} onChange={(e) => setPublicReg({ ...publicReg, email: e.target.value })} placeholder="name@example.com" />
-                        </Field>
-                        <Field label="Gender" required>
-                          <select className={inputClass} value={publicReg.gender} onChange={(e) => setPublicReg({ ...publicReg, gender: e.target.value })}>
-                            <option value="">Select</option>
-                            <option>Female</option>
-                            <option>Male</option>
-                            <option>Transgender</option>
-                          </select>
-                        </Field>
-                        <Field label="Date of birth" required>
-                          <input type="date" className={inputClass} value={publicReg.dob} onChange={(e) => setPublicReg({ ...publicReg, dob: e.target.value })} />
-                        </Field>
-                        <Field label="Address" className="sm:col-span-2">
-                          <input className={inputClass} value={publicReg.address} onChange={(e) => setPublicReg({ ...publicReg, address: e.target.value })} placeholder="City / district" />
-                        </Field>
-                      </div>
-                    )}
-                    {regStep === 2 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Login ID" required className="sm:col-span-2 sm:max-w-sm">
-                          <input className={inputClass} value={publicReg.loginId} onChange={(e) => setPublicReg({ ...publicReg, loginId: e.target.value })} placeholder="Choose a login ID" />
-                        </Field>
-                        <Field label="Password" required hint="At least 8 characters.">
-                          <input type="password" className={inputClass} value={publicReg.password} onChange={(e) => setPublicReg({ ...publicReg, password: e.target.value })} placeholder="Create a password" />
-                        </Field>
-                        <Field label="Confirm password" required>
-                          <input type="password" className={inputClass} value={publicReg.confirm} onChange={(e) => setPublicReg({ ...publicReg, confirm: e.target.value })} placeholder="Re-enter password" />
-                        </Field>
-                      </div>
-                    )}
-                    {regStep === 3 && (
-                      <SecurityFields reg={publicReg} setReg={setPublicReg} regCaptcha={regCaptcha} refreshRegCaptcha={refreshRegCaptchaState} />
-                    )}
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    {regStep > 1 && (
-                      <button type="button" onClick={prevStep} className="flex-1 btn-secondary justify-center py-3.5 rounded-xl text-base bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50">
-                        Back
-                      </button>
-                    )}
-                    <button type="submit" className="flex-[2] btn-primary justify-center py-3.5 rounded-xl shadow-lg shadow-primary/20 text-base">
-                      {regStep === maxRegStep ? (
-                        <><UserPlus className="h-5 w-5 mr-2" /> Create Account</>
-                      ) : (
-                        'Next Step'
-                      )}
-                    </button>
-                  </div>
-
-                  <p className="text-center text-sm text-slate-500 font-medium">
-                    Already registered?{' '}
-                    <button type="button" onClick={() => setMode('login')} className="text-secondary hover:text-blue-700 transition-colors">
-                      Sign in
-                    </button>
-                  </p>
-                </form>
-              )}
 
               {/* Organization registration */}
-              {mode === 'register' && role === 'organization' && (
+              
+              {/* Registration Success Screen */}
+              {mode === 'register' && role === 'organization' && isSubmitted && (
+                <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6">
+                  <div className="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20 mb-4 animate-pulse">
+                    <Clock className="w-12 h-12" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-800 font-heading">Application Under Review</h2>
+                  <div className="max-w-md text-slate-500 space-y-4">
+                    <p>
+                      Thank you for registering <strong>{orgReg.orgName || 'your organization'}</strong>.
+                    </p>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm shadow-inner">
+                      Your application has been forwarded to the Police Verification Department. Verification typically takes 2-3 business days.
+                    </div>
+                    <p>
+                      You will receive an email notification at <strong>{orgReg.adminEmail || 'your official email'}</strong> once your account has been approved.
+                    </p>
+                  </div>
+                  <div className="pt-6">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSubmitted(false);
+                        setMode('login');
+                      }}
+                      className="btn-primary"
+                    >
+                      <Home className="w-4 h-4" /> Return to Sign In
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'register' && role === 'organization' && !isSubmitted && (
                 <form onSubmit={handleRegister} className="space-y-5">
                   <div>
                     <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Organization Registration</h2>
@@ -671,63 +605,86 @@ function LoginPage() {
                     {regStep === 1 && (
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Field label="Organization name" required className="sm:col-span-2">
-                          <input className={inputClass} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Little Scholars School" />
+                          <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Little Scholars School" />
                         </Field>
                         <Field label="Organization type" required>
-                          <select className={inputClass} value={orgReg.orgType} onChange={(e) => setOrgReg({ ...orgReg, orgType: e.target.value })}>
+                          <select className={getInputClass(orgReg.orgType, 'text')} value={orgReg.orgType} onChange={(e) => setOrgReg({ ...orgReg, orgType: e.target.value })}>
                             <option value="">Select</option>
                             {ORG_TYPES.map((t) => (
                               <option key={t}>{t}</option>
                             ))}
                           </select>
                         </Field>
-                        <Field label="Registration / licence number" required>
-                          <input className={inputClass} value={orgReg.licenceNo} onChange={(e) => setOrgReg({ ...orgReg, licenceNo: e.target.value })} placeholder="Licence or registration no." />
+                        <Field label="Parent organization">
+                          <input className={getInputClass(orgReg.parentOrg, 'text')} value={orgReg.parentOrg} onChange={(e) => setOrgReg({ ...orgReg, parentOrg: e.target.value })} placeholder="e.g. Trust or Society Name" />
                         </Field>
-                        <Field label="Full address" required className="sm:col-span-2">
-                          <input className={inputClass} value={orgReg.address} onChange={(e) => setOrgReg({ ...orgReg, address: e.target.value })} placeholder="Street, area" />
+                        <Field label="Department / Unit">
+                          <input className={getInputClass(orgReg.department, 'text')} value={orgReg.department} onChange={(e) => setOrgReg({ ...orgReg, department: e.target.value })} placeholder="e.g. Primary Section" />
                         </Field>
-                        <Field label="City / district" required>
-                          <input className={inputClass} value={orgReg.city} onChange={(e) => setOrgReg({ ...orgReg, city: e.target.value })} placeholder="e.g. Hyderabad" />
+                        <Field label="Jurisdiction">
+                          <input className={getInputClass(orgReg.jurisdiction, 'text')} value={orgReg.jurisdiction} onChange={(e) => setOrgReg({ ...orgReg, jurisdiction: e.target.value })} placeholder="e.g. South Zone" />
                         </Field>
-                        <Field label="PIN code" required>
-                          <input
-                            className={inputClass}
-                            value={orgReg.pinCode}
+                      </div>
+                    )}
+                    
+                    {regStep === 2 && (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label="Country" required>
+                          <input className={getInputClass(orgReg.country, 'text')} value={orgReg.country} onChange={(e) => setOrgReg({ ...orgReg, country: e.target.value })} placeholder="Country" readOnly />
+                        </Field>
+                        <Field label="State" required>
+                          <input className={getInputClass(orgReg.state, 'text')} value={orgReg.state} onChange={(e) => setOrgReg({ ...orgReg, state: e.target.value })} placeholder="State" />
+                        </Field>
+                        <Field label="District" required>
+                          <input className={getInputClass(orgReg.district, 'text')} value={orgReg.district} onChange={(e) => setOrgReg({ ...orgReg, district: e.target.value })} placeholder="District" />
+                        </Field>
+                        <Field label="City" required>
+                          <input className={getInputClass(orgReg.city, 'text')} value={orgReg.city} onChange={(e) => setOrgReg({ ...orgReg, city: e.target.value })} placeholder="City / Town" />
+                        </Field>
+                        <Field label="Address" required className="sm:col-span-2">
+                          <input className={getInputClass(orgReg.address, 'text')} value={orgReg.address} onChange={(e) => setOrgReg({ ...orgReg, address: e.target.value })} placeholder="Street address, building, etc." />
+                        </Field>
+                        <Field label="PIN Code" required>
+                          <input className={getInputClass(orgReg.pinCode, 'pin')} value={orgReg.pinCode}
                             onChange={(e) => setOrgReg({ ...orgReg, pinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                             placeholder="6-digit PIN"
                             inputMode="numeric"
                           />
                         </Field>
-                        <Field label="Police station jurisdiction" className="sm:col-span-2">
-                          <input className={inputClass} value={orgReg.policeStation} onChange={(e) => setOrgReg({ ...orgReg, policeStation: e.target.value })} placeholder="e.g. Banjara Hills PS" />
+                      </div>
+                    )}
+
+                    {regStep === 3 && (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label="Official Email" required className="sm:col-span-2">
+                          <input className={inputClass} type="email" value={orgReg.officialEmail} onChange={(e) => setOrgReg({ ...orgReg, officialEmail: e.target.value })} placeholder="official@institution.edu" />
+                        </Field>
+                        <Field label="Official Phone" required>
+                          <input className={getInputClass(orgReg.officialPhone, 'phone')} value={orgReg.officialPhone} onChange={(e) => setOrgReg({ ...orgReg, officialPhone: e.target.value })} placeholder="e.g. 040-12345678" />
+                        </Field>
+                        <Field label="Alternate Phone">
+                          <input className={getInputClass(orgReg.altPhone, 'phone')} value={orgReg.altPhone} onChange={(e) => setOrgReg({ ...orgReg, altPhone: e.target.value })} placeholder="Alternate contact number" />
+                        </Field>
+                        <Field label="Website" className="sm:col-span-2">
+                          <input className={inputClass} type="url" value={orgReg.website} onChange={(e) => setOrgReg({ ...orgReg, website: e.target.value })} placeholder="https://www.institution.edu" />
                         </Field>
                       </div>
                     )}
-                    {regStep === 2 && (
+
+                    {regStep === 4 && (
                       <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Signatory full name" required>
-                          <input className={inputClass} value={orgReg.signatoryName} onChange={(e) => setOrgReg({ ...orgReg, signatoryName: e.target.value })} placeholder="Authorised signatory" />
+                        <Field label="Full Name" required>
+                          <input className={getInputClass(orgReg.adminName, 'text')} value={orgReg.adminName} onChange={(e) => setOrgReg({ ...orgReg, adminName: e.target.value })} placeholder="Administrator's name" />
                         </Field>
                         <Field label="Designation" required>
-                          <input className={inputClass} value={orgReg.designation} onChange={(e) => setOrgReg({ ...orgReg, designation: e.target.value })} placeholder="e.g. Principal, Director" />
+                          <input className={getInputClass(orgReg.designation, 'text')} value={orgReg.designation} onChange={(e) => setOrgReg({ ...orgReg, designation: e.target.value })} placeholder="e.g. Principal, Director" />
                         </Field>
-                        <Field label="Signatory ID type">
-                          <select className={inputClass} value={orgReg.idType} onChange={(e) => setOrgReg({ ...orgReg, idType: e.target.value })}>
-                            <option value="">Select</option>
-                            {SIGNATORY_ID_TYPES.map((t) => (
-                              <option key={t}>{t}</option>
-                            ))}
-                          </select>
+                        <Field label="Employee ID" required>
+                          <input className={getInputClass(orgReg.empId, 'text')} value={orgReg.empId} onChange={(e) => setOrgReg({ ...orgReg, empId: e.target.value })} placeholder="Staff ID" />
                         </Field>
-                        <Field label="Signatory ID number">
-                          <input className={inputClass} value={orgReg.idNumber} onChange={(e) => setOrgReg({ ...orgReg, idNumber: e.target.value })} placeholder="ID number" />
-                        </Field>
-                        <Field label="Official mobile" required>
+                        <Field label="Mobile Number" required>
                           <div className="flex gap-2">
-                            <input
-                              className={inputClass}
-                              value={orgReg.mobile}
+                            <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
                               onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                               placeholder="10-digit mobile"
                               inputMode="numeric"
@@ -737,24 +694,20 @@ function LoginPage() {
                             </button>
                           </div>
                         </Field>
-                        <Field label="OTP verification code" required hint={`Demo OTP is ${DEMO_OTP}.`}>
-                          <input
-                            className={inputClass}
-                            value={orgReg.otp}
-                            onChange={(e) => setOrgReg({ ...orgReg, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                            placeholder="6-digit OTP"
-                            inputMode="numeric"
-                          />
+                        {otpSent && (
+                          <Field label="OTP Verification" required hint={`Demo OTP is ${DEMO_OTP}.`}>
+                            <input className={getInputClass(orgReg.otp, 'pin')} value={orgReg.otp}
+                              onChange={(e) => setOrgReg({ ...orgReg, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                              placeholder="6-digit OTP"
+                              inputMode="numeric"
+                            />
+                          </Field>
+                        )}
+                        <Field label="Official Email" required>
+                          <input className={inputClass} type="email" value={orgReg.adminEmail} onChange={(e) => setOrgReg({ ...orgReg, adminEmail: e.target.value })} placeholder="admin@institution.edu" />
                         </Field>
-                        <Field label="Official email" required className="sm:col-span-2">
-                          <input className={inputClass} value={orgReg.email} onChange={(e) => setOrgReg({ ...orgReg, email: e.target.value })} placeholder="official@institution.edu" />
-                        </Field>
-                      </div>
-                    )}
-                    {regStep === 3 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Login ID" required className="sm:col-span-2 sm:max-w-sm">
-                          <input className={inputClass} value={orgReg.loginId} onChange={(e) => setOrgReg({ ...orgReg, loginId: e.target.value })} placeholder="Choose a login ID" />
+                        <Field label="Username" required className="sm:col-span-2 sm:max-w-sm">
+                          <input className={getInputClass(orgReg.loginId, 'text')} value={orgReg.loginId} onChange={(e) => setOrgReg({ ...orgReg, loginId: e.target.value })} placeholder="Choose a unique username" />
                         </Field>
                         <Field label="Password" required hint="At least 8 characters.">
                           <input type="password" className={inputClass} value={orgReg.password} onChange={(e) => setOrgReg({ ...orgReg, password: e.target.value })} placeholder="Create a password" />
@@ -764,8 +717,70 @@ function LoginPage() {
                         </Field>
                       </div>
                     )}
-                    {regStep === 4 && (
-                      <SecurityFields reg={orgReg} setReg={setOrgReg} regCaptcha={regCaptcha} refreshRegCaptcha={refreshRegCaptchaState} />
+
+                    {regStep === 5 && (
+                      <div className="space-y-4">
+                        <Field label="Authorization Letter" required hint="PDF or JPG. Max 5MB.">
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, authLetter: e.target.files[0] })} />
+                        </Field>
+                        <Field label="Government Certificate" required hint="e.g. School Registration Certificate">
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
+                        </Field>
+                        <Field label="Supporting Documents (Optional)" hint="Additional accreditations or licences">
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
+                        </Field>
+                        <p className="text-xs text-slate-500 mt-2 italic">Note: File upload is simulated in this prototype.</p>
+                      </div>
+                    )}
+
+                    {regStep === 6 && (
+                      <div className="space-y-4 text-sm bg-white p-5 border border-slate-200 rounded-xl max-h-[400px] overflow-y-auto shadow-inner">
+                        <h3 className="font-semibold text-primary mb-2 border-b pb-2">Application Review</h3>
+                        <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                          <div className="text-slate-500">Organization Name</div>
+                          <div className="font-medium">{orgReg.orgName || '-'}</div>
+                          <div className="text-slate-500">Type</div>
+                          <div className="font-medium">{orgReg.orgType || '-'}</div>
+                          <div className="text-slate-500">City / District</div>
+                          <div className="font-medium">{orgReg.city || '-'} ({orgReg.district || '-'})</div>
+                          <div className="text-slate-500">Official Email</div>
+                          <div className="font-medium">{orgReg.officialEmail || '-'}</div>
+                          <div className="text-slate-500">Admin Name</div>
+                          <div className="font-medium">{orgReg.adminName || '-'}</div>
+                          <div className="text-slate-500">Username</div>
+                          <div className="font-medium">{orgReg.loginId || '-'}</div>
+                          <div className="text-slate-500">Uploaded Docs</div>
+                          <div className="font-medium text-emerald-600">
+                            {orgReg.authLetter ? 'Letter' : ''} {orgReg.govCert ? ', Cert' : ''}
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-4">Please ensure all details are correct. You cannot edit these once submitted.</p>
+                      </div>
+                    )}
+
+                    {regStep === 7 && (
+                      <div className="space-y-5">
+                        <div className="space-y-3 bg-white p-5 border border-slate-200 rounded-xl">
+                          <label className="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptTerms} onChange={(e) => setOrgReg({ ...orgReg, acceptTerms: e.target.checked })} />
+                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Register.</span>
+                          </label>
+                          <label className="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptPrivacy} onChange={(e) => setOrgReg({ ...orgReg, acceptPrivacy: e.target.checked })} />
+                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Privacy Policy and consent to data processing for verification.</span>
+                          </label>
+                          <label className="flex items-start gap-3 cursor-pointer group">
+                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.confirmInfo} onChange={(e) => setOrgReg({ ...orgReg, confirmInfo: e.target.checked })} />
+                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I confirm that all information provided is true and accurate to the best of my knowledge.</span>
+                          </label>
+                        </div>
+                        <Captcha
+                          value={orgReg.captcha}
+                          code={regCaptcha}
+                          onChange={(v) => setOrgReg({ ...orgReg, captcha: v })}
+                          onRefresh={refreshRegCaptchaState}
+                        />
+                      </div>
                     )}
                   </div>
 

@@ -20,7 +20,7 @@ function Footer() {
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-md">
               The State Sexual Offender Register is a conviction-based, controlled-access database with three
-              access roles — public users, organizations, and police officers — interoperable with the
+              access roles — organizations and police officers — interoperable with the
               National Database on Sexual Offenders.
             </p>
           </div>
@@ -31,7 +31,7 @@ function Footer() {
             <ul className="space-y-2">
               {[
                 { name: 'Home', path: '/' },
-                { name: 'Public Services', path: '/services' },
+                { name: 'Organization Services', path: '/services' },
                 { name: 'About SSOR', path: '/about' },
                 { name: 'Contact Us', path: '/contact' },
               ].map((link) => (
