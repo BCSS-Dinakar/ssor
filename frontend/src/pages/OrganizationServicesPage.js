@@ -15,9 +15,9 @@ import {
   Scale,
 } from 'lucide-react';
 
-import { services, steps, faqs } from '../utils/data/publicServicesData';
+import { services, steps, faqs } from '../utils/data/organizationServicesData';
 
-function PublicServicesPage() {
+function OrganizationServicesPage() {
   return (
     <div className="min-h-screen bg-background">
       <PageHero>
@@ -27,7 +27,7 @@ function PublicServicesPage() {
             Clearance, Disclosure & Registration
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading leading-tight">
-            Public <span className="text-accent">Services</span>
+            Organization <span className="text-accent">Services</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             Secure, controlled-access services for organizations and parents to ensure safety while upholding data privacy standards.
@@ -37,9 +37,7 @@ function PublicServicesPage() {
               Login as Organization
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
-            <Link to="/login?role=public" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
-              Login as Public
-            </Link>
+            
             <a href="#services" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
               View All Services
             </a>
@@ -169,7 +167,7 @@ function PublicServicesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Frequently asked questions</h2>
-            <p className="section-subtitle">Common questions about using the public services portal.</p>
+            <p className="section-subtitle">Common questions about using the organization services portal.</p>
           </div>
 
           <div className="space-y-4">
@@ -200,7 +198,7 @@ function PublicServicesPage() {
               Ready to get started?
             </h2>
             <p className="text-muted max-w-xl mx-auto mb-8 leading-relaxed">
-              Create a public account for limited disclosure, or register your organization to apply for clearance certificates.
+              Register your organization to apply for clearance certificates.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/login?role=organization&mode=register" className="btn-accent text-base px-8 py-4">
@@ -222,4 +220,4 @@ function PublicServicesPage() {
   );
 }
 
-export default PublicServicesPage;
+export default OrganizationServicesPage;

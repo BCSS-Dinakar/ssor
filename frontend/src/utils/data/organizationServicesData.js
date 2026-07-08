@@ -5,7 +5,6 @@ import {
   UserCheck,
   Fingerprint,
   BadgeCheck,
-  Search,
 } from 'lucide-react';
 
 export const services = [
@@ -27,24 +26,7 @@ export const services = [
     ],
     cta: { label: 'Login as Organization', to: '/login?role=organization' },
   },
-  {
-    icon: Search,
-    title: 'Limited Disclosure Request',
-    description:
-      'Where a registered offender presents an identified risk to a specific child, a parent or guardian may request limited disclosure under a written protocol.',
-    audience: 'Parents & Guardians',
-    audienceColor: 'bg-emerald-100 text-emerald-700',
-    accent: 'from-emerald-500 to-teal-400',
-    iconBg: 'bg-emerald-50',
-    iconColor: 'text-emerald-600',
-    points: [
-      'Request must relate to a specific, identified risk',
-      'Reviewed by an officer of DSP rank or above',
-      'Confidential — no general public lookup',
-      'Disclosure is protocol-bound and auditable',
-    ],
-    cta: { label: 'Login as Public', to: '/login?role=public' },
-  },
+  
   {
     icon: Building2,
     title: 'Organization Registration',
@@ -59,7 +41,7 @@ export const services = [
       'Submit licence & registration details',
       'Police verification of organization credentials',
       'Receive approved organization portal access',
-      'Manage multiple clearance requests from one dashboard',
+      'Manage multiple clearance requests from one portal',
     ],
     cta: { label: 'Register Organization', to: '/login?role=organization&mode=register' },
   },
@@ -97,10 +79,7 @@ export const faqs = [
     q: 'How long does verification take?',
     a: 'Standard clearance checks are processed within 7 working days. Urgent requests (for child-facing roles) may be expedited to 3 working days.',
   },
-  {
-    q: 'Can a parent request information about a specific person?',
-    a: 'Yes — but only under the limited disclosure protocol. The request must relate to a specific, identified risk to a child and is reviewed by an officer of DSP rank.',
-  },
+  
   {
     q: 'Is the register publicly searchable?',
     a: 'No. The register is never publicly searchable. All information flows through controlled police channels, consistent with the right to privacy.',

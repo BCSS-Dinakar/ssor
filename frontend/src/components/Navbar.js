@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, LogIn } from 'lucide-react';
+import { Menu, X, LogIn, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { auth } = useAuth();
+  const signedIn = Boolean(auth?.role);
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Public Services', path: '/services' },
+    { name: 'Organization Services', path: '/services' },
+
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -40,14 +44,14 @@ function Navbar() {
             ))}
           </div>
 
-          {/* Login Button */}
+          {/* Login / Portal Button */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              to="/login"
+              to={signedIn ? '/portal' : '/login'}
               className="bg-accent hover:bg-yellow-400 text-primary font-semibold px-5 py-2 rounded-xl text-sm transition-all duration-300 shadow-md hover:shadow-xl inline-flex items-center gap-2"
             >
-              <LogIn className="h-4 w-4" />
-              Login
+              {signedIn ? <LayoutDashboard className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {signedIn ? 'Portal' : 'Login'}
             </Link>
           </div>
 
@@ -76,13 +80,13 @@ function Navbar() {
               </Link>
             ))}
             <Link
-              to="/login"
+              to={signedIn ? '/portal' : '/login'}
               onClick={() => setIsOpen(false)}
               className="block bg-accent hover:bg-yellow-400 text-primary font-semibold px-4 py-3 rounded-xl text-sm text-center mt-3 transition-all shadow-md"
             >
               <span className="inline-flex items-center gap-2">
-                <LogIn className="h-4 w-4" />
-                Login
+                {signedIn ? <LayoutDashboard className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+                {signedIn ? 'Portal' : 'Login'}
               </span>
             </Link>
           </div>
