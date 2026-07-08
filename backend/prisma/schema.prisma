@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Minimal schema to start with, as requested
+// We can expand this with SSOR models later
+model SystemHealth {
+  id        Int      @id @default(autoincrement())
+  status    String
+  timestamp DateTime @default(now())
+}
