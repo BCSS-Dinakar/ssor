@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Police Registration - SSOR</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #334155; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .container { background: white; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); width: 100%; max-width: 400px; }
+    h1 { margin-top: 0; color: #0f172a; font-size: 1.5rem; }
+    p { color: #64748b; font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .field { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; }
+    input { width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+    button { width: 100%; padding: 0.75rem; background-color: #1e293b; color: white; border: none; border-radius: 0.5rem; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+    button:hover { background-color: #0f172a; }
+    .alert { padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; font-size: 0.875rem; display: none; }
+    .alert.error { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
+    .alert.success { background-color: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Police Officer Registration</h1>
+    <p>Create a new officer account for the SSOR portal.</p>
+    
+    <div id="alert" class="alert"></div>
+
+    <form id="registerForm">
+      <div class="field">
+        <label for="name">Officer Name</label>
+        <input type="text" id="name" placeholder="e.g. Insp. R. Naidu" required>
+      </div>
+      
+      <div class="field">
+        <label for="loginId">Officer Username (Login ID)</label>
+        <input type="text" id="loginId" placeholder="e.g. insp.naidu" required>
+      </div>
+
+      <div class="field">
+        <label for="badgeId">Badge ID</label>
+        <input type="text" id="badgeId" placeholder="e.g. ISP-8842">
+      </div>
+
+      <div class="field">
+        <label for="rank">Rank</label>
+        <input type="text" id="rank" placeholder="e.g. Inspector of Police">
+      </div>
+
+      <div class="field">
+        <label for="empId">Employee ID</label>
+        <input type="text" id="empId" placeholder="e.g. TS-POL-41922">
+      </div>
+
+      <div class="field">
+        <label for="department">Department</label>
+        <input type="text" id="department" placeholder="e.g. Crime Investigation Department (CID)">
+      </div>
+
+      <div class="field">
+        <label for="wing">Wing</label>
+        <input type="text" id="wing" placeholder="e.g. Anti-Human Trafficking & Child Vetting Cell">
+      </div>
+
+      <div class="field">
+        <label for="jurisdiction">Jurisdiction</label>
+        <input type="text" id="jurisdiction" placeholder="e.g. Cyberabad Commissionerate (West Zone)">
+      </div>
+
+      <div class="field">
+        <label for="station">Police Station</label>
+        <input type="text" id="station" placeholder="e.g. Miyapur Police Station">
+      </div>
+
+      <div class="field">
+        <label for="district">District / Commissionerate</label>
+        <input type="text" id="district" placeholder="e.g. Cyberabad Commissionerate">
+      </div>
+
+      <div class="field">
+        <label for="state">State</label>
+        <input type="text" id="state" placeholder="e.g. Telangana">
+      </div>
+
+      <div class="field">
+        <label for="country">Country</label>
+        <input type="text" id="country" placeholder="e.g. India" value="India">
+      </div>
+
+      <div class="field">
+        <label for="joiningDate">Joining Date</label>
+        <input type="date" id="joiningDate">
+      </div>
+
+      <div class="field">
+        <label for="email">Official Email</label>
+        <input type="email" id="email" placeholder="e.g. officer@tspolice.gov.in">
+      </div>
+
+      <div class="field">
+        <label for="mobile">Mobile Number</label>
+        <input type="tel" id="mobile" placeholder="e.g. 9876543210">
+      </div>
+
+      <div class="field">
+        <label for="altPhone">Alternate Phone / Landline</label>
+        <input type="tel" id="altPhone" placeholder="e.g. 040-23004122">
+      </div>
+
+      <div class="field">
+        <label for="clearanceLevel">Clearance Level</label>
+        <input type="text" id="clearanceLevel" placeholder="e.g. Level 3 Registry Administrator (Full Access)">
+      </div>
+      
+      <div class="field">
+        <label for="policeDocs">Supporting Documents (PDF, JPG, PNG - Max 5 files)</label>
+        <input type="file" id="policeDocs" multiple accept=".pdf,.jpg,.jpeg,.png">
+      </div>
+      
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+      
+      <button type="submit" id="submitBtn">Register Account</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const alertBox = document.getElementById('alert');
+      const btn = document.getElementById('submitBtn');
+      
+      const name = document.getElementById('name').value;
+      const loginId = document.getElementById('loginId').value;
+      const password = document.getElementById('password').value;
+      
+      const badgeId = document.getElementById('badgeId').value;
+      const rank = document.getElementById('rank').value;
+      const empId = document.getElementById('empId').value;
+      const department = document.getElementById('department').value;
+      const wing = document.getElementById('wing').value;
+      const jurisdiction = document.getElementById('jurisdiction').value;
+      const station = document.getElementById('station').value;
+      const district = document.getElementById('district').value;
+      const state = document.getElementById('state').value;
+      const country = document.getElementById('country').value;
+      const joiningDate = document.getElementById('joiningDate').value;
+      const email = document.getElementById('email').value;
+      const mobile = document.getElementById('mobile').value;
+      const altPhone = document.getElementById('altPhone').value;
+      const clearanceLevel = document.getElementById('clearanceLevel').value;
+      
+      alertBox.className = 'alert';
+      alertBox.textContent = '';
+      btn.disabled = true;
+      btn.textContent = 'Registering...';
+
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('loginId', document.getElementById('loginId').value);
+      formData.append('password', document.getElementById('password').value);
+      formData.append('badgeId', document.getElementById('badgeId').value);
+      formData.append('rank', document.getElementById('rank').value);
+      formData.append('empId', document.getElementById('empId').value);
+      formData.append('department', document.getElementById('department').value);
+      formData.append('wing', document.getElementById('wing').value);
+      formData.append('jurisdiction', document.getElementById('jurisdiction').value);
+      formData.append('station', document.getElementById('station').value);
+      formData.append('district', document.getElementById('district').value);
+      formData.append('state', document.getElementById('state').value);
+      formData.append('country', document.getElementById('country').value);
+      formData.append('joiningDate', document.getElementById('joiningDate').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('mobile', document.getElementById('mobile').value);
+      formData.append('altPhone', document.getElementById('altPhone').value);
+      formData.append('clearanceLevel', document.getElementById('clearanceLevel').value);
+      formData.append('role', 'police');
+      
+      const fileInput = document.getElementById('policeDocs');
+      if (fileInput.files.length > 0) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          formData.append('policeDocs', fileInput.files[i]);
+        }
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          alertBox.className = 'alert success';
+          alertBox.textContent = 'Registration successful! You can now log in via the main portal.';
+          document.getElementById('registerForm').reset();
+        } else {
+          alertBox.className = 'alert error';
+          alertBox.textContent = data.message || 'Registration failed.';
+        }
+      } catch (err) {
+        alertBox.className = 'alert error';
+        alertBox.textContent = 'A network error occurred.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Register Account';
+      }
+    });
+  </script>
+</body>
+</html>

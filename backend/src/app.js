@@ -2,6 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import healthRoutes from './routes/health.route.js';
+import authRoutes from './routes/auth.route.js';
+import otpRoutes from './routes/otp.route.js';
+import policeRoutes from './routes/police.route.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -15,8 +23,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Static files
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Mount API Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/police', policeRoutes);
+app.get('/', (req, res) => {
+  res.send('SSOR Backend Running');
+});
 
 // Fallback 404 handler
 app.use((req, res, next) => {

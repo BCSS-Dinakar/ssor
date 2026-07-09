@@ -1,78 +1,45 @@
 # SSOR Frontend
 
-This is the React frontend application for the **State Sexual Offender Register (SSOR)** system, built for the Government of Telangana, State Police.
-
-For the full project overview, architecture, and legal framework, please see the [Main Project README](../README.md) in the root directory.
+This is the client-side Single Page Application (SPA) for the State Sexual Offender Register (SSOR) portals.
 
 ---
 
-## 🎨 Frontend Architecture
+## 🛠️ Tech Stack
 
-The application uses a modern React functional component architecture, heavily utilizing Hooks and Context API for state management.
-
-### Key Technologies
-- **Framework**: React.js 18
-- **Routing**: React Router DOM (v6)
-- **Styling**: Tailwind CSS (Utility-first CSS framework)
-- **Icons**: Lucide React
-- **Typography**: Google Fonts (Inter, Archivo, IBM Plex Mono)
-
-### Directory Structure
-
-```text
-src/
-├── components/          # Reusable UI components
-│   ├── portal/          # Shared dashboard components (Badges, Stats, Modals)
-│   └── Marketing.js     # Landing page UI blocks
-├── context/
-│   └── DataContext.js   # Global State Management (Clearances, Offenders, Auth)
-├── layout/
-│   ├── MarketingLayout.js # Wrapper for public-facing pages
-│   └── PortalLayout.js    # Wrapper for secure authenticated dashboards
-├── pages/               # Route-level Page Components
-│   ├── portal/
-│   │   ├── organization/ # Organization-facing views
-│   │   └── police/       # Police/Admin-facing views
-│   └── ...              # Public pages (Landing, Login, Services)
-└── utils/
-    └── data/
-        ├── portalData.js # Static Seed Data & Status Enums
-        └── authData.js   # Authentication & Role Definitions
-```
+- **React 18**: The core UI library used to build the interactive interfaces.
+- **Tailwind CSS**: A utility-first CSS framework for rapid, highly-customized, and responsive styling.
+- **React Router Dom (v6)**: Client-side routing to seamlessly transition between pages without reloading.
+- **Context API (`AuthContext`)**: Global state management for tracking the current authenticated user session.
+- **Axios**: The HTTP client used to interface with the backend API.
+- **Lucide React**: A beautiful, consistent icon library used throughout the UI.
 
 ---
 
-## 🚀 Running the App Locally
+## 🔄 Project Flow & Architecture
 
-In the project directory, you can run:
+### 1. Global Authentication State (`AuthContext.js`)
+- The entire app is wrapped in an `AuthProvider`. On initial load, it immediately calls `GET /api/auth/me` to check if the user has an active session (via their HTTP-only cookie).
+- The `AuthContext` provides global functions like `login`, `logout`, and exposes the current `auth` object (containing the user's role and profile data) to any component that needs it.
 
-### `npm install`
-Installs all required dependencies.
+### 2. Client-Side Routing & Protection (`App.js`)
+- Routes are protected by custom wrapper components like `<ProtectedRoute>`. 
+- If an unauthenticated user attempts to access `/portal`, they are instantly redirected to `/login`.
+- The UI dynamically branches based on the user's role. A police officer navigating to the portal will see the `OrganizationApprovals` dashboard, while an organization will see their own specific dashboard.
 
-### `npm start`
-Runs the app in the development mode.
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 3. API Communication (`api.js`)
+- An Axios instance is configured globally with `withCredentials: true`. This ensures that every API request automatically includes the secure HTTP-only JWT cookie.
+- It also uses interceptors to catch `401 Unauthorized` responses globally, allowing the frontend to automatically log the user out if their session expires.
 
-The page will reload when you make changes. You may also see any lint errors in the console.
+### 4. Complex Form Handling (`LoginPage.js`)
+- The Registration process is handled entirely within `LoginPage.js` using a sophisticated multi-step state machine (`regStep`).
+- It collects extensive organizational data (using custom components like `SearchableSelect` for precise location tracking) and processes multipart `FormData` for document uploads before submitting to the backend.
 
-### `npm run build`
-Builds the app for production to the `build` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
----
-
-## 🛡️ State Management (DataContext)
-
-Because this is a prototype/demo application, it currently runs entirely client-side without a real backend database.
-All data mutation, vetting workflows, and authorization flows are managed globally by the **`DataContext`**:
-
-- **Offender Records (`register`)**: Seeded array of known convicted offenders.
-- **Vetting Requests (`clearances`)**: State array tracking applications through `pending`, `verifying`, `cleared`, and `rejected` states.
-- **Workflow Actions**: `startVerifying()`, `decideClearance()`, `addOffender()` simulate backend business logic.
+### 5. Secure Document Viewing
+- Instead of relying on direct file URLs (which would be insecure), components like `Profile.js` fetch document Blobs via authenticated API calls.
+- These Blobs are converted into temporary Object URLs (`URL.createObjectURL`), allowing sensitive PDFs and Images to be rendered securely inside modals without exposing permanent public links.
 
 ---
 
-## 💅 Styling Philosophy
+## 🚀 Getting Started
 
-- **Tailwind CSS**: Custom classes (`btn-primary`, `card`) are abstracted in `index.css` using `@apply` for reusability.
-- **Color Coding**: Statuses and Risk Tiers heavily utilize standardized Tailwind color palettes (e.g., Emerald for Clean, Red for Dangerous, Amber for Verifying) for immediate visual recognition.
+Please refer to the `setup.md` file in the root directory for instructions on how to start the frontend development server.

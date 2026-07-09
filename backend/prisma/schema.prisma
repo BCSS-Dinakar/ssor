@@ -6,10 +6,87 @@ datasource db {
   provider = "postgresql"
 }
 
-// Minimal schema to start with, as requested
-// We can expand this with SSOR models later
 model SystemHealth {
   id        Int      @id @default(autoincrement())
   status    String
   timestamp DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(uuid())
+  loginId      String   @unique
+  passwordHash String
+  role         String   // "police" or "organization"
+  status       String   @default("pending") // "pending", "approved", "rejected"
+  createdAt    DateTime @default(now())
+
+  policeProfile       PoliceProfile?
+  organizationProfile OrganizationProfile?
+  auditLogs           SystemAuditLog[]
+}
+
+model SystemAuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
+model PoliceProfile {
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name           String
+  badgeId        String?
+  rank           String?
+  empId          String?
+  department     String?
+  wing           String?
+  jurisdiction   String?
+  joiningDate    String?
+  email          String?
+  mobile         String?
+  altPhone       String?
+  station        String?
+  district       String?
+  state          String?
+  country        String?
+  clearanceLevel String?
+  
+  docsPaths      String[]
+}
+
+model OrganizationProfile {
+  id            String @id @default(uuid())
+  userId        String @unique
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orgName       String
+  orgType       String
+  parentOrg     String?
+  department    String?
+  jurisdiction  String?
+  country       String
+  state         String
+  district      String
+  city          String
+  address       String
+  pinCode       String
+  officialEmail String
+  officialPhone String
+  altPhone      String?
+  website       String?
+  
+  adminName     String
+  designation   String
+  empId         String
+  adminEmail    String
+  mobile        String
+
+  authLetterPath       String?
+  govCertPath          String?
+  supportingDocsPaths  String[]
 }

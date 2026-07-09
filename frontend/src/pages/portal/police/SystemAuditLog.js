@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PageHeader from '../../../components/portal/PageHeader';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
-import { useData } from '../../../context/DataContext';
 import DataTable from '../../../components/common/DataTable';
+import api from '../../../api/api';
 
 function SystemAuditLog() {
-  const { audit } = useData();
+  const [audit, setAudit] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await api.get('/police/logs');
+        if (response.data.success) {
+          setAudit(response.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch logs', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
 
   const columns = [
     {
@@ -43,7 +60,13 @@ function SystemAuditLog() {
       </SecurityBanner>
 
       <div className="card p-6 bg-white shadow-md border border-slate-200/80 rounded-2xl">
-        <DataTable data={audit} columns={columns} />
+        {loading ? (
+          <div className="p-8 text-center text-slate-500 font-medium text-sm">Loading audit logs...</div>
+        ) : audit.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 font-medium text-sm">No audit logs found.</div>
+        ) : (
+          <DataTable data={audit} columns={columns} />
+        )}
       </div>
     </div>
   );
