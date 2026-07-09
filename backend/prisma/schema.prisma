@@ -20,9 +20,11 @@ model User {
   status       String   @default("pending") // "pending", "approved", "rejected"
   createdAt    DateTime @default(now())
 
-  policeProfile       PoliceProfile?
-  organizationProfile OrganizationProfile?
-  auditLogs           SystemAuditLog[]
+  policeProfile          PoliceProfile?
+  organizationProfile    OrganizationProfile?
+  auditLogs              SystemAuditLog[]
+  candidateVerifications CandidateVerification[]
+  supportTickets         SupportTicket[]
 }
 
 model SystemAuditLog {
@@ -89,4 +91,61 @@ model OrganizationProfile {
   authLetterPath       String?
   govCertPath          String?
   supportingDocsPaths  String[]
+}
+
+model CandidateVerification {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  orgName         String
+  orgType         String
+  
+  role            String
+  candidateName   String
+  docType         String
+  idNumber        String
+  dob             DateTime
+  email           String?
+  phone           String?
+  
+  consent         Boolean
+
+  status          String   @default("pending") // "pending", "verifying", "cleared", "rejected"
+  policeFeedback  String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SupportTicket {
+  id              String   @id @default(uuid())
+  ticketNumber    String   @unique @default(cuid())
+  
+  organizationId  String
+  organization    User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  subject         String
+  category        String
+  priority        String   @default("Medium")
+  reference       String?
+  status          String   @default("Open")
+  assignee        String?  @default("Unassigned")
+  
+  messages        TicketMessage[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TicketMessage {
+  id              String   @id @default(uuid())
+  ticketId        String
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  senderName      String
+  senderRole      String
+  text            String
+  
+  createdAt       DateTime @default(now())
 }
