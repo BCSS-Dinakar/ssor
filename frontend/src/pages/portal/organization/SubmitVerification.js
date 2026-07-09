@@ -6,8 +6,9 @@ import { Field, inputClass, FeedbackBanner } from '../../../components/portal/Fo
 import { useAuth } from '../../../context/AuthContext';
 import { useData } from '../../../context/DataContext';
 import { ORG_TYPES } from '../../../utils/data/authData';
+import SearchableSelect from '../../../components/SearchableSelect';
 
-const empty = { candidate: '', idNumber: '', dob: '', email: '', phone: '', role: '', type: 'School', consent: false };
+const empty = { candidate: '', docType: 'Aadhaar Card', idNumber: '', dob: '', email: '', phone: '', role: '', type: 'School', consent: false };
 
 function SubmitVerification() {
   const { auth } = useAuth();
@@ -40,6 +41,7 @@ function SubmitVerification() {
       type: form.type,
       role: form.role,
       candidate: form.candidate,
+      docType: form.docType,
       idNumber: form.idNumber,
       dob: form.dob,
       email: form.email,
@@ -147,10 +149,19 @@ function SubmitVerification() {
                   </div>
                 </Field>
 
-                <Field label="Government ID Number" required hint="Submit Aadhaar, Passport, DL, or PAN number.">
+                <Field label="Government ID Type" required hint="Select the official document type.">
+                  <SearchableSelect
+                    value={form.docType}
+                    onChange={(val) => setForm({ ...form, docType: val })}
+                    options={['Aadhaar Card', 'PAN Card', 'Voter ID', 'Passport', 'Driving License']}
+                    placeholder="Select Document Type"
+                  />
+                </Field>
+
+                <Field label="Government ID Number" required hint="Enter the exact ID number.">
                   <div className="relative">
                     <FileText className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input className={inputClass + ' pl-9'} value={form.idNumber} onChange={set('idNumber')} placeholder="e.g. XXXX-XXXX-5678" required />
+                    <input className={inputClass + ' pl-9'} value={form.idNumber} onChange={set('idNumber')} placeholder={`e.g. ${form.docType === 'Aadhaar Card' ? 'XXXX-XXXX-5678' : 'ABCDE1234F'}`} required />
                   </div>
                 </Field>
 
@@ -180,9 +191,12 @@ function SubmitVerification() {
                 </Field>
 
                 <Field label="Vetting Institution Category" className="sm:col-span-2">
-                  <select className={inputClass} value={form.type} onChange={set('type')}>
-                    {ORG_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <SearchableSelect
+                    value={form.type}
+                    onChange={(val) => setForm({ ...form, type: val })}
+                    options={ORG_TYPES}
+                    placeholder="Select Category"
+                  />
                 </Field>
               </div>
 
