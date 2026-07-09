@@ -14,8 +14,13 @@ export const getLogs = async (req, res) => {
     });
 
     const formattedLogs = logs.map(log => ({
+      id: log.id,
       time: log.createdAt.toLocaleString(),
+      rawTime: log.createdAt.toISOString(),
       who: log.user?.policeProfile?.name || log.user?.loginId || 'Unknown Officer',
+      badgeId: log.user?.policeProfile?.badgeId || 'N/A',
+      rank: log.user?.policeProfile?.rank || 'N/A',
+      role: log.user?.role || 'Unknown',
       action: log.action,
       node: log.ipAddress || 'Internal/Protected Node'
     }));
@@ -184,6 +189,70 @@ export const getDashboardStats = async (req, res) => {
 
   } catch (error) {
     console.error('[getDashboardStats error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+  }
+};
+
+export const getTickets = async (req, res) => {
+  try {
+    const tickets = await prisma.supportTicket.findMany({
+      include: {
+        organization: { select: { organizationProfile: true } },
+        messages: { orderBy: { createdAt: 'asc' } }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+    res.status(200).json({ success: true, tickets });
+  } catch (error) {
+    console.error('[getTickets error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+  }
+};
+
+export const updateTicketStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const policeProfile = await prisma.policeProfile.findUnique({ where: { userId: req.user.id } });
+    const assignee = policeProfile ? policeProfile.name : 'Police Officer';
+
+    const ticket = await prisma.supportTicket.update({
+      where: { id },
+      data: { status, assignee }
+    });
+    res.status(200).json({ success: true, ticket });
+  } catch (error) {
+    console.error('[updateTicketStatus error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+  }
+};
+
+export const addTicketMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    
+    const policeProfile = await prisma.policeProfile.findUnique({ where: { userId: req.user.id } });
+    const senderName = policeProfile ? `${policeProfile.rank} ${policeProfile.name}` : 'Police Officer';
+
+    const message = await prisma.ticketMessage.create({
+      data: {
+        ticketId: id,
+        senderName,
+        senderRole: 'Police',
+        text
+      }
+    });
+
+    await prisma.supportTicket.update({
+      where: { id },
+      data: { updatedAt: new Date(), assignee: policeProfile ? policeProfile.name : 'Police Officer' }
+    });
+
+    res.status(201).json({ success: true, message });
+  } catch (error) {
+    console.error('[addTicketMessage error]', error);
     res.status(500).json({ success: false, message: 'Server error.', error: error.message });
   }
 };
