@@ -18,7 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
-import api from '../../../api/api';
+import { policeApi } from '../../../api/police.api';
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
@@ -51,14 +51,16 @@ function OrganizationApprovalDetails() {
 
   useEffect(() => {
     let activeUrl = null;
-    if (viewingDoc) {
+    if (viewingDoc && typeof viewingDoc.name === 'string' && viewingDoc.name.match(/\.(jpg|jpeg|png)$/i)) {
       setDocBlobUrl(null);
-      api.get(`/police/documents/${viewingDoc.name}`, { responseType: 'blob' })
+      policeApi.getDocument(viewingDoc.name)
         .then(res => {
           activeUrl = URL.createObjectURL(res.data);
           setDocBlobUrl(activeUrl);
         })
-        .catch(err => console.error("Failed to fetch doc blob", err));
+        .catch(err => {
+          console.error("Failed to fetch doc blob", err);
+        });
     } else {
       setDocBlobUrl(null);
     }
@@ -73,9 +75,9 @@ function OrganizationApprovalDetails() {
   useEffect(() => {
     const fetchOrg = async () => {
       try {
-        const res = await api.get(`/police/organizations/${id}`);
-        if (res.data.success) {
-          const user = res.data.data;
+        const res = await policeApi.getOrganizationById(id);
+        if (res.success) {
+          const user = res.data;
           const p = user.organizationProfile || {};
           
           let docs = [];
@@ -120,8 +122,8 @@ function OrganizationApprovalDetails() {
 
   const handleApprove = async () => {
     try {
-      const res = await api.put(`/police/organizations/${id}/status`, { status: 'approved' });
-      if (res.data.success) {
+      const res = await policeApi.updateOrganizationStatus(id, 'approved');
+      if (res.success) {
         setStatus('approved');
         alert(`Organization ${org.id} has been approved.`);
       }
@@ -132,8 +134,8 @@ function OrganizationApprovalDetails() {
 
   const handleReject = async () => {
     try {
-      const res = await api.put(`/police/organizations/${id}/status`, { status: 'rejected' });
-      if (res.data.success) {
+      const res = await policeApi.updateOrganizationStatus(id, 'rejected');
+      if (res.success) {
         setStatus('rejected');
         alert(`Organization ${org.id} has been rejected.`);
       }
@@ -144,7 +146,7 @@ function OrganizationApprovalDetails() {
 
   const downloadDoc = async (filename) => {
     try {
-      const res = await api.get(`/police/documents/${filename}`, { responseType: 'blob' });
+      const res = await policeApi.getDocument(filename);
       const url = URL.createObjectURL(res.data);
       const a = document.createElement('a');
       a.href = url;

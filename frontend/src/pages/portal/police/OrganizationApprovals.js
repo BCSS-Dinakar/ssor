@@ -3,7 +3,7 @@ import { Building2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../../components/portal/PageHeader';
 import DataTable from '../../../components/common/DataTable';
-import api from '../../../api/api';
+import { policeApi } from '../../../api/police.api';
 
 function OrganizationApprovals() {
   const [verifications, setVerifications] = useState([]);
@@ -12,9 +12,9 @@ function OrganizationApprovals() {
   useEffect(() => {
     const fetchOrgs = async () => {
       try {
-        const res = await api.get('/police/organizations');
-        if (res.data.success) {
-          const mapped = res.data.data.map(org => ({
+        const res = await policeApi.getOrganizations();
+        if (res.success) {
+          const mapped = res.data.map(org => ({
             id: org.id,
             name: org.organizationProfile?.orgName || org.loginId,
             type: org.organizationProfile?.orgType || 'Unknown',

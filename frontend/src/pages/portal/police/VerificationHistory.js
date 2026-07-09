@@ -1,31 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { StatusPill } from '../../../components/portal/Badges';
-import { useData } from '../../../context/DataContext';
 import DataTable from '../../../components/common/DataTable';
+import { policeApi } from '../../../api/police.api';
 
 function VerificationHistory() {
-  const { clearances } = useData();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter clearances to only processed (approved/cleared and referred/rejected)
-  const historyData = clearances.filter((c) => c.status === 'cleared' || c.status === 'rejected');
+  useEffect(() => {
+    const fetchVerifications = async () => {
+      try {
+        const res = await policeApi.getVerifications();
+        if (res.success) {
+          setData(res.data.filter((c) => c.status === 'cleared' || c.status === 'rejected'));
+        }
+      } catch (err) {
+        console.error('Failed to load verifications', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVerifications();
+  }, []);
 
   const columns = [
     {
       label: 'Reference ID',
       key: 'id',
       className: 'font-mono text-secondary text-xs font-bold',
+      render: (row) => row.id.split('-')[0]
     },
     {
       label: 'Organization / Requester',
       key: 'org',
       render: (row) => (
         <div>
-          <div className="font-extrabold text-slate-800 text-sm leading-tight">{row.org}</div>
-          <div className="text-[10px] text-slate-400 font-bold mt-0.5">{row.type || 'Candidate Vetting'} · Candidate: {row.candidate}</div>
+          <div className="font-extrabold text-slate-800 text-sm leading-tight">{row.orgName}</div>
+          <div className="text-[10px] text-slate-400 font-bold mt-0.5">{row.orgType || 'Candidate Vetting'} · Candidate: {row.candidateName}</div>
         </div>
       ),
     },
@@ -39,7 +54,7 @@ function VerificationHistory() {
       key: 'decisionDate',
       render: (row) => (
         <span className="font-mono text-slate-500 font-bold">
-          {row.decisionDate || row.submitted}
+          {new Date(row.updatedAt || row.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
         </span>
       ),
     },
@@ -76,7 +91,13 @@ function VerificationHistory() {
       </SecurityBanner>
 
       <div className="card p-6 bg-white shadow-md border border-slate-200/80 rounded-2xl">
-        <DataTable data={historyData} columns={columns} />
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <DataTable data={data} columns={columns} />
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search } from 'lucide-react';
-import { useData } from '../../../context/DataContext';
+import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
 
@@ -29,8 +29,25 @@ function DetailRow({ label, value, mono }) {
 function VerificationVetting() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { clearances, decideClearance, startVerifying } = useData();
-  const record = clearances.find(c => c.id === id);
+  
+  const [record, setRecord] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecord = async () => {
+      try {
+        const res = await policeApi.getVerificationById(id);
+        if (res.success) {
+          setRecord(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to load record', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecord();
+  }, [id]);
 
   // Vetting Workflow States
   const [checkState, setCheckState] = useState('idle'); // 'idle' | 'running' | 'done'
@@ -41,6 +58,14 @@ function VerificationVetting() {
   const [activeSuspectTab, setActiveSuspectTab] = useState('profile');
   const [officerFeedback, setOfficerFeedback] = useState('');
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   if (!record) {
     return (
       <div className="p-8 text-center text-slate-500 font-semibold">
@@ -50,11 +75,14 @@ function VerificationVetting() {
   }
 
   // Check if we expect history based on status
-  const hasHistory = record.status === 'rejected' || record.candidate.includes('Reddy') || record.candidate.includes('Bai');
+  const hasHistory = record.status === 'rejected' || record.candidateName?.includes('Reddy') || record.candidateName?.includes('Bai');
 
-  const startCriminalCheck = () => {
+  const startCriminalCheck = async () => {
     setCheckState('running');
-    startVerifying(record.id);
+    try {
+      await policeApi.updateVerificationStatus(id, { status: 'verifying' });
+      setRecord(prev => ({ ...prev, status: 'verifying' }));
+    } catch(e) { console.error(e); }
     setActiveLog('');
     setSuspects([]);
     setConfirmedSuspect(null);
@@ -150,37 +178,31 @@ function VerificationVetting() {
     }, 4200);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
     const reasonText = 'Candidate verified against Central Sex Offender Registry and CCTNS crime logs. Zero matching records identified. Clearance certificate officially granted.' + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
-    decideClearance(
-      record.id, 
-      'cleared', 
-      null, 
-      reasonText
-    );
-    alert(`Clearance Issued. The requesting organization has been sent the digital certificate.`);
-    navigate('/portal/clearances');
+    try {
+      await policeApi.updateVerificationStatus(id, { status: 'cleared', policeFeedback: reasonText });
+      alert(`Clearance Issued. The requesting organization has been sent the digital certificate.`);
+      navigate('/portal/clearances');
+    } catch(e) { alert('Failed to clear'); }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!confirmedSuspect) return;
     const reasonText = `Identity matches registered offender profile: ${confirmedSuspect.name} (${confirmedSuspect.id}). Clearance request denied due to positive criminal register mapping.` + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
-    decideClearance(
-      record.id, 
-      'rejected', 
-      confirmedSuspect, 
-      reasonText
-    );
-    alert(`Clearance Denied. The organization has been notified.`);
-    navigate('/portal/clearances');
+    try {
+      await policeApi.updateVerificationStatus(id, { status: 'rejected', policeFeedback: reasonText });
+      alert(`Clearance Denied. The organization has been notified.`);
+      navigate('/portal/clearances');
+    } catch(e) { alert('Failed to reject'); }
   };
 
   return (
     <div className="space-y-6 animate-fadeIn pb-10 font-body relative">
       <PageHeader
-        crumb={`Administration / Requests / Clearances / ${record.id}`}
-        title={`Vetting Request: ${record.candidate}`}
-        subtitle={`Submitted on ${record.submitted} by ${record.org}`}
+        crumb={`Administration / Requests / Clearances / ${record.id.split('-')[0]}`}
+        title={`Vetting Request: ${record.candidateName}`}
+        subtitle={`Submitted on ${new Date(record.createdAt).toLocaleDateString('en-GB')} by ${record.orgName}`}
         actions={
           <Link
             to="/portal/clearances"
@@ -201,13 +223,21 @@ function VerificationVetting() {
             <h3 className="font-extrabold text-primary font-heading text-xs uppercase tracking-wider mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
               <User className="h-4 w-4 text-secondary" /> Candidate Vetting Profile
             </h3>
-            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-              <InfoRow icon={User} label="Full Name" value={record.candidate} />
-              <InfoRow icon={FileText} label="Identity Doc Reference" value="Aadhaar ID: xxxx-xxxx-4921 (Vetted)" />
-              <InfoRow icon={User} label="Date of Birth Profile" value="1992-08-14" />
-              <InfoRow icon={User} label="Gender" value="Male" />
+            <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+              <InfoRow icon={User} label="Full Name" value={record.candidateName} />
+              <InfoRow icon={User} label="Date of Birth Profile" value={new Date(record.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} />
+              
+              <InfoRow icon={User} label="Phone Number" value={record.phone} />
+              <InfoRow icon={FileText} label="Email Address" value={record.email || 'N/A'} />
+              
+              <InfoRow icon={Building} label="Employer Station" value={record.orgName} />
+              <InfoRow icon={Building} label="Organization Type" value={record.orgType} />
+              
               <InfoRow icon={Building} label="Requested Role/Seat" value={record.role} />
-              <InfoRow icon={Building} label="Employer Station" value={record.org} />
+              <InfoRow icon={CheckCircle2} label="Consent Status" value={record.consent ? "Consent Authorized & Verified" : "Not Provided"} />
+              
+              <InfoRow icon={FileText} label="Submission Date" value={new Date(record.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+              <InfoRow icon={ShieldAlert} label="Current Status" value={record.status.toUpperCase()} />
             </div>
           </div>
 
@@ -318,7 +348,7 @@ function VerificationVetting() {
                   <p className="font-semibold text-slate-700">This candidate was checked against the database. No criminal history or registered records were found. Status is CLEAN.</p>
                   <div className="border-t border-emerald-200 pt-2.5 mt-2.5 font-mono text-[10px] text-emerald-700">
                     <strong className="block text-[8px] uppercase tracking-widest text-emerald-500 font-bold mb-1">Police Outcome Log</strong>
-                    {record.reason || 'Candidate has no disclosable criminal or sexual offender history.'}
+                    {record.policeFeedback || 'Candidate has no disclosable criminal or sexual offender history.'}
                   </div>
                 </div>
               ) : (
@@ -343,7 +373,7 @@ function VerificationVetting() {
                     <p className="font-semibold text-slate-700">Background checks confirmed an active identity match against local disclosable sex offender register database.</p>
                     <div className="border-t border-red-200 pt-2.5 mt-2.5 font-mono text-[10px] text-red-750">
                       <strong className="block text-[8px] uppercase tracking-widest text-red-500 font-bold mb-1">Police Vetting Match Reason</strong>
-                      {record.reason || 'Candidate matches registered sexual offender profile details.'}
+                      {record.policeFeedback || 'Candidate matches registered sexual offender profile details.'}
                     </div>
                   </div>
 
@@ -467,21 +497,21 @@ function VerificationVetting() {
             {(record.status !== 'pending' && record.status !== 'verifying') ? (
               <div className="space-y-4">
                 <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl text-xs text-slate-500 font-bold leading-normal">
-                  This request was processed on <strong>{record.decisionDate || '2026-07-08'}</strong>. Vetting records are finalized and locked.
+                  This request was processed on <strong>{new Date(record.updatedAt).toLocaleDateString('en-GB') || '2026-07-08'}</strong>. Vetting records are finalized and locked.
                 </div>
-                {record.reason && (
+                {record.policeFeedback && (
                   <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-1">
                     <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Decision Log Reason</span>
                     <p className="text-xs font-semibold text-slate-655 leading-normal whitespace-pre-wrap">
-                      {record.reason.split('\n\nOfficer Notes: ')[0]}
+                      {record.policeFeedback.split('\n\nOfficer Notes: ')[0]}
                     </p>
                   </div>
                 )}
-                {record.reason && record.reason.includes('\n\nOfficer Notes: ') && (
+                {record.policeFeedback && record.policeFeedback.includes('\n\nOfficer Notes: ') && (
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1 mt-3 shadow-inner">
                     <span className="text-[9px] uppercase tracking-widest text-amber-600 font-black block">Officer Verification Notes</span>
                     <p className="text-xs font-semibold text-amber-900 leading-normal whitespace-pre-wrap">
-                      {record.reason.split('\n\nOfficer Notes: ')[1]}
+                      {record.policeFeedback.split('\n\nOfficer Notes: ')[1]}
                     </p>
                   </div>
                 )}

@@ -12,7 +12,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
-import { useData } from '../../../context/DataContext';
+import { organizationApi } from '../../../api/organization.api';
 
 function DetailField({ label, value, mono = false }) {
   return (
@@ -27,53 +27,62 @@ function DetailField({ label, value, mono = false }) {
 
 function VerificationDetails() {
   const { id } = useParams();
-  const { clearances, disclosures } = useData();
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      let matched = clearances.find((c) => c.id.toUpperCase() === id.trim().toUpperCase());
-      let type = 'Candidate Vetting';
+    const fetchVerification = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await organizationApi.getVerification(id);
+        const record = data.verification;
+        const isPendingOrVerifying = record.status === 'pending' || record.status === 'verifying';
+        const isCompleted = record.status === 'cleared' || record.status === 'rejected';
+        const submittedDate = new Date(record.createdAt).toLocaleDateString();
 
-      if (!matched) {
-        const dMatch = disclosures.find((d) => d.id.toUpperCase() === id.trim().toUpperCase());
-        if (dMatch) {
-          matched = {
-            id: dMatch.id,
-            org: dMatch.by || 'Associated School Unit',
-            role: dMatch.concern || 'Threat Inquiry',
-            candidate: dMatch.by || 'Suspect Individual',
-            idNumber: '',
-            dob: '',
-            submitted: dMatch.submitted,
-            decisionDate: '',
-            status: dMatch.status === 'approved' ? 'cleared' : dMatch.status === 'declined' ? 'rejected' : 'pending',
-          };
-          type = 'Child Threat Inquiry';
-        }
-      }
-
-      if (matched) {
-        const isPending = matched.status === 'pending';
         const steps = [
-          { label: 'Application Submitted', detail: `Received on ${matched.submitted || '—'}`, done: true },
+          { label: 'Application Submitted', detail: `Received on ${submittedDate}`, done: true },
           {
             label: 'Police Verification',
-            detail: isPending ? 'Cross-checking against the register under controlled access' : 'Register database search completed',
-            done: !isPending,
-            current: isPending,
+            detail: isPendingOrVerifying ? 'Cross-checking against the register under controlled access' : 'Register database search completed',
+            done: record.status === 'verifying' || isCompleted,
+            current: isPendingOrVerifying,
           },
           {
             label: 'Decision Issued',
-            detail: matched.status === 'cleared' ? 'Clearance approved' : matched.status === 'rejected' ? 'Reject decision issued' : 'Clear / Reject outcome pending',
-            done: !isPending,
+            detail: record.status === 'cleared' ? 'Clearance approved' : record.status === 'rejected' ? 'Reject decision issued' : 'Clear / Reject outcome pending',
+            done: isCompleted,
           },
         ];
 
-        setSelectedRequest({ ...matched, type, steps });
+        setSelectedRequest({
+          id: record.id,
+          org: record.orgName,
+          role: record.role,
+          candidate: record.candidateName,
+          dob: new Date(record.dob).toLocaleDateString(),
+          phone: record.phone,
+          email: record.email,
+          submitted: submittedDate,
+          decisionDate: !isCompleted ? '' : new Date(record.updatedAt).toLocaleDateString(),
+          status: record.status,
+          type: 'Candidate Vetting',
+          policeFeedback: record.policeFeedback,
+          steps,
+        });
+      } catch (error) {
+        console.error('Failed to fetch verification:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [id, clearances, disclosures]);
+    };
+    fetchVerification();
+  }, [id]);
+
+  if (loading) {
+    return <div className="text-center p-12 text-slate-400 font-bold">Loading Verification Record...</div>;
+  }
 
   if (!selectedRequest) {
     return (
@@ -119,8 +128,8 @@ function VerificationDetails() {
               label={selectedRequest.type === 'Candidate Vetting' ? 'Targeted Role' : 'Relation / Context'}
               value={selectedRequest.role}
             />
-            <DetailField label="Government ID Number" value={selectedRequest.idNumber} mono />
             <DetailField label="Date of Birth" value={selectedRequest.dob} mono />
+            <DetailField label="Contact Phone" value={selectedRequest.phone} mono />
             <div className="sm:col-span-2">
               <DetailField label="Submitting Institution" value={selectedRequest.org} />
             </div>

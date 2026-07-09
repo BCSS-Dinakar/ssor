@@ -31,7 +31,7 @@ export const NAV = {
     { section: 'Services' },
     { id: 'apply', label: 'Submit New Verification', desc: 'Submit staff for background checking', icon: FileCheck, path: '/portal/apply' },
     { section: 'Records' },
-    { id: 'requests', label: 'Verification Requests', desc: 'Search and inspect submitted checks', icon: ClipboardList, path: '/portal/requests', badge: 'orgPending' },
+    { id: 'requests', label: 'Verification Requests', desc: 'Search and inspect submitted checks', icon: ClipboardList, path: '/portal/requests' },
     { id: 'candidates', label: 'Verified Personnel', desc: 'View cleared staff credential badges', icon: Users, path: '/portal/candidates' },
     { id: 'compliance', label: 'Compliance & Support', desc: 'Police desk chat & compliance audits', icon: Award, path: '/portal/compliance' },
     { section: 'Help' },

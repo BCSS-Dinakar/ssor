@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FileCheck,
@@ -24,29 +24,33 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useAuth } from '../../../context/AuthContext';
-import { useData } from '../../../context/DataContext';
+import { organizationApi } from '../../../api/organization.api';
 
 function OrganizationDashboard() {
   const { auth } = useAuth();
-  const { clearances } = useData();
+  
+  const [data, setData] = useState({
+    stats: { total: 0, pending: 0, cleared: 0, rejected: 0 },
+    trendData: [],
+    recentVerifications: []
+  });
+  const [loading, setLoading] = useState(true);
 
-  const mine = clearances.filter((c) => c.org && c.org.includes(auth.name));
-  const list = mine.length ? mine : clearances;
-
-  const pending = list.filter((c) => c.status === 'pending' || c.status === 'verifying').length;
-  const cleared = list.filter((c) => c.status === 'cleared').length;
-  const rejected = list.filter((c) => c.status === 'rejected').length;
-  const total = list.length;
-
-  const trendData = [
-    { month: 'Jan', requests: 4, cleared: 4 },
-    { month: 'Feb', requests: 7, cleared: 6 },
-    { month: 'Mar', requests: 5, cleared: 5 },
-    { month: 'Apr', requests: 9, cleared: 8 },
-    { month: 'May', requests: 12, cleared: 11 },
-    { month: 'Jun', requests: total, cleared },
-  ];
-
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await organizationApi.getDashboard();
+        if (res.success) {
+          setData(res);
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
   const notifications = [
     { id: 1, type: 'success', text: 'Verification check for Rahul Varma is COMPLETED.', time: '2 hours ago' },
@@ -55,10 +59,10 @@ function OrganizationDashboard() {
   ];
 
   const stats = [
-    { label: 'Total Submissions', value: total, meta: 'All clearance audits YTD', icon: FileCheck, accent: 'bg-blue-50 text-secondary', valueClass: 'text-primary' },
-    { label: 'Cleared Candidates', value: cleared, meta: 'Approved to work', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600', valueClass: 'text-emerald-600' },
-    { label: 'Pending Reviews', value: pending, meta: 'Police check in progress', icon: Clock, accent: 'bg-amber-50 text-amber-600', valueClass: 'text-amber-500' },
-    { label: 'Rejected Cases', value: rejected, meta: 'Review locks active', icon: AlertTriangle, accent: 'bg-red-50 text-red-600', valueClass: 'text-red-500' },
+    { label: 'Total Submissions', value: data.stats.total, meta: 'All clearance audits YTD', icon: FileCheck, accent: 'bg-blue-50 text-secondary', valueClass: 'text-primary' },
+    { label: 'Cleared Candidates', value: data.stats.cleared, meta: 'Approved to work', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600', valueClass: 'text-emerald-600' },
+    { label: 'Pending Reviews', value: data.stats.pending, meta: 'Police check in progress', icon: Clock, accent: 'bg-amber-50 text-amber-600', valueClass: 'text-amber-500' },
+    { label: 'Rejected Cases', value: data.stats.rejected, meta: 'Review locks active', icon: AlertTriangle, accent: 'bg-red-50 text-red-600', valueClass: 'text-red-500' },
   ];
 
   const quickActions = [
@@ -66,6 +70,14 @@ function OrganizationDashboard() {
     { to: '/portal/disclosure', icon: Shield, title: 'Report Child Threat', desc: 'DSP desk risk evaluation', accent: 'bg-purple-500' },
     { to: '/portal/resources', icon: BookOpen, title: 'Legal Compliance', desc: 'POCSO act guidelines & laws', accent: 'bg-emerald-500' },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn pb-10">
@@ -139,7 +151,7 @@ function OrganizationDashboard() {
 
             <div className="h-[230px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={data.trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorReq" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#1e3a8a" stopOpacity={0.15} />
@@ -185,12 +197,12 @@ function OrganizationDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-slate-700">
-                  {list.slice(0, 5).map((c) => (
+                  {data.recentVerifications.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-3 px-4 font-mono font-bold text-secondary group-hover:text-primary transition-colors">{c.id}</td>
-                      <td className="py-3 px-4 font-bold text-primary">{c.candidate}</td>
+                      <td className="py-3 px-4 font-mono font-bold text-secondary group-hover:text-primary transition-colors">{c.id.split('-')[0]}</td>
+                      <td className="py-3 px-4 font-bold text-primary">{c.candidateName}</td>
                       <td className="py-3 px-4 font-semibold text-slate-500">{c.role}</td>
-                      <td className="py-3 px-4 text-slate-400 font-medium">{c.submitted}</td>
+                      <td className="py-3 px-4 text-slate-400 font-medium">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                       <td className="py-3 px-4 text-right">
                         {c.status === 'cleared' ? (
                           <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">CLEARED</span>
@@ -204,7 +216,7 @@ function OrganizationDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {list.length === 0 && (
+                  {data.recentVerifications.length === 0 && (
                     <tr>
                       <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">No clearance requests generated yet.</td>
                     </tr>
