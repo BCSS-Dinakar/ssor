@@ -50,20 +50,24 @@ function OrganizationApprovalDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let activeUrl = null;
     if (viewingDoc) {
       setDocBlobUrl(null);
       api.get(`/police/documents/${viewingDoc.name}`, { responseType: 'blob' })
         .then(res => {
-          const url = URL.createObjectURL(res.data);
-          setDocBlobUrl(url);
+          activeUrl = URL.createObjectURL(res.data);
+          setDocBlobUrl(activeUrl);
         })
         .catch(err => console.error("Failed to fetch doc blob", err));
     } else {
-      if (docBlobUrl) {
-        URL.revokeObjectURL(docBlobUrl);
-        setDocBlobUrl(null);
-      }
+      setDocBlobUrl(null);
     }
+
+    return () => {
+      if (activeUrl) {
+        URL.revokeObjectURL(activeUrl);
+      }
+    };
   }, [viewingDoc]);
 
   useEffect(() => {

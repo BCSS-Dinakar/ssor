@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ShieldCheck, Download, Send, MessageSquare, Plus, AlertCircle, X, FolderOpen, ArrowLeft } from 'lucide-react';
+import { Send, MessageSquare, Plus, AlertCircle, X, FolderOpen, ArrowLeft } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import { Field, inputClass, FeedbackBanner } from '../../../components/portal/FormControls';
 import { useAuth } from '../../../context/AuthContext';

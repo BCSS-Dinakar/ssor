@@ -24,23 +24,27 @@ function Profile() {
   }, [previewDoc]);
 
   useEffect(() => {
+    let activeUrl = null;
     if (previewDoc) {
       setDocBlobUrl(null);
       setIsDocLoading(true);
       // We use the new generic auth route for fetching docs
       api.get(`/auth/documents/${previewDoc.name}`, { responseType: 'blob' })
         .then(res => {
-          const url = URL.createObjectURL(res.data);
-          setDocBlobUrl(url);
+          activeUrl = URL.createObjectURL(res.data);
+          setDocBlobUrl(activeUrl);
         })
         .catch(err => console.error("Failed to fetch doc blob", err))
         .finally(() => setIsDocLoading(false));
     } else {
-      if (docBlobUrl) {
-        URL.revokeObjectURL(docBlobUrl);
-        setDocBlobUrl(null);
-      }
+      setDocBlobUrl(null);
     }
+
+    return () => {
+      if (activeUrl) {
+        URL.revokeObjectURL(activeUrl);
+      }
+    };
   }, [previewDoc]);
 
   const downloadDoc = async (filename) => {
