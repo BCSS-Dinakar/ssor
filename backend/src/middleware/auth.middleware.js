@@ -32,3 +32,11 @@ export const requireAuth = async (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid or expired token. Please log in again.' });
   }
 };
+
+export const requirePolice = (req, res, next) => {
+  if (req.user && req.user.role === 'police') {
+    next();
+  } else {
+    res.status(403).json({ success: false, message: 'Forbidden. Police access only.' });
+  }
+};

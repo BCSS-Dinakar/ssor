@@ -5,6 +5,7 @@ import healthRoutes from './routes/health.route.js';
 import authRoutes from './routes/auth.route.js';
 import otpRoutes from './routes/otp.route.js';
 import policeRoutes from './routes/police.route.js';
+import organizationRoutes from './routes/organization.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -31,6 +32,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/police', policeRoutes);
+app.use('/api/organization', organizationRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });

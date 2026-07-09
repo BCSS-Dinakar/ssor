@@ -24,5 +24,10 @@ export const authApi = {
       }
     });
     return response.data;
+  },
+
+  getDocument: async (filename) => {
+    const response = await api.get(`/auth/documents/${filename}`, { responseType: 'blob' });
+    return response;
   }
 };

@@ -103,11 +103,9 @@ model CandidateVerification {
   
   role            String
   candidateName   String
-  docType         String
-  idNumber        String
   dob             DateTime
   email           String?
-  phone           String?
+  phone           String
   
   consent         Boolean
 

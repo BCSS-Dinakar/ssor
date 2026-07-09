@@ -1,24 +1,30 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileCheck, Eye, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Download, FileCheck, Eye, Clock, CheckCircle2, AlertTriangle, Loader2, HelpCircle } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import DataTable from '../../../components/common/DataTable';
 import { StatusPill } from '../../../components/portal/Badges';
-import { useAuth } from '../../../context/AuthContext';
-import { useData } from '../../../context/DataContext';
+import { organizationApi } from '../../../api/organization.api';
 
 function VerificationRequests() {
-  const { auth } = useAuth();
-  const { clearances } = useData();
   const navigate = useNavigate();
+  const [baseList, setBaseList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const mine = clearances.filter((c) => c.org && c.org.includes(auth.name));
-  const baseList = mine.length ? mine : clearances;
+  useEffect(() => {
+    organizationApi.getVerifications()
+      .then(data => {
+        setBaseList(data.verifications);
+      })
+      .catch(err => console.error("Failed to fetch verifications", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const total = baseList.length;
   const cleared = baseList.filter((r) => r.status === 'cleared').length;
   const rejected = baseList.filter((r) => r.status === 'rejected').length;
-  const pending = baseList.filter((r) => r.status === 'pending').length;
+  const pending = baseList.filter((r) => r.status === 'pending' || r.status === 'verifying').length;
 
   const rows = baseList.filter((r) => r.status === 'pending' || r.status === 'rejected' || r.status === 'verifying');
 
@@ -30,11 +36,11 @@ function VerificationRequests() {
     },
     {
       label: 'Candidate Name',
-      key: 'candidate',
+      key: 'candidateName',
       render: (row) => (
         <div>
-          <div className="font-semibold text-primary">{row.candidate}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">{row.idNumber || 'ID on file'}</div>
+          <div className="font-semibold text-primary">{row.candidateName}</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">{row.docType} {row.idNumber || 'ID on file'}</div>
         </div>
       ),
     },
@@ -45,8 +51,8 @@ function VerificationRequests() {
     },
     {
       label: 'Date Submitted',
-      key: 'submitted',
-      render: (row) => <span className="font-mono text-xs text-slate-500">{row.submitted || '—'}</span>,
+      key: 'createdAt',
+      render: (row) => <span className="font-mono text-xs text-slate-500">{new Date(row.createdAt).toLocaleDateString()}</span>,
     },
     {
       label: 'Verification Status',
@@ -75,22 +81,13 @@ function VerificationRequests() {
             </button>
           )}
 
-          {row.status === 'pending' && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-700 bg-blue-50 px-2 py-1.5 rounded-full border border-blue-200 uppercase tracking-wider">
-              Pending
-            </span>
-          )}
-
-          {row.status === 'verifying' && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-1.5 rounded-full border border-amber-200 uppercase tracking-wider animate-pulse">
-              Verifying
-            </span>
-          )}
-
-          {row.status === 'rejected' && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-red-700 bg-red-50 px-2 py-1.5 rounded-full border border-red-200 uppercase tracking-wider">
-              Rejected
-            </span>
+          {row.status !== 'cleared' && (
+            <button
+              onClick={() => navigate('/portal/compliance', { state: { prefillTicket: { reference: row.id, candidate: row.candidateName, status: row.status } } })}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors"
+            >
+              <HelpCircle className="h-3.5 w-3.5" /> Help
+            </button>
           )}
         </div>
       ),
@@ -121,19 +118,28 @@ function VerificationRequests() {
         <StatCard label="Total Submissions" value={total} icon={FileCheck} meta="All time" />
         <StatCard label="Cleared" value={cleared} icon={CheckCircle2} accent="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" meta="Approved to work" metaClass="text-emerald-600" />
         <StatCard label="Rejected" value={rejected} icon={AlertTriangle} accent="bg-red-50 text-red-600" valueClass="text-red-600" meta="Review locks" metaClass="text-red-600" />
-        <StatCard label="Pending & Verifying" value={pending + baseList.filter((r) => r.status === 'verifying').length} icon={Clock} accent="bg-amber-50 text-amber-600" valueClass="text-amber-500" meta="Police check active" metaClass="text-amber-600" />
+        <StatCard label="Pending & Verifying" value={pending} icon={Clock} accent="bg-amber-50 text-amber-600" valueClass="text-amber-500" meta="Police check active" metaClass="text-amber-600" />
       </div>
 
-      <DataTable
-        data={rows}
-        columns={columns}
-        filters={filters}
-        searchPlaceholder="Search candidate name, reference ID, or role..."
-        emptyIcon={FileCheck}
-        emptyTitle="No Clearance Requests Found"
-        emptyMessage="You have not submitted any background checks yet."
-        minHeight="min-h-[300px]"
-      />
+      <div className="card">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Loader2 className="h-8 w-8 animate-spin mb-4 text-emerald-500" />
+            <p className="text-sm font-semibold">Loading verification requests...</p>
+          </div>
+        ) : (
+          <DataTable 
+            data={rows} 
+            columns={columns} 
+            filters={filters} 
+            searchPlaceholder="Search by Reference ID or Name..." 
+            emptyIcon={FileCheck}
+            emptyTitle="No Clearance Requests Found"
+            emptyMessage="You have not submitted any background checks yet."
+            minHeight="min-h-[300px]"
+          />
+        )}
+      </div>
     </div>
   );
 }

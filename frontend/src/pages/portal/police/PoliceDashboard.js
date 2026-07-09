@@ -5,27 +5,44 @@ import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { useData } from '../../../context/DataContext';
+import React, { useState, useEffect } from 'react';
+import { policeApi } from '../../../api/police.api';
 import { TIERS } from '../../../utils/data/portalData';
 
 function PoliceDashboard() {
-  const { offenders, clearances, audit, counts } = useData();
+  const { clearances, audit } = useData();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    policeApi.getDashboardStats()
+      .then(res => {
+        if (res.success) setStats(res.data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="animate-spin h-8 w-8 border-4 border-secondary border-t-transparent rounded-full mb-4"></div>
+        <p className="font-bold">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   const byTier = Object.keys(TIERS).map((key) => ({
     key,
     ...TIERS[key],
-    count: offenders.filter((o) => o.tier === key).length,
+    count: 0,
   }));
   
-  const total = offenders.length;
-  const convictedCount = offenders.filter(o => o.legalStatus === 'Convicted').length;
-  const underTrialCount = offenders.filter(o => o.legalStatus === 'Under-Trial').length;
+  const total = 'N/A';
+  const convictedCount = 'N/A';
+  const underTrialCount = 'N/A';
 
-  const sectionData = [
-    { name: 'POCSO Act', value: offenders.filter(o => o.tier === 'red' || o.tier === 'orange').length, color: '#dc2626' },
-    { name: 'BNS Harassment', value: offenders.filter(o => o.tier === 'pink' || o.tier === 'green').length, color: '#0ea5e9' },
-    { name: 'IT Act (Cyber)', value: offenders.filter(o => o.tier === 'blue').length, color: '#8b5cf6' },
-    { name: 'BNS Trafficking', value: offenders.filter(o => o.tier === 'black').length, color: '#f59e0b' }
-  ].filter(d => d.value > 0);
+  const sectionData = [];
 
 
   return (
@@ -73,8 +90,8 @@ function PoliceDashboard() {
           </div>
         </div>
 
-        <StatCard label="Pending Clearances" value={counts.clearPending} icon={FileCheck} accent="bg-amber-50 text-accent" meta="Awaiting decision queue" />
-        <StatCard label="Disclosure Inquiries" value={counts.discPending} icon={Eye} accent="bg-pink-50 text-pink-600" meta="Awaiting manual DSP desk" />
+        <StatCard label="Pending Clearances" value={stats?.clearPending || 0} icon={FileCheck} accent="bg-amber-50 text-accent" meta="Awaiting decision queue" />
+        <StatCard label="Disclosure Inquiries" value={stats?.discPending || 0} icon={Eye} accent="bg-pink-50 text-pink-600" meta="Awaiting manual DSP desk" />
         
         {/* CCTNS Sync Status widget */}
         <div className="card p-5 flex flex-col justify-between bg-white relative">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../../../components/portal/PageHeader';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
 import DataTable from '../../../components/common/DataTable';
-import api from '../../../api/api';
+import { policeApi } from '../../../api/police.api';
 
 function SystemAuditLog() {
   const [audit, setAudit] = useState([]);
@@ -11,9 +11,9 @@ function SystemAuditLog() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await api.get('/police/logs');
-        if (response.data.success) {
-          setAudit(response.data.data);
+        const data = await policeApi.getLogs();
+        if (data.success) {
+          setAudit(data.data);
         }
       } catch (err) {
         console.error('Failed to fetch logs', err);

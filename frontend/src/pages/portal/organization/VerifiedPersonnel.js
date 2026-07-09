@@ -1,24 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, UserCheck, Users, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import { Search, UserCheck, Users, CheckCircle2, AlertTriangle, Clock, ShieldCheck } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
-import { useAuth } from '../../../context/AuthContext';
-import { useData } from '../../../context/DataContext';
+import { organizationApi } from '../../../api/organization.api';
 
 function VerifiedPersonnel() {
-  const { auth } = useAuth();
-  const { clearances } = useData();
   const [searchQuery, setSearchQuery] = useState('');
+  const [baseList, setBaseList] = useState([]);
   const navigate = useNavigate();
 
-  const mine = clearances.filter((c) => c.org && c.org.includes(auth.name));
-  const baseList = mine.length ? mine : clearances;
+  useEffect(() => {
+    organizationApi.getVerifications()
+      .then(data => setBaseList(data.verifications))
+      .catch(err => console.error("Failed to fetch verifications", err));
+  }, []);
+
   const rows = baseList.filter((c) => c.status === 'cleared');
 
   const filteredCandidates = rows.filter(
     (c) =>
-      c.candidate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.candidateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -89,22 +91,41 @@ function VerifiedPersonnel() {
 
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200/50 flex items-center justify-center shrink-0 border border-slate-200/40 relative">
-                    <span className="text-xs font-black text-slate-500 font-heading">{(c.candidate || 'C').charAt(0)}</span>
+                    <span className="text-xs font-black text-slate-500 font-heading">{(c.candidateName || 'C').charAt(0)}</span>
                     <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${glowClass}`} />
                   </div>
+                  <div className="flex-1 space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-slate-800 text-sm truncate pr-2" title={c.candidateName}>
+                        {c.candidateName}
+                      </h3>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-500 truncate" title={c.role}>
+                      {c.role}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-mono mt-1 flex items-center gap-1">
+                      {c.docType} {c.idNumber || 'ID on file'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 border border-slate-150 p-4 space-y-3 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
+                    <ShieldCheck className="h-16 w-16" />
+                  </div>
                   
-                  <div className="space-y-0.5 min-w-0">
-                    <h3 className="font-extrabold text-primary text-sm font-heading truncate">{c.candidate}</h3>
-                    <div className="text-xs text-slate-455 font-bold truncate">{c.role}</div>
-                    {c.idNumber && <div className="text-[10px] font-mono text-slate-400 mt-0.5">ID: {c.idNumber}</div>}
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500 font-medium">Submitted</span>
+                    <span className="font-bold text-slate-700 font-mono">{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '—'}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500 font-medium">Cleared</span>
+                    <span className="font-bold text-emerald-600 font-mono">{c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'N/A'}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="text-[10px] text-slate-400 font-medium">
-                  Verified: <span className="font-mono font-bold text-slate-600">{c.submitted || '—'}</span>
-                </span>
+              <div className="mt-6 pt-3 border-t border-slate-100 flex items-center justify-end text-xs">
                 <button
                   onClick={() => navigate(`/portal/candidates/${c.id}`)}
                   className="text-[10px] font-black text-secondary bg-blue-50 hover:bg-blue-100 px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center gap-1 border border-blue-200"

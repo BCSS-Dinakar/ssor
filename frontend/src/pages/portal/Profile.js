@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/portal/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, Lock, Building, MapPin, Mail, UserCheck, FileCode, Award, Eye, X, Download, FileText } from 'lucide-react';
-import api from '../../api/api';
+import { authApi } from '../../api/auth.api';
 
 function Profile() {
   const { auth } = useAuth();
@@ -29,7 +29,7 @@ function Profile() {
       setDocBlobUrl(null);
       setIsDocLoading(true);
       // We use the new generic auth route for fetching docs
-      api.get(`/auth/documents/${previewDoc.name}`, { responseType: 'blob' })
+      authApi.getDocument(previewDoc.name)
         .then(res => {
           activeUrl = URL.createObjectURL(res.data);
           setDocBlobUrl(activeUrl);
@@ -49,7 +49,7 @@ function Profile() {
 
   const downloadDoc = async (filename) => {
     try {
-      const res = await api.get(`/auth/documents/${filename}`, { responseType: 'blob' });
+      const res = await authApi.getDocument(filename);
       const url = URL.createObjectURL(res.data);
       const a = document.createElement('a');
       a.href = url;
