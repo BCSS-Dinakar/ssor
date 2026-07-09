@@ -44,5 +44,20 @@ export const policeApi = {
   updateVerificationStatus: async (id, payload) => {
     const response = await api.put(`/police/verifications/${id}/status`, payload);
     return response.data;
+  },
+
+  getTickets: async () => {
+    const response = await api.get('/police/tickets');
+    return response.data;
+  },
+
+  updateTicketStatus: async (id, status) => {
+    const response = await api.put(`/police/tickets/${id}/status`, { status });
+    return response.data;
+  },
+
+  addTicketMessage: async (id, text) => {
+    const response = await api.post(`/police/tickets/${id}/messages`, { text });
+    return response.data;
   }
 };

@@ -12,13 +12,14 @@ import PortalIndex from './pages/portal/PortalIndex';
 import Profile from './pages/portal/Profile';
 
 import RegistryDatabase from './pages/portal/police/RegistryDatabase';
-import AddOffenderRecord from './pages/portal/police/AddOffenderRecord';
+import RiskTierGuide from './pages/portal/RiskTierGuide';
 import PendingVerifications from './pages/portal/police/PendingVerifications';
 import VerificationHistory from './pages/portal/police/VerificationHistory';
 import OrganizationApprovals from './pages/portal/police/OrganizationApprovals';
 import OrganizationApprovalDetails from './pages/portal/police/OrganizationApprovalDetails';
 import OffenderDetail from './pages/portal/police/OffenderDetail';
 import VerificationVetting from './pages/portal/police/VerificationVetting';
+import SupportTickets from './pages/portal/police/SupportTickets';
 
 import SystemAuditLog from './pages/portal/police/SystemAuditLog';
 
@@ -52,18 +53,19 @@ function App() {
           <Route index element={<PortalIndex />} />
           {/* Shared */}
           <Route path="profile" element={<Profile />} />
+          <Route path="tiers" element={<RiskTierGuide />} />
           
           {/* Police Only Routes */}
           <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
             <Route path="register" element={<RegistryDatabase />} />
             <Route path="register/:id" element={<OffenderDetail />} />
-            <Route path="new" element={<AddOffenderRecord />} />
             <Route path="clearances" element={<PendingVerifications />} />
             <Route path="clearances/:id" element={<VerificationVetting />} />
             <Route path="clearance-history" element={<VerificationHistory />} />
             <Route path="clearance-history/:id" element={<VerificationVetting />} />
             <Route path="org-verify" element={<OrganizationApprovals />} />
             <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
+            <Route path="tickets" element={<SupportTickets />} />
             <Route path="audit" element={<SystemAuditLog />} />
           </Route>
 
