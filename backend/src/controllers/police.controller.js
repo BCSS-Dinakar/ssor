@@ -81,6 +81,141 @@ export const updateVerificationStatus = async (req, res) => {
   }
 };
 
+export const scanVerificationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const verification = await prisma.candidateVerification.findUnique({ where: { id } });
+    if (!verification) {
+      return res.status(404).json({ success: false, message: 'Verification record not found.' });
+    }
+
+    // Mark status as verifying
+    await prisma.candidateVerification.update({
+      where: { id },
+      data: { status: 'verifying' }
+    });
+
+    const candidateName = (verification.candidateName || '').trim().toLowerCase();
+    const candidatePhone = (verification.phone || '').replace(/\D/g, '');
+
+    // Step 1: Scan CCTNS first
+    const cctnsAll = await prisma.cctnsRecord.findMany();
+    let matches = [];
+    let priorityLabel = '';
+    let matchedSource = '';
+
+    // High Priority: Exact Name AND Phone
+    let highCctns = cctnsAll.filter(c => {
+      const cName = (c.name || '').trim().toLowerCase();
+      const cPhone = (c.phone || '').replace(/\D/g, '');
+      return cName === candidateName && (cPhone.endsWith(candidatePhone) || candidatePhone.endsWith(cPhone));
+    });
+
+    if (highCctns.length > 0) {
+      matches = highCctns;
+      priorityLabel = 'High Priority (Exact Name & Phone Match)';
+      matchedSource = 'CCTNS';
+    } else {
+      // Medium Priority: Exact Name only
+      let medCctns = cctnsAll.filter(c => {
+        const cName = (c.name || '').trim().toLowerCase();
+        return cName === candidateName;
+      });
+      if (medCctns.length > 0) {
+        matches = medCctns;
+        priorityLabel = 'Medium Priority (Exact Name Match)';
+        matchedSource = 'CCTNS';
+      } else {
+        // Low Priority: Exact Phone only
+        let lowCctns = cctnsAll.filter(c => {
+          const cPhone = (c.phone || '').replace(/\D/g, '');
+          return candidatePhone.length >= 7 && (cPhone.endsWith(candidatePhone) || candidatePhone.endsWith(cPhone));
+        });
+        if (lowCctns.length > 0) {
+          matches = lowCctns;
+          priorityLabel = 'Low Priority (Exact Phone Match)';
+          matchedSource = 'CCTNS';
+        }
+      }
+    }
+
+    // Step 2: If NO matches found in CCTNS, scan ePettyCase
+    if (matches.length === 0) {
+      const epettyAll = await prisma.ePettyCase.findMany();
+      
+      let highEpetty = epettyAll.filter(ep => {
+        const epName = (ep.offenderName || '').trim().toLowerCase();
+        const epPhone = (ep.phone || '').replace(/\D/g, '');
+        return epName === candidateName && (epPhone.endsWith(candidatePhone) || candidatePhone.endsWith(epPhone));
+      });
+
+      if (highEpetty.length > 0) {
+        matches = highEpetty;
+        priorityLabel = 'High Priority (Exact Name & Phone Match)';
+        matchedSource = 'ePetty Case';
+      } else {
+        let medEpetty = epettyAll.filter(ep => {
+          const epName = (ep.offenderName || '').trim().toLowerCase();
+          return epName === candidateName;
+        });
+        if (medEpetty.length > 0) {
+          matches = medEpetty;
+          priorityLabel = 'Medium Priority (Exact Name Match)';
+          matchedSource = 'ePetty Case';
+        } else {
+          let lowEpetty = epettyAll.filter(ep => {
+            const epPhone = (ep.phone || '').replace(/\D/g, '');
+            return candidatePhone.length >= 7 && (epPhone.endsWith(candidatePhone) || candidatePhone.endsWith(epPhone));
+          });
+          if (lowEpetty.length > 0) {
+            matches = lowEpetty;
+            priorityLabel = 'Low Priority (Exact Phone Match)';
+            matchedSource = 'ePetty Case';
+          }
+        }
+      }
+    }
+
+    // Map results to uniform suspect object structure for UI
+    const suspects = matches.map(m => ({
+      id: m.recordId || m.caseNumber,
+      name: m.name || m.offenderName,
+      alias: m.alias || '—',
+      age: m.age || '—',
+      fatherName: m.fatherName || '—',
+      dob: m.dob || m.incidentDate || '—',
+      phone: m.phone || '—',
+      address: m.address || '—',
+      offence: m.offence || m.offenceType || '—',
+      firNo: m.firNo || m.caseNumber || '—',
+      firDate: m.firDate || m.incidentDate || '—',
+      courtName: m.courtName || (m.disposalStatus ? `Status: ${m.disposalStatus}` : '—'),
+      convDate: m.convDate || m.incidentDate || '—',
+      riskTier: m.riskTier || 'Orange',
+      source: matchedSource,
+      priority: priorityLabel
+    }));
+
+    await prisma.systemAuditLog.create({
+      data: {
+        userId: req.user.id,
+        action: `Ran 3-Step Database Scan on ${verification.candidateName} (${id}) -> Outcome: ${matches.length} matches across ${matchedSource || 'None'}`,
+        ipAddress: req.ip
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      matchedSource: matchedSource || 'None',
+      priorityLabel: priorityLabel || 'No Match',
+      suspects
+    });
+  } catch (error) {
+    console.error('[scanVerificationById Error]', error);
+    res.status(500).json({ success: false, message: 'Server error during scan.', error: error.message });
+  }
+};
+
 export const getOrganizations = async (req, res) => {
   try {
     const orgs = await prisma.user.findMany({

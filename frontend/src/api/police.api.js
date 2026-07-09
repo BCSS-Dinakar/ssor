@@ -44,5 +44,10 @@ export const policeApi = {
   updateVerificationStatus: async (id, payload) => {
     const response = await api.put(`/police/verifications/${id}/status`, payload);
     return response.data;
+  },
+
+  scanVerificationById: async (id) => {
+    const response = await api.post(`/police/verifications/${id}/scan`);
+    return response.data;
   }
 };

@@ -147,3 +147,59 @@ model TicketMessage {
   
   createdAt       DateTime @default(now())
 }
+
+model CctnsRecord {
+  id              String   @id @default(uuid())
+  recordId        String   @unique
+  name            String
+  alias           String?
+  age             Int?
+  fatherName      String?
+  dob             String?
+  caste           String?
+  subCaste        String?
+  religion        String?
+  nationality     String?  @default("Indian")
+  education       String?
+  occupation      String?
+  placeOfWork     String?
+  email           String?
+  phone           String
+  address         String?
+  height          String?
+  build           String?
+  complexion      String?
+  eyes            String?
+  hair            String?
+  beard           String?
+  mustache        String?
+  face            String?
+  identifications String?
+  firNo           String?
+  firDate         String?
+  courtName       String?
+  offence         String?
+  convDate        String?
+  riskTier        String   @default("Red") // Red, Orange, Blue, Black, Pink, Green
+  createdAt       DateTime @default(now())
+}
+
+model EPettyCase {
+  id               String   @id @default(uuid())
+  caseNumber       String   @unique
+  offenderName     String
+  alias            String?
+  age              Int?
+  fatherName       String?
+  phone            String
+  email            String?
+  address          String?
+  policeStation    String?
+  district         String?
+  incidentDate     String?
+  offenceType      String?
+  penaltyAmount    Float?   @default(500.0)
+  disposalStatus   String?  @default("Fine Paid")
+  riskTier         String   @default("Orange") // Red, Orange, Blue, Black, Pink, Green
+  createdAt        DateTime @default(now())
+}
