@@ -1,76 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../../components/portal/PageHeader';
 import DataTable from '../../../components/common/DataTable';
+import api from '../../../api/api';
 
 function OrganizationApprovals() {
-  const [verifications] = useState([
-    {
-      id: 'ORG-8392',
-      name: 'Little Scholars Academy',
-      type: 'School',
-      district: 'Hyderabad',
-      appliedOn: '2026-07-07',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8381',
-      name: 'Sunshine Pre-school',
-      type: 'Pre-school',
-      district: 'Cyberabad',
-      appliedOn: '2026-07-06',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8370',
-      name: 'Global Tech Institute',
-      type: 'College',
-      district: 'Rangareddy',
-      appliedOn: '2026-07-05',
-      status: 'approved',
-    },
-    {
-      id: 'ORG-8365',
-      name: 'Care Hospital',
-      type: 'Healthcare',
-      district: 'Hyderabad',
-      appliedOn: '2026-07-04',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8360',
-      name: 'Pinnacle High School',
-      type: 'School',
-      district: 'Medchal',
-      appliedOn: '2026-07-03',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8355',
-      name: 'Oakridge International',
-      type: 'School',
-      district: 'Cyberabad',
-      appliedOn: '2026-07-02',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8350',
-      name: 'St. Marys College',
-      type: 'College',
-      district: 'Hyderabad',
-      appliedOn: '2026-07-01',
-      status: 'pending',
-    },
-    {
-      id: 'ORG-8345',
-      name: 'Apollo Clinics',
-      type: 'Healthcare',
-      district: 'Rangareddy',
-      appliedOn: '2026-06-30',
-      status: 'rejected',
-    }
-  ]);
+  const [verifications, setVerifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        const res = await api.get('/police/organizations');
+        if (res.data.success) {
+          const mapped = res.data.data.map(org => ({
+            id: org.id,
+            name: org.organizationProfile?.orgName || org.loginId,
+            type: org.organizationProfile?.orgType || 'Unknown',
+            district: org.organizationProfile?.district || 'Unknown',
+            appliedOn: new Date(org.createdAt).toISOString().split('T')[0],
+            status: org.status
+          }));
+          setVerifications(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch orgs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrgs();
+  }, []);
 
   const columns = [
     {
@@ -166,16 +127,20 @@ function OrganizationApprovals() {
         subtitle="Review and approve organization registrations to grant them portal access."
       />
 
-      <DataTable
-        data={verifications}
-        columns={columns}
-        filters={filters}
-        searchPlaceholder="Search by name, ID, or district..."
-        emptyIcon={Building2}
-        emptyTitle="No pending verifications"
-        emptyMessage="All organization registrations have been processed."
-        minHeight="min-h-[500px]"
-      />
+      {loading ? (
+        <div className="p-8 text-center text-slate-500 font-medium text-sm">Loading organizations...</div>
+      ) : (
+        <DataTable
+          data={verifications}
+          columns={columns}
+          filters={filters}
+          searchPlaceholder="Search by name, ID, or district..."
+          emptyIcon={Building2}
+          emptyTitle="No pending verifications"
+          emptyMessage="All organization registrations have been processed."
+          minHeight="min-h-[500px]"
+        />
+      )}
     </div>
   );
 }

@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/portal/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, Lock, Building, MapPin, Mail, UserCheck, FileCode, Award, Eye, X, Download, FileText } from 'lucide-react';
+import api from '../../api/api';
 
 function Profile() {
   const { auth } = useAuth();
   const isOrg = auth?.role === 'organization';
 
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [docBlobUrl, setDocBlobUrl] = useState(null);
+  const [isDocLoading, setIsDocLoading] = useState(false);
 
   useEffect(() => {
     if (previewDoc) {
@@ -20,110 +23,136 @@ function Profile() {
     };
   }, [previewDoc]);
 
-  // Registration data mock template
-  const mockOrgProfile = {
-    appId: 'REG-2026-88341',
-    orgName: auth?.name || 'Little Scholars School',
-    orgType: 'School',
-    parentOrg: 'Little Scholars Educational Trust',
-    department: 'Primary & Secondary Sections',
-    jurisdiction: 'Cyberabad Commissionerate (West Zone)',
-    
-    country: 'India',
-    state: 'Telangana',
-    district: 'Ranga Reddy',
-    city: 'Kondapur, Serilingampally',
-    address: 'Plot 45, Survey 12, Kondapur Main Road',
-    pinCode: '500084',
-    
-    officialEmail: 'admin@littlescholars.edu.in',
-    officialPhone: '040-23456780',
-    altPhone: '98480-22338',
-    website: 'https://www.littlescholars.edu.in',
-    
-    adminName: 'Dr. K. Madhav Rao',
-    designation: 'Principal & Head of Institution',
-    empId: 'LSS-PR-002',
-    mobile: '98765-43210',
-    
-    docs: [
-      { 
-        id: 'doc-auth',
-        name: 'Authorization_Letter_LSS.pdf', 
-        size: '1.2 MB',
-        title: 'Institution Authorization Letter',
-        issuedBy: 'Little Scholars Educational Trust Board',
-        date: '12-05-2026',
-        text: 'This letter formally authorizes Dr. K. Madhav Rao (Principal) to act as the primary licensee administrator for the State Sexual Offender Register (SSOR) portal verification cell on behalf of the trust.'
-      },
-      { 
-        id: 'doc-reg',
-        name: 'Govt_School_Registration_TS.pdf', 
-        size: '2.4 MB',
-        title: 'Telangana State School Registration Cert',
-        issuedBy: 'Department of School Education, Govt of TS',
-        date: '04-03-2018',
-        text: 'School Registration Reference: SERI-RR-2018-8420. This certificate verifies that Little Scholars School is registered under the Telangana Education Act, and is fully recognized as an active co-educational primary and secondary school.'
-      },
-      { 
-        id: 'doc-noc',
-        name: 'NOC_Fire_Safety_2025.pdf', 
-        size: '1.8 MB',
-        title: 'NOC / Fire Safety Compliance Certificate',
-        issuedBy: 'Telangana State Disaster Response & Fire Services',
-        date: '10-09-2025',
-        text: 'Reference ID: NOC/FS/2025/1104. This certifies that the school building premises at Plot 45, Kondapur, has undergone testing and complies with all state safety specifications and disaster response directives.'
+  useEffect(() => {
+    if (previewDoc) {
+      setDocBlobUrl(null);
+      setIsDocLoading(true);
+      // We use the new generic auth route for fetching docs
+      api.get(`/auth/documents/${previewDoc.name}`, { responseType: 'blob' })
+        .then(res => {
+          const url = URL.createObjectURL(res.data);
+          setDocBlobUrl(url);
+        })
+        .catch(err => console.error("Failed to fetch doc blob", err))
+        .finally(() => setIsDocLoading(false));
+    } else {
+      if (docBlobUrl) {
+        URL.revokeObjectURL(docBlobUrl);
+        setDocBlobUrl(null);
       }
-    ]
+    }
+  }, [previewDoc]);
+
+  const downloadDoc = async (filename) => {
+    try {
+      const res = await api.get(`/auth/documents/${filename}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download document:', err);
+      alert('Failed to download document.');
+    }
   };
 
-  const mockPoliceProfile = {
-    badgeId: auth?.loginId || 'ISP-8842',
-    name: auth?.name || 'Insp. G. Madhusudhan Rao',
-    rank: 'Inspector of Police',
-    empId: 'TS-POL-41922',
-    department: 'Crime Investigation Department (CID)',
-    wing: 'Anti-Human Trafficking & Child Vetting Cell',
-    jurisdiction: auth?.clearance || 'Cyberabad Commissionerate (West Zone)',
-    joiningDate: '12-08-2018',
-    email: 'g.m.rao@tspolice.gov.in',
-    mobile: '94906-17204',
-    altPhone: '040-23004122',
-    station: 'Miyapur Police Station',
-    district: 'Cyberabad Commissionerate',
-    state: 'Telangana',
-    country: 'India',
-    clearanceLevel: 'Level 3 Registry Administrator (Full Access)',
+  const o = auth?.organizationProfile || {};
+  const meta = auth?.documentMetadata || {};
+
+  const getDocMeta = (filename, defaultTitle, defaultText) => {
+    const m = meta[filename] || {};
+    return {
+      id: `doc-${filename}`,
+      name: filename,
+      size: m.size ? `${m.type} • ${m.size}` : 'Unknown Size',
+      title: defaultTitle,
+      issuedBy: 'Uploaded via Registration',
+      date: m.date || 'N/A',
+      text: defaultText
+    };
+  };
+
+  const mockOrgProfile = {
+    appId: o.id || 'REG-PENDING',
+    orgName: o.orgName || auth?.name || 'N/A',
+    orgType: o.orgType || 'N/A',
+    parentOrg: o.parentOrg || 'N/A',
+    department: o.department || 'N/A',
+    jurisdiction: o.jurisdiction || 'N/A',
+
+    country: o.country || 'N/A',
+    state: o.state || 'N/A',
+    district: o.district || 'N/A',
+    city: o.city || 'N/A',
+    address: o.address || 'N/A',
+    pinCode: o.pinCode || 'N/A',
+
+    officialEmail: o.officialEmail || 'N/A',
+    officialPhone: o.officialPhone || 'N/A',
+    altPhone: o.altPhone || 'N/A',
+    website: o.website || 'N/A',
+
+    adminName: o.adminName || 'N/A',
+    designation: o.designation || 'N/A',
+    empId: o.empId || 'N/A',
+    mobile: o.mobile || 'N/A',
+
     docs: [
-      {
-        id: 'doc-badge',
-        name: 'Inspector_Badge_Vetted.pdf',
-        size: '1.4 MB',
-        title: 'Official Officer Identity Badge Vetting',
-        issuedBy: 'Director General of Police, Telangana State',
-        date: '15-08-2022',
-        text: 'This verifies that Inspector G. Madhusudhan Rao (Badge ID: ISP-8842) is a sworn officer of the Telangana State Police Force, currently assigned to the State Sexual Offender Register Oversight Cell.'
-      },
-      {
-        id: 'doc-deputation',
-        name: 'SSOR_Deputation_Order_2024.pdf',
-        size: '1.9 MB',
-        title: 'SSOR Cell Deputation Order',
-        issuedBy: 'Home Department, Govt of Telangana State',
-        date: '10-01-2024',
-        text: 'Deputation Order Ref: HD/TS/SSOR/2024/90. Inspector G. Madhusudhan Rao is officially deputed to head the security and validation desks of the Cyberabad division of the SSOR disclosable register portal.'
-      }
-    ]
+      o.authLetterPath && getDocMeta(
+        o.authLetterPath, 
+        'Institution Authorization Letter', 
+        'This letter formally authorizes the administrator to act as the primary licensee for the SSOR portal.'
+      ),
+      o.govCertPath && getDocMeta(
+        o.govCertPath, 
+        'Government Registration Certificate', 
+        'This certificate verifies the organization is registered and recognized.'
+      ),
+      o.supportingDocsPaths && o.supportingDocsPaths.length > 0 && getDocMeta(
+        o.supportingDocsPaths[0], 
+        'Supporting Document', 
+        'Additional supporting compliance document.'
+      )
+    ].filter(Boolean)
+  };
+
+  const p = auth?.policeProfile || {};
+  const mockPoliceProfile = {
+    badgeId: p.badgeId || auth?.loginId || 'N/A',
+    name: p.name || auth?.name || 'N/A',
+    rank: p.rank || 'N/A',
+    empId: p.empId || 'N/A',
+    department: p.department || 'N/A',
+    wing: p.wing || 'N/A',
+    jurisdiction: p.jurisdiction || 'N/A',
+    joiningDate: p.joiningDate || 'N/A',
+    email: p.email || 'N/A',
+    mobile: p.mobile || 'N/A',
+    altPhone: p.altPhone || 'N/A',
+    station: p.station || 'N/A',
+    district: p.district || 'N/A',
+    state: p.state || 'N/A',
+    country: p.country || 'N/A',
+    clearanceLevel: p.clearanceLevel || 'N/A',
+    docs: (p.docsPaths || []).map((path) => getDocMeta(
+      path,
+      'Uploaded Document',
+      'This is an uploaded supporting document.'
+    ))
   };
 
   return (
     <div className="space-y-6 w-full font-body relative">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
-        <PageHeader 
-          crumb="Licence Credentials" 
-          title={isOrg ? "Licence Credentials" : "Officer Credentials"} 
-          subtitle="View verified institutional registration profiles and authorization parameters." 
+        <PageHeader
+          crumb="Licence Credentials"
+          title={isOrg ? "Licence Credentials" : "Officer Credentials"}
+          subtitle="View verified institutional registration profiles and authorization parameters."
         />
         <div className="flex flex-col items-end shrink-0">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{isOrg ? 'Registry App ID' : 'Officer Badge ID'}</span>
@@ -136,7 +165,7 @@ function Profile() {
       {isOrg ? (
         /* Double Column Split Layout to occupy the Full Space */
         <div className="grid lg:grid-cols-3 gap-6 w-full items-start">
-          
+
           {/* Column 1 (Left 1/3): Summary & Documents Locker */}
           <div className="space-y-6 lg:col-span-1">
             {/* Simple Core Badge */}
@@ -192,7 +221,7 @@ function Profile() {
 
           {/* Column 2 (Right 2/3): Full Specifications Grid */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Institution Specs */}
             <div className="card p-5 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
@@ -305,7 +334,7 @@ function Profile() {
       ) : (
         /* Double Column Split Layout for Police Profile */
         <div className="grid lg:grid-cols-3 gap-6 w-full items-start">
-          
+
           {/* Column 1 (Left 1/3): Summary & Documents Locker */}
           <div className="space-y-6 lg:col-span-1">
             {/* Simple Core Badge */}
@@ -361,7 +390,7 @@ function Profile() {
 
           {/* Column 2 (Right 2/3): Full Specifications Grid */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Officer Specifications */}
             <div className="card p-5 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
@@ -454,11 +483,11 @@ function Profile() {
 
       {/* 3. Document Viewer Modal */}
       {previewDoc && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] bg-slate-350/15 flex items-center justify-center p-4"
           onClick={() => setPreviewDoc(null)}
         >
-          <div 
+          <div
             className="bg-white rounded-none max-w-2xl w-[70vw] flex flex-col shadow-2xl overflow-hidden border border-slate-200"
             onClick={(e) => e.stopPropagation()}
           >
@@ -468,7 +497,7 @@ function Profile() {
                 <FileText className="h-4.5 w-4.5 text-accent" />
                 <span className="text-xs font-bold font-heading">{previewDoc.name}</span>
               </div>
-              <button 
+              <button
                 onClick={() => setPreviewDoc(null)}
                 className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-350 hover:text-white transition-colors"
                 aria-label="Close document viewer"
@@ -478,21 +507,25 @@ function Profile() {
             </div>            {/* Document sheet */}
             <div className="p-6 bg-slate-50 flex-grow overflow-y-auto">
               <div className="bg-white border border-slate-200/80 rounded-none p-6 shadow-inner space-y-5 relative min-h-[300px]">
-                {/* Official seal mock */}
-                <div className="absolute right-6 top-6 opacity-10 pointer-events-none select-none">
-                  <Award className="w-24 h-24 text-primary" />
-                </div>
-
-                <div className="border-b border-slate-100 pb-3 text-center">
-                  <h4 className="text-xs font-black text-slate-800 uppercase font-heading tracking-wider">{previewDoc.title}</h4>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mt-1">TS Government Registry Portal Vetted Document</span>
-                </div>
-
-                <div className="space-y-3 text-xs text-slate-650 leading-relaxed font-medium">
-                  <p>{previewDoc.text}</p>
-                  
-                  <p>This credential remains active and linked to account ID <strong>{mockOrgProfile.appId}</strong>. Verified in active SSOR repository checks.</p>
-                </div>
+                {isDocLoading ? (
+                  <div className="flex flex-col items-center justify-center h-[50vh]">
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-sm font-bold text-slate-500 mt-4">Loading document...</p>
+                  </div>
+                ) : docBlobUrl ? (
+                  previewDoc.name.toLowerCase().endsWith('.pdf') ? (
+                    <iframe src={docBlobUrl} className="w-full h-[60vh] border-0 rounded" title="Document Viewer" />
+                  ) : (
+                    <div className="flex justify-center bg-slate-100 rounded p-4 h-[60vh]">
+                      <img src={docBlobUrl} alt="Document" className="max-w-full max-h-full object-contain shadow-sm" />
+                    </div>
+                  )
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400">
+                    <Award className="w-16 h-16 mb-2 opacity-50" />
+                    <p className="text-sm font-bold">Document preview unavailable</p>
+                  </div>
+                )}
 
                 <div className="border-t border-slate-100 pt-4 flex justify-between text-[8px] font-mono text-slate-400 font-bold">
                   <div>ISSUED BY: {previewDoc.issuedBy}</div>
@@ -503,13 +536,13 @@ function Profile() {
 
             {/* Footer */}
             <div className="px-5 py-3.5 bg-slate-100/50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
-              <button 
-                onClick={() => alert(`Downloading official PDF copy of ${previewDoc.name}`)}
+              <button
+                onClick={() => downloadDoc(previewDoc.name)}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-none transition-all"
               >
                 <Download className="h-3.5 w-3.5" /> Download PDF
               </button>
-              <button 
+              <button
                 onClick={() => setPreviewDoc(null)}
                 className="btn-secondary py-1.5 px-4 rounded-none text-xs text-slate-700 hover:text-white border-slate-300 font-bold"
               >

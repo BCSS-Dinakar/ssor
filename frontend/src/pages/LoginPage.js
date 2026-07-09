@@ -16,15 +16,51 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+
 import {
   ROLES,
   ORG_TYPES,
-  DEMO_OTP,
   ORG_REG_STEPS,
-  emptyOrgReg,
-  getLoginSuccessMessage,
-  getLoginDescription,
 } from '../utils/data/authData';
+import { otpApi } from '../api/otp.api';
+import SearchableSelect from '../components/SearchableSelect';
+import locationData from '../utils/data/locationData.json';
+
+const { COUNTRIES, STATES, DISTRICTS, CITIES } = locationData;
+
+const emptyOrgReg = () => ({
+  orgName: '',
+  orgType: '',
+  parentOrg: '',
+  department: '',
+  jurisdiction: '',
+  country: '',
+  state: '',
+  district: '',
+  city: '',
+  address: '',
+  pinCode: '',
+  officialEmail: '',
+  officialPhone: '',
+  altPhone: '',
+  website: '',
+  adminName: '',
+  designation: '',
+  empId: '',
+  adminEmail: '',
+  mobile: '',
+  loginId: '',
+  password: '',
+  confirm: '',
+  authLetter: null,
+  govCert: null,
+  supportingDocs: null,
+  acceptTerms: false,
+  acceptPrivacy: false,
+  confirmInfo: false,
+  otp: '',
+  captcha: '',
+});
 
 function makeCaptcha() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -57,7 +93,7 @@ function getInputClass(val, type = 'text', matchVal = '') {
   if (!value) {
     return `${baseInputClass} border-slate-200 text-slate-800 focus:bg-white focus:border-secondary focus:ring-4 focus:ring-secondary/10`;
   }
-  
+
   let isValid = false;
   let isWeak = false;
 
@@ -156,18 +192,16 @@ function StepIndicator({ steps, currentStep }) {
         return (
           <div key={label} className="relative z-10 flex flex-col items-center">
             <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all duration-500 ${
-                currentStep >= step
-                  ? 'bg-accent text-white shadow-md shadow-accent/30'
-                  : 'bg-white text-slate-400 border-2 border-slate-200'
-              }`}
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all duration-500 ${currentStep >= step
+                ? 'bg-accent text-white shadow-md shadow-accent/30'
+                : 'bg-white text-slate-400 border-2 border-slate-200'
+                }`}
             >
               {step}
             </div>
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${
-                currentStep >= step ? 'text-primary' : 'text-slate-400'
-              }`}
+              className={`text-[10px] font-bold uppercase tracking-wider absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
+                }`}
             >
               {label}
             </span>
@@ -181,7 +215,7 @@ function StepIndicator({ steps, currentStep }) {
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, registerOrganization } = useAuth();
   const roleParam = searchParams.get('role');
   const modeParam = searchParams.get('mode');
 
@@ -192,7 +226,7 @@ function LoginPage() {
   const [mode, setMode] = useState(initialMode);
 
   const [initialCaptcha] = useState(makeCaptcha);
-  const [loginForm, setLoginForm] = useState({ userId: 'demo_user', password: 'password123', officerId: 'POL123', captcha: initialCaptcha });
+  const [loginForm, setLoginForm] = useState({ userId: '', password: '', officerName: '', captcha: initialCaptcha });
   const [showPassword, setShowPassword] = useState(false);
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
@@ -202,6 +236,8 @@ function LoginPage() {
   const [regCaptcha, setRegCaptcha] = useState(makeCaptcha());
   const [regAlert, setRegAlert] = useState(null);
   const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [regStep, setRegStep] = useState(1);
 
@@ -214,6 +250,8 @@ function LoginPage() {
     setRegAlert(null);
     setRegStep(1);
     setOtpSent(false);
+    setOtpVerified(false);
+    setOtpTimer(0);
     setOrgReg(emptyOrgReg());
     setRegCaptcha(makeCaptcha());
   }, [role]);
@@ -235,87 +273,139 @@ function LoginPage() {
     setOrgReg((r) => ({ ...r, captcha: '' }));
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     const idLabel = role === 'police' ? 'Officer username' : 'Login ID';
     if (!loginForm.userId.trim()) return setLoginAlert({ type: 'error', message: `${idLabel} is required.` });
-    if (role === 'police' && !loginForm.officerId.trim()) {
-      return setLoginAlert({ type: 'error', message: 'Departmental clearance ID is required.' });
+    if (role === 'police' && !loginForm.officerName.trim()) {
+      return setLoginAlert({ type: 'error', message: 'Name is required.' });
     }
     if (!loginForm.password) return setLoginAlert({ type: 'error', message: 'Password is required.' });
     if (loginForm.captcha !== loginCaptcha) {
       refreshLoginCaptcha();
       return setLoginAlert({ type: 'error', message: 'Captcha does not match. Please try again.' });
     }
-    setLoginAlert({ type: 'success', message: getLoginSuccessMessage(role) });
-    login(role, { loginId: loginForm.userId.trim() });
-    setTimeout(() => navigate('/portal'), 700);
-    return undefined;
+
+    try {
+      setLoginAlert({ type: 'info', message: 'Authenticating...' });
+      await login(role, {
+        loginId: loginForm.userId.trim(),
+        password: loginForm.password
+      });
+      setLoginAlert({ type: 'success', message: 'Sign in successful! Redirecting...' });
+      setTimeout(() => navigate('/portal'), 700);
+    } catch (err) {
+      setLoginAlert({ type: 'error', message: err.message || 'Authentication failed.' });
+      refreshLoginCaptcha();
+    }
   };
 
-  const sendOtp = (mobile) => {
+  // OTP countdown timer
+  useEffect(() => {
+    if (otpTimer <= 0) return;
+    const tick = setTimeout(() => setOtpTimer((t) => t - 1), 1000);
+    return () => clearTimeout(tick);
+  }, [otpTimer]);
+
+  const sendOtp = async (mobile) => {
     if (!/^\d{10}$/.test(mobile.trim())) {
       return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number to receive an OTP.' });
     }
-    setOtpSent(true);
-    setRegAlert({ type: 'info', message: `A verification OTP has been sent to ${mobile} (demo: use ${DEMO_OTP}).` });
-    return undefined;
+    try {
+      setRegAlert({ type: 'info', message: 'Sending OTP...' });
+      const data = await otpApi.send(orgReg.mobile);
+      if (data.success) {
+        setOtpSent(true);
+        setOtpVerified(false);
+        setOtpTimer(60);
+        setOrgReg((r) => ({ ...r, otp: '' }));
+        const hint = data.devOtp ? ` (dev OTP: ${data.devOtp})` : '';
+        setRegAlert({ type: 'info', message: `OTP sent to ${mobile.trim()}${hint}.` });
+      } else {
+        setRegAlert({ type: 'error', message: data.message || 'Failed to send OTP.' });
+      }
+    } catch (err) {
+      setRegAlert({ type: 'error', message: err.response?.data?.message || err.message || 'Failed to send OTP.' });
+    }
   };
 
+  const verifyOtpApi = useCallback(async (mobile, otp) => {
+    try {
+      const data = await otpApi.verify(mobile.trim(), otp.trim());
+      if (data.success) {
+        setOtpVerified(true);
+        setOtpTimer(0);
+        setRegAlert({ type: 'success', message: 'Mobile number verified successfully.' });
+      } else {
+        setOtpVerified(false);
+        setRegAlert({ type: 'error', message: data.message || 'Invalid OTP.' });
+      }
+    } catch (err) {
+      setRegAlert({ type: 'error', message: err.response?.data?.message || err.message || 'OTP verification failed.' });
+    }
+  }, []);
+
   const validateOtp = () => {
-    const otp = orgReg.otp;
-    if (!otpSent) return setRegAlert({ type: 'error', message: 'Please request and enter the OTP sent to your mobile.' });
-    if (otp.trim() !== DEMO_OTP) return setRegAlert({ type: 'error', message: `Invalid OTP. (Demo OTP is ${DEMO_OTP}.)` });
+    if (!otpSent) return setRegAlert({ type: 'error', message: 'Please request an OTP for your mobile number.' });
+    if (!otpVerified) return setRegAlert({ type: 'error', message: 'Please verify your OTP before continuing.' });
     return true;
   };
 
 
   const validateOrgStep1 = () => {
-    if (!orgReg.orgName.trim() || !orgReg.orgType) {
-      return setRegAlert({ type: 'error', message: 'Organization name and type are required.' });
-    }
+    if (!orgReg.orgName.trim()) return setRegAlert({ type: 'error', message: 'Organization name is required.' });
+    if (!orgReg.orgType) return setRegAlert({ type: 'error', message: 'Organization type is required.' });
+    if (!orgReg.parentOrg.trim()) return setRegAlert({ type: 'error', message: 'Parent organization is required.' });
+    if (!orgReg.department.trim()) return setRegAlert({ type: 'error', message: 'Department / Unit is required.' });
+    if (!orgReg.jurisdiction.trim()) return setRegAlert({ type: 'error', message: 'Jurisdiction is required.' });
     return true;
   };
 
   const validateOrgStep2 = () => {
-    if (!orgReg.country || !orgReg.state || !orgReg.city || !orgReg.address.trim() || !orgReg.pinCode.trim()) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required address details.' });
-    }
-    if (!/^\d{6}$/.test(orgReg.pinCode.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid 6-digit PIN code.' });
-    }
+    if (!orgReg.state.trim()) return setRegAlert({ type: 'error', message: 'State is required.' });
+    if (!orgReg.district.trim()) return setRegAlert({ type: 'error', message: 'District is required.' });
+    if (!orgReg.city.trim()) return setRegAlert({ type: 'error', message: 'City is required.' });
+    if (!orgReg.address.trim()) return setRegAlert({ type: 'error', message: 'Address is required.' });
+    if (!orgReg.pinCode.trim()) return setRegAlert({ type: 'error', message: 'PIN Code is required.' });
+    if (!/^\d{6}$/.test(orgReg.pinCode.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid 6-digit PIN code.' });
     return true;
   };
 
   const validateOrgStep3 = () => {
-    if (!orgReg.officialEmail.trim() || !orgReg.officialPhone.trim()) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required contact details.' });
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.officialEmail.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid official email address.' });
-    }
+    if (!orgReg.officialEmail.trim()) return setRegAlert({ type: 'error', message: 'Official email is required.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.officialEmail.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid official email address.' });
+    if (!orgReg.officialPhone.trim()) return setRegAlert({ type: 'error', message: 'Official phone is required.' });
+    if (!/^[\d\s()+-]{7,15}$/.test(orgReg.officialPhone.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid official phone number.' });
+    if (!orgReg.altPhone.trim()) return setRegAlert({ type: 'error', message: 'Alternate phone is required.' });
+    if (!orgReg.website.trim()) return setRegAlert({ type: 'error', message: 'Website is required.' });
     return true;
   };
 
   const validateOrgStep4 = () => {
-    if (!orgReg.adminName.trim() || !orgReg.designation.trim() || !orgReg.empId.trim() || !orgReg.mobile.trim() || !orgReg.loginId.trim() || !orgReg.password || !orgReg.confirm) {
-      return setRegAlert({ type: 'error', message: 'Please fill all required administrator details.' });
-    }
-    if (!/^\d{10}$/.test(orgReg.mobile.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
-    }
+    if (!orgReg.adminName.trim()) return setRegAlert({ type: 'error', message: 'Full name is required.' });
+    if (!orgReg.designation.trim()) return setRegAlert({ type: 'error', message: 'Designation is required.' });
+    if (!orgReg.empId.trim()) return setRegAlert({ type: 'error', message: 'Employee ID is required.' });
+    if (!orgReg.adminEmail.trim()) return setRegAlert({ type: 'error', message: 'Admin email is required.' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.adminEmail.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid admin email address.' });
+    if (!orgReg.mobile.trim()) return setRegAlert({ type: 'error', message: 'Mobile number is required.' });
+    if (!/^\d{10}$/.test(orgReg.mobile.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
+    if (!orgReg.loginId.trim()) return setRegAlert({ type: 'error', message: 'Username (Login ID) is required.' });
+    if (!orgReg.password) return setRegAlert({ type: 'error', message: 'Password is required.' });
     if (orgReg.password.length < 8) return setRegAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
+    if (!orgReg.confirm) return setRegAlert({ type: 'error', message: 'Please confirm your password.' });
     if (orgReg.password !== orgReg.confirm) return setRegAlert({ type: 'error', message: 'Passwords do not match.' });
     if (!validateOtp()) return false;
     return true;
   };
-  
+
   const validateOrgStep5 = () => {
-    // Basic frontend mock check
+    if (!orgReg.authLetter) return setRegAlert({ type: 'error', message: 'Authorization Letter is required.' });
+    if (!orgReg.govCert) return setRegAlert({ type: 'error', message: 'Government Certificate is required.' });
     return true;
   };
 
   const validateOrgStep6 = () => true;
+
 
   const validateOrgStep7 = () => {
     if (!orgReg.acceptTerms || !orgReg.acceptPrivacy || !orgReg.confirmInfo) {
@@ -343,7 +433,7 @@ function LoginPage() {
     setRegStep((s) => Math.max(1, s - 1));
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (regStep < maxRegStep) {
       nextStep();
@@ -353,10 +443,13 @@ function LoginPage() {
     if (!validateOrgStep7()) return;
 
     if (role === 'organization') {
-      setRegAlert({
-        type: 'success',
-        message: `Pending Verification: Application submitted for ${orgReg.orgName}. SSOR Super Admin review pending.`,
-      });
+      try {
+        setRegAlert({ type: 'info', message: 'Submitting registration...' });
+        await registerOrganization(orgReg);
+        setIsSubmitted(true);
+      } catch (err) {
+        setRegAlert({ type: 'error', message: err.message || 'Registration failed.' });
+      }
     }
   };
 
@@ -429,9 +522,8 @@ function LoginPage() {
                   key={r.id}
                   type="button"
                   onClick={() => setRole(r.id)}
-                  className={`flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-300 ${
-                    active ? 'bg-white shadow-md' : 'hover:bg-slate-200'
-                  }`}
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-300 ${active ? 'bg-white shadow-md' : 'hover:bg-slate-200'
+                    }`}
                 >
                   <r.Icon className={`h-5 w-5 shrink-0 ${active ? 'text-accent' : 'text-slate-400'}`} />
                   <div className="min-w-0">
@@ -454,9 +546,8 @@ function LoginPage() {
                     key={t.id}
                     type="button"
                     onClick={() => setMode(t.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-all duration-300 relative ${
-                      mode === t.id ? 'text-primary' : 'text-slate-500 hover:text-primary hover:bg-slate-100/50'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-all duration-300 relative ${mode === t.id ? 'text-primary' : 'text-slate-500 hover:text-primary hover:bg-slate-100/50'
+                      }`}
                   >
                     <t.Icon className="h-4 w-4" />
                     {t.label}
@@ -474,7 +565,11 @@ function LoginPage() {
                     <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
                       {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-2 leading-relaxed">{getLoginDescription(role)}</p>
+                    <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                      {role === 'police'
+                        ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
+                        : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
+                    </p>
                   </div>
 
                   <Alert type={loginAlert?.type} message={loginAlert?.message} />
@@ -492,12 +587,12 @@ function LoginPage() {
                   </Field>
 
                   {role === 'police' && (
-                    <Field label="Departmental clearance ID" required hint="Provisioned by the department.">
+                    <Field label="Name" required hint="Your official name.">
                       <input
                         className={inputClass}
-                        placeholder="e.g. TSP-L1-0448"
-                        value={loginForm.officerId}
-                        onChange={(e) => setLoginForm({ ...loginForm, officerId: e.target.value })}
+                        placeholder="e.g. John Doe"
+                        value={loginForm.officerName}
+                        onChange={(e) => setLoginForm({ ...loginForm, officerName: e.target.value })}
                       />
                     </Field>
                   )}
@@ -555,7 +650,7 @@ function LoginPage() {
 
 
               {/* Organization registration */}
-              
+
               {/* Registration Success Screen */}
               {mode === 'register' && role === 'organization' && isSubmitted && (
                 <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6">
@@ -608,38 +703,58 @@ function LoginPage() {
                           <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Little Scholars School" />
                         </Field>
                         <Field label="Organization type" required>
-                          <select className={getInputClass(orgReg.orgType, 'text')} value={orgReg.orgType} onChange={(e) => setOrgReg({ ...orgReg, orgType: e.target.value })}>
-                            <option value="">Select</option>
-                            {ORG_TYPES.map((t) => (
-                              <option key={t}>{t}</option>
-                            ))}
-                          </select>
+                          <SearchableSelect 
+                            value={orgReg.orgType}
+                            onChange={(val) => setOrgReg({ ...orgReg, orgType: val })}
+                            options={ORG_TYPES}
+                            placeholder="Select Type"
+                          />
                         </Field>
-                        <Field label="Parent organization">
+                        <Field label="Parent organization" required>
                           <input className={getInputClass(orgReg.parentOrg, 'text')} value={orgReg.parentOrg} onChange={(e) => setOrgReg({ ...orgReg, parentOrg: e.target.value })} placeholder="e.g. Trust or Society Name" />
                         </Field>
-                        <Field label="Department / Unit">
+                        <Field label="Department / Unit" required>
                           <input className={getInputClass(orgReg.department, 'text')} value={orgReg.department} onChange={(e) => setOrgReg({ ...orgReg, department: e.target.value })} placeholder="e.g. Primary Section" />
                         </Field>
-                        <Field label="Jurisdiction">
+                        <Field label="Jurisdiction" required>
                           <input className={getInputClass(orgReg.jurisdiction, 'text')} value={orgReg.jurisdiction} onChange={(e) => setOrgReg({ ...orgReg, jurisdiction: e.target.value })} placeholder="e.g. South Zone" />
                         </Field>
                       </div>
                     )}
-                    
+
                     {regStep === 2 && (
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Field label="Country" required>
-                          <input className={getInputClass(orgReg.country, 'text')} value={orgReg.country} onChange={(e) => setOrgReg({ ...orgReg, country: e.target.value })} placeholder="Country" readOnly />
+                          <SearchableSelect 
+                            value={orgReg.country} 
+                            onChange={(val) => setOrgReg({ ...orgReg, country: val })} 
+                            options={COUNTRIES} 
+                            placeholder="Select Country" 
+                          />
                         </Field>
                         <Field label="State" required>
-                          <input className={getInputClass(orgReg.state, 'text')} value={orgReg.state} onChange={(e) => setOrgReg({ ...orgReg, state: e.target.value })} placeholder="State" />
+                          <SearchableSelect 
+                            value={orgReg.state} 
+                            onChange={(val) => setOrgReg({ ...orgReg, state: val })} 
+                            options={STATES} 
+                            placeholder="Select State" 
+                          />
                         </Field>
                         <Field label="District" required>
-                          <input className={getInputClass(orgReg.district, 'text')} value={orgReg.district} onChange={(e) => setOrgReg({ ...orgReg, district: e.target.value })} placeholder="District" />
+                          <SearchableSelect 
+                            value={orgReg.district} 
+                            onChange={(val) => setOrgReg({ ...orgReg, district: val })} 
+                            options={DISTRICTS} 
+                            placeholder="Select District" 
+                          />
                         </Field>
                         <Field label="City" required>
-                          <input className={getInputClass(orgReg.city, 'text')} value={orgReg.city} onChange={(e) => setOrgReg({ ...orgReg, city: e.target.value })} placeholder="City / Town" />
+                          <SearchableSelect 
+                            value={orgReg.city} 
+                            onChange={(val) => setOrgReg({ ...orgReg, city: val })} 
+                            options={CITIES} 
+                            placeholder="Select City" 
+                          />
                         </Field>
                         <Field label="Address" required className="sm:col-span-2">
                           <input className={getInputClass(orgReg.address, 'text')} value={orgReg.address} onChange={(e) => setOrgReg({ ...orgReg, address: e.target.value })} placeholder="Street address, building, etc." />
@@ -662,10 +777,10 @@ function LoginPage() {
                         <Field label="Official Phone" required>
                           <input className={getInputClass(orgReg.officialPhone, 'phone')} value={orgReg.officialPhone} onChange={(e) => setOrgReg({ ...orgReg, officialPhone: e.target.value })} placeholder="e.g. 040-12345678" />
                         </Field>
-                        <Field label="Alternate Phone">
+                        <Field label="Alternate Phone" required>
                           <input className={getInputClass(orgReg.altPhone, 'phone')} value={orgReg.altPhone} onChange={(e) => setOrgReg({ ...orgReg, altPhone: e.target.value })} placeholder="Alternate contact number" />
                         </Field>
-                        <Field label="Website" className="sm:col-span-2">
+                        <Field label="Website" required className="sm:col-span-2">
                           <input className={inputClass} type="url" value={orgReg.website} onChange={(e) => setOrgReg({ ...orgReg, website: e.target.value })} placeholder="https://www.institution.edu" />
                         </Field>
                       </div>
@@ -688,21 +803,45 @@ function LoginPage() {
                               onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                               placeholder="10-digit mobile"
                               inputMode="numeric"
+                              disabled={otpVerified}
                             />
-                            <button type="button" onClick={() => sendOtp(orgReg.mobile)} className="btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0">
-                              {otpSent ? 'Resend' : 'Send OTP'}
-                            </button>
+                            {otpTimer > 0 ? (
+                              <div className="btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0 flex items-center gap-1 opacity-70 cursor-not-allowed">
+                                <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={() => sendOtp(orgReg.mobile)} disabled={otpVerified}
+                                className={`btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0 ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
+                              </button>
+                            )}
                           </div>
                         </Field>
-                        {otpSent && (
-                          <Field label="OTP Verification" required hint={`Demo OTP is ${DEMO_OTP}.`}>
-                            <input className={getInputClass(orgReg.otp, 'pin')} value={orgReg.otp}
-                              onChange={(e) => setOrgReg({ ...orgReg, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                              placeholder="6-digit OTP"
-                              inputMode="numeric"
-                            />
+                        {otpSent && !otpVerified && (
+                          <Field label="OTP Verification" required hint="Enter the 6-digit OTP sent to your mobile.">
+                            <div className="relative">
+                              <input
+                                className={getInputClass(orgReg.otp, 'pin')}
+                                value={orgReg.otp}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                  setOrgReg({ ...orgReg, otp: val });
+                                  if (val.length === 6) verifyOtpApi(orgReg.mobile, val);
+                                }}
+                                placeholder="Enter 6-digit OTP"
+                                inputMode="numeric"
+                                maxLength={6}
+                              />
+                            </div>
                           </Field>
                         )}
+                        {otpVerified && (
+                          <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-sm font-semibold">
+                            <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                            Mobile verified ✓
+                          </div>
+                        )}
+
                         <Field label="Official Email" required>
                           <input className={inputClass} type="email" value={orgReg.adminEmail} onChange={(e) => setOrgReg({ ...orgReg, adminEmail: e.target.value })} placeholder="admin@institution.edu" />
                         </Field>
@@ -726,10 +865,10 @@ function LoginPage() {
                         <Field label="Government Certificate" required hint="e.g. School Registration Certificate">
                           <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
                         </Field>
-                        <Field label="Supporting Documents (Optional)" hint="Additional accreditations or licences">
+                        <Field label="Supporting Documents" hint="Additional accreditations or licences (optional)">
                           <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
                         </Field>
-                        <p className="text-xs text-slate-500 mt-2 italic">Note: File upload is simulated in this prototype.</p>
+                        <p className="text-xs text-slate-500 mt-2 italic">Note: PDF, JPG or PNG accepted. Max 5MB per file.</p>
                       </div>
                     )}
 

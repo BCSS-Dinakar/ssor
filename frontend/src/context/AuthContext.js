@@ -1,44 +1,87 @@
-import { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { authApi } from '../api/auth.api';
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = 'ssor_auth';
-
-const ROLE_DEFAULTS = {
-  organization: { name: 'Little Scholars School', clearance: 'Licence-linked account' },
-  police: { name: 'Insp. R. Naidu', clearance: 'Cyberabad · Clearance L1' },
-};
-
-function readStored() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(readStored);
+  const [auth, setAuth] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((role, profile = {}) => {
-    const next = {
-      role,
-      loginId: profile.loginId || '',
-      name: profile.name || ROLE_DEFAULTS[role]?.name || 'User',
-      clearance: profile.clearance || ROLE_DEFAULTS[role]?.clearance || '',
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    setAuth(next);
-    return next;
+  // Check session on mount
+  useEffect(() => {
+    authApi.getMe()
+      .then(data => {
+        if (data.success) setAuth(data.user);
+      })
+      .catch(() => setAuth(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setAuth(null);
+  const login = useCallback(async (role, credentials) => {
+    try {
+      const data = await authApi.login({ ...credentials, role });
+      if (data.success) {
+        setAuth(data.user);
+        return data.user;
+      } else {
+        throw new Error(data.message || 'Login failed');
+      }
+    } catch (err) {
+      if (err.response && err.response.data) {
+        throw new Error(err.response.data.message || 'Login failed');
+      }
+      throw new Error(err.message || 'Login failed');
+    }
   }, []);
 
-  const value = useMemo(() => ({ auth, login, logout }), [auth, login, logout]);
+  const registerOrganization = useCallback(async (orgData) => {
+    const formData = new FormData();
+    formData.append('role', 'organization');
+    
+    // Append text fields
+    Object.keys(orgData).forEach(key => {
+      if (key !== 'authLetter' && key !== 'govCert' && key !== 'supportingDocs') {
+        if (orgData[key] !== null && orgData[key] !== undefined) {
+          formData.append(key, orgData[key]);
+        }
+      }
+    });
+
+    // Append file fields
+    if (orgData.authLetter) formData.append('authLetter', orgData.authLetter);
+    if (orgData.govCert) formData.append('govCert', orgData.govCert);
+    if (orgData.supportingDocs && orgData.supportingDocs.length > 0) {
+      Array.from(orgData.supportingDocs).forEach(file => {
+        formData.append('supportingDocs', file);
+      });
+    }
+
+    try {
+      const data = await authApi.register(formData);
+      return data;
+    } catch (err) {
+      if (err.response && err.response.data) {
+        throw new Error(err.response.data.message || 'Registration failed');
+      }
+      throw new Error(err.message || 'Registration failed');
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout();
+    } catch (e) {
+      console.error('Logout error', e);
+    } finally {
+      setAuth(null);
+    }
+  }, []);
+
+  const value = useMemo(() => ({ auth, loading, login, registerOrganization, logout }), [auth, loading, login, registerOrganization, logout]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

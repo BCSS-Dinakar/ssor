@@ -29,6 +29,7 @@ import PersonnelDetails from './pages/portal/organization/PersonnelDetails';
 import VerificationDetails from './pages/portal/organization/VerificationDetails';
 import LegalResources from './pages/portal/organization/LegalResources';
 import ComplianceAndSupport from './pages/portal/organization/ComplianceAndSupport';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 
 function App() {
@@ -51,26 +52,31 @@ function App() {
           <Route index element={<PortalIndex />} />
           {/* Shared */}
           <Route path="profile" element={<Profile />} />
-          {/* Police */}
-          <Route path="register" element={<RegistryDatabase />} />
-          <Route path="register/:id" element={<OffenderDetail />} />
-          <Route path="new" element={<AddOffenderRecord />} />
-          <Route path="clearances" element={<PendingVerifications />} />
-          <Route path="clearances/:id" element={<VerificationVetting />} />
-          <Route path="clearance-history" element={<VerificationHistory />} />
-          <Route path="clearance-history/:id" element={<VerificationVetting />} />
-          <Route path="org-verify" element={<OrganizationApprovals />} />
-          <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
+          
+          {/* Police Only Routes */}
+          <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
+            <Route path="register" element={<RegistryDatabase />} />
+            <Route path="register/:id" element={<OffenderDetail />} />
+            <Route path="new" element={<AddOffenderRecord />} />
+            <Route path="clearances" element={<PendingVerifications />} />
+            <Route path="clearances/:id" element={<VerificationVetting />} />
+            <Route path="clearance-history" element={<VerificationHistory />} />
+            <Route path="clearance-history/:id" element={<VerificationVetting />} />
+            <Route path="org-verify" element={<OrganizationApprovals />} />
+            <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
+            <Route path="audit" element={<SystemAuditLog />} />
+          </Route>
 
-          <Route path="audit" element={<SystemAuditLog />} />
-          {/* Organization */}
-          <Route path="apply" element={<SubmitVerification />} />
-          <Route path="requests" element={<VerificationRequests />} />
-          <Route path="candidates" element={<VerifiedPersonnel />} />
-          <Route path="candidates/:id" element={<PersonnelDetails />} />
-          <Route path="track/:id" element={<VerificationDetails />} />
-          <Route path="resources" element={<LegalResources />} />
-          <Route path="compliance" element={<ComplianceAndSupport />} />
+          {/* Organization Only Routes */}
+          <Route element={<RoleProtectedRoute allowedRoles={['organization']} />}>
+            <Route path="apply" element={<SubmitVerification />} />
+            <Route path="requests" element={<VerificationRequests />} />
+            <Route path="candidates" element={<VerifiedPersonnel />} />
+            <Route path="candidates/:id" element={<PersonnelDetails />} />
+            <Route path="track/:id" element={<VerificationDetails />} />
+            <Route path="resources" element={<LegalResources />} />
+            <Route path="compliance" element={<ComplianceAndSupport />} />
+          </Route>
 
         </Route>
 
