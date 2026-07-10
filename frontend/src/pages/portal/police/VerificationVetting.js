@@ -17,11 +17,75 @@ function InfoRow({ icon: Icon, label, value }) {
   );
 }
 
-function DetailRow({ label, value, mono }) {
+function DetailRow({ label, value, mono, span2 }) {
+  const displayValue = (value === 'N/A' || !value) ? '-' : value;
+  
   return (
-    <div className="p-3 bg-slate-50 border border-slate-150 rounded-xl">
-      <div className="text-[9px] uppercase tracking-widest text-slate-400 font-black mb-1">{label}</div>
-      <div className={`text-xs text-slate-700 font-bold ${mono ? 'font-mono' : ''}`}>{value || '—'}</div>
+    <div className={`p-3 bg-slate-50 border border-slate-150 rounded-xl ${span2 ? 'sm:col-span-2 lg:col-span-2' : ''}`}>
+      <div className="text-[9px] uppercase tracking-widest text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
+        {label}
+      </div>
+      <div className={`text-xs text-slate-700 font-bold break-words ${mono ? 'font-mono text-[10px]' : ''}`}>{displayValue}</div>
+    </div>
+  );
+}
+
+function SectionHeading({ title, icon: Icon, badge }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 mb-4 mt-8 pb-3 border-b border-slate-100">
+      <Icon className="w-4 h-4 text-secondary" />
+      <h3 className="font-heading font-black text-primary text-base uppercase tracking-wider">{title}</h3>
+      {badge && <span className="ml-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-wider rounded-md border border-slate-200">{badge}</span>}
+    </div>
+  );
+}
+
+function DynamicDataGrid({ data }) {
+  if (!data || Object.keys(data).length === 0) return <DetailRow label="Status" value="No records found in database" />;
+  
+  // Filter out N/A or empty values
+  const validEntries = Object.entries(data).filter(([_, value]) => value && value !== 'N/A' && value !== '—');
+
+  if (validEntries.length === 0) {
+    return <DetailRow label="Status" value="No relevant data present in this section." />;
+  }
+  
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      {validEntries.map(([key, value]) => {
+        const formattedKey = key.replace(/_/g, ' ').toUpperCase();
+        const stringValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
+        const isLongText = stringValue.length > 50;
+        
+        return <DetailRow key={key} label={formattedKey} value={stringValue} span2={isLongText} />;
+      })}
+    </div>
+  );
+}
+
+function DynamicArrayList({ items, title, icon }) {
+  if (!items || items.length === 0) {
+    return (
+      <div>
+        <SectionHeading title={title} icon={icon} badge="0 RECORDS" />
+        <DetailRow label="Database Check" value="No entries found in this table." />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <SectionHeading title={title} icon={icon} badge={`${items.length} RECORD(S)`} />
+      <div className="space-y-4">
+        {items.map((item, index) => (
+          <div key={index} className="p-4 bg-white border border-slate-200 rounded-xl relative shadow-sm">
+            <div className="absolute top-4 right-4 px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md text-[9px] font-black border border-slate-200">
+              SEQ {index + 1}
+            </div>
+            <DynamicDataGrid data={item} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -57,6 +121,25 @@ function VerificationVetting() {
   const [confirmedSuspect, setConfirmedSuspect] = useState(null); // Suspect matched by officer
   const [activeSuspectTab, setActiveSuspectTab] = useState('profile');
   const [officerFeedback, setOfficerFeedback] = useState('');
+  const [inspectLoading, setInspectLoading] = useState(false);
+
+  const handleInspect = async (sus) => {
+    setInspectLoading(true);
+    try {
+      const res = await policeApi.getOffenderById(sus.id);
+      if (res.success && res.data) {
+        // Embed the sus list-level properties (priority, source) into the detail object for context
+        setInspectSuspect({ ...res.data, _listContext: sus });
+      } else {
+        alert("Failed to fetch full record.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching details.");
+    } finally {
+      setInspectLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,7 +158,7 @@ function VerificationVetting() {
   }
 
   // Check if we expect history based on status
-  const hasHistory = record.status === 'rejected' || record.candidateName?.includes('Reddy') || record.candidateName?.includes('Bai');
+  const hasHistory = suspects.length > 0;
 
   const startCriminalCheck = async () => {
     setCheckState('running');
@@ -102,77 +185,18 @@ function VerificationVetting() {
       }, item.delay);
     });
 
-    // Vetting completion logic
-    setTimeout(() => {
-      if (hasHistory) {
-        setSuspects([
-          {
-            id: 'SOR-2024-0417',
-            name: 'K. Surender Reddy',
-            alias: 'Suri',
-            age: 41,
-            fatherName: 'K. Ramachandra Reddy',
-            dob: '1983-05-12',
-            caste: 'Reddy',
-            subCaste: 'Goud-Reddy',
-            religion: 'Hindu',
-            nationality: 'Indian',
-            education: 'Graduate (B.Com)',
-            occupation: 'Real Estate Broker',
-            placeOfWork: 'Hyderabad Metro Area',
-            email: 'k.suri@example.com',
-            phone: '+91 98480 22319',
-            address: 'H.No: 8-2-310/A, Road No. 3, Banjara Hills, Hyderabad, Telangana - 500034',
-            height: "5'9\"",
-            build: 'Medium / Athletic',
-            complexion: 'Wheatish',
-            eyes: 'Dark Brown',
-            hair: 'Short / Black',
-            beard: 'Clean shaven',
-            mustache: 'Thick',
-            face: 'Oval',
-            identifications: 'Scar on the right forearm, mole near the left cheekbone',
-            firNo: 'FIR-104/2024 (Banjara Hills PS)',
-            firDate: '2024-05-12',
-            courtName: 'I Addl. District & Sessions Judge (POCSO Court), Cyberabad',
-            offence: 'Aggravated penetrative assault on a minor',
-            convDate: '2024-09-18'
-          },
-          {
-            id: 'SOR-2023-0112',
-            name: 'Ashok Reddy Goud',
-            alias: 'Rao',
-            age: 44,
-            fatherName: 'A. Gopal Goud',
-            dob: '1982-08-14',
-            caste: 'Goud',
-            subCaste: 'Goud-Shetty',
-            religion: 'Hindu',
-            nationality: 'Indian',
-            education: 'Intermediate (12th)',
-            occupation: 'Contractor',
-            placeOfWork: 'Cyberabad Limits',
-            email: 'ashok.goud@example.com',
-            phone: '+91 94401 12388',
-            address: 'H.No: 12-4/A, Kondapur Road, Serilingampally, Cyberabad, Telangana - 500084',
-            height: "5'7\"",
-            build: 'Heavyset',
-            complexion: 'Dark',
-            eyes: 'Black',
-            hair: 'Bald patch / Black',
-            beard: 'Beard trimmed',
-            mustache: 'Thick',
-            face: 'Round',
-            identifications: 'Burn mark on left thigh, deep scar near forehead',
-            firNo: 'FIR-88/2023 (Kondapur PS)',
-            firDate: '2023-03-20',
-            courtName: 'Special Sessions Judge (POCSO Act), Ranga Reddy',
-            offence: 'Sexual harassment and stalking of minors',
-            convDate: '2023-08-11'
-          }
-        ]);
-        setCheckState('done');
-      } else {
+    // Vetting completion logic via live API scan
+    setTimeout(async () => {
+      try {
+        const scanRes = await policeApi.scanVerificationById(id);
+        if (scanRes && scanRes.suspects) {
+          setSuspects(scanRes.suspects);
+        } else {
+          setSuspects([]);
+        }
+      } catch (err) {
+        console.error('Scan failed:', err);
+      } finally {
         setCheckState('done');
       }
     }, 4200);
@@ -228,8 +252,7 @@ function VerificationVetting() {
               <InfoRow icon={User} label="Date of Birth Profile" value={new Date(record.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} />
               
               <InfoRow icon={User} label="Phone Number" value={record.phone} />
-              <InfoRow icon={FileText} label="Email Address" value={record.email || 'N/A'} />
-              
+              {record.fatherName && <InfoRow icon={User} label="Father's Name" value={record.fatherName} />}
               <InfoRow icon={Building} label="Employer Station" value={record.orgName} />
               <InfoRow icon={Building} label="Organization Type" value={record.orgType} />
               
@@ -281,8 +304,8 @@ function VerificationVetting() {
                 </div>
               )}
 
-              {/* Matching подозреваемые list */}
-              {checkState === 'done' && hasHistory && (
+              {/* Matching suspect list */}
+              {checkState === 'done' && suspects.length > 0 && (
                 <div className="space-y-4">
                   <div className="p-3.5 bg-amber-50 border border-amber-250 text-amber-850 rounded-xl text-xs font-bold leading-normal flex items-start gap-2">
                     <ShieldAlert className="h-4.5 w-4.5 text-amber-700 shrink-0 mt-0.5" />
@@ -293,22 +316,87 @@ function VerificationVetting() {
 
                   <div className="space-y-2">
                     <span className="text-[9px] uppercase tracking-widest text-slate-400 font-black block">Database Matches for Review</span>
-                    {suspects.map((sus) => (
-                      <div key={sus.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-slate-100/50 transition-colors">
-                        <div>
-                          <div className="font-extrabold text-slate-800 text-sm">{sus.name} <span className="text-xs text-slate-400 font-bold font-mono">({sus.id})</span></div>
-                          <div className="text-[10px] text-slate-455 mt-1 font-bold">
-                            Age: {sus.age} · Father: {sus.fatherName} · Alias: {sus.alias}
+                    {suspects.map((sus) => {
+                      const tierColors = {
+                        Red: 'bg-red-50 text-red-700 border-red-200',
+                        Orange: 'bg-orange-50 text-orange-700 border-orange-200',
+                        Blue: 'bg-blue-50 text-blue-700 border-blue-200',
+                        Black: 'bg-slate-800 text-white border-slate-700',
+                        Pink: 'bg-pink-50 text-pink-700 border-pink-200',
+                        Green: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      };
+                      const badgeClass = tierColors[sus.riskTier] || 'bg-amber-50 text-amber-700 border-amber-200';
+
+                      return (
+                        <div key={sus.id} className="group relative overflow-hidden bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:border-primary/30 p-1">
+                          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-blue-500 to-indigo-600 rounded-l-2xl opacity-80" />
+                          <div className="pl-5 pr-4 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 relative z-10 bg-gradient-to-r from-transparent to-slate-50/50">
+                            
+                            <div className="space-y-3 flex-grow min-w-0 w-full">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 font-black shadow-inner shrink-0">
+                                    {(sus.name || 'O').charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="font-extrabold text-slate-800 text-sm md:text-base font-heading tracking-wide truncate">
+                                      {sus.name}
+                                    </h4>
+                                    <span className="text-[10px] text-slate-400 font-bold font-mono truncate block">ID: {sus.id}</span>
+                                  </div>
+                                </div>
+                                <div className="hidden sm:block w-px h-6 bg-slate-200 shrink-0"></div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {sus.riskTier && (
+                                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border shadow-sm ${badgeClass}`}>
+                                      {sus.riskTier} TIER
+                                    </span>
+                                  )}
+                                  {sus.priority && (
+                                    <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-200 shadow-sm flex items-center gap-1">
+                                      <ShieldAlert className="w-3 h-3" /> {sus.priority}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2">
+                                {(sus.age && sus.age !== 'N/A' && sus.age !== '—') && (
+                                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">AGE</span>
+                                    <span>{sus.age}</span>
+                                  </div>
+                                )}
+                                {(sus.alias && sus.alias !== 'N/A' && sus.alias !== '—') && (
+                                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">ALIAS</span>
+                                    <span className="truncate max-w-[120px]">{sus.alias}</span>
+                                  </div>
+                                )}
+                                {(sus.offence && sus.offence !== 'N/A' && sus.offence !== '—') && (
+                                  <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm flex-grow sm:flex-grow-0">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 shrink-0">FIR / CRIME</span>
+                                    <span className="truncate" title={sus.offence}>{sus.offence} {sus.firDate && sus.firDate !== 'N/A' && sus.firDate !== '—' ? `(${sus.firDate})` : ''}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <button
+                              onClick={() => handleInspect(sus)}
+                              disabled={inspectLoading}
+                              className="group/btn relative inline-flex items-center gap-2 px-5 py-3 bg-white hover:bg-slate-900 border border-slate-200 hover:border-slate-800 rounded-xl text-[10px] font-black uppercase text-secondary hover:text-white tracking-widest transition-all duration-300 shrink-0 shadow-sm disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-secondary overflow-hidden w-full lg:w-auto justify-center"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-primary to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                              <div className="relative z-10 flex items-center gap-2">
+                                {inspectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />} Inspect Dossier
+                              </div>
+                            </button>
+                            
                           </div>
                         </div>
-                        <button
-                          onClick={() => setInspectSuspect(sus)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase text-secondary tracking-widest transition-colors shrink-0 shadow-sm"
-                        >
-                          <Eye className="h-3.5 w-3.5" /> Inspect Record Dossier
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {confirmedSuspect && (
@@ -323,7 +411,7 @@ function VerificationVetting() {
               )}
 
               {/* Clean Vetting results */}
-              {checkState === 'done' && !hasHistory && (
+              {checkState === 'done' && suspects.length === 0 && (
                 <div className="p-4.5 bg-emerald-50 border border-emerald-250 text-emerald-850 rounded-2xl text-xs font-bold leading-normal flex items-start gap-3.5 shadow-inner">
                   <Check className="h-5 w-5 text-emerald-700 bg-emerald-100 p-0.5 rounded-full border border-emerald-300 shrink-0" />
                   <div>
@@ -608,11 +696,11 @@ function VerificationVetting() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 gap-4">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-slate-150 border border-slate-200 rounded-2xl flex items-center justify-center text-slate-500 font-bold shrink-0 relative">
-                    <span className="text-lg">{(inspectSuspect.name).charAt(0)}</span>
+                    <span className="text-lg">{((inspectSuspect.person_details?.full_name && inspectSuspect.person_details.full_name !== 'N/A' ? inspectSuspect.person_details.full_name : inspectSuspect._listContext?.name) || 'O').charAt(0)}</span>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">{inspectSuspect.name}</h4>
-                    <span className="text-[10px] text-slate-400 font-mono block mt-0.5">SOR Record ID: {inspectSuspect.id}</span>
+                    <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">{inspectSuspect.person_details?.full_name !== 'N/A' ? inspectSuspect.person_details?.full_name : inspectSuspect._listContext?.name || 'Unknown'}</h4>
+                    <span className="text-[10px] text-slate-400 font-mono block mt-0.5">SOR Record ID: {inspectSuspect.offender_id}</span>
                   </div>
                 </div>
                 <div className="bg-red-50 text-red-700 border border-red-200 font-black text-[9px] uppercase tracking-wider px-3 py-1 rounded-full">
@@ -620,80 +708,44 @@ function VerificationVetting() {
                 </div>
               </div>
 
-              {/* Physical Details */}
+              {/* Full Dynamic Dossier Render */}
               <div className="space-y-3">
-                <h5 className="font-black text-slate-800 font-heading text-[10px] uppercase tracking-wider border-b border-slate-200 pb-1.5">1. Demographics & Address</h5>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <DetailRow label="Father Name" value={inspectSuspect.fatherName} />
-                  <DetailRow label="Date of Birth" value={inspectSuspect.dob} mono />
-                  <DetailRow label="Age Profile" value={`${inspectSuspect.age} Years`} />
-                  <DetailRow label="Caste" value={inspectSuspect.caste} />
-                  <DetailRow label="Religion / Nation" value={`${inspectSuspect.religion} / ${inspectSuspect.nationality}`} />
-                  <DetailRow label="Educational/Work" value={`${inspectSuspect.education} (${inspectSuspect.occupation})`} />
-                </div>
-                <div className="p-2.5 bg-white border border-slate-200 rounded-xl mt-2">
-                  <span className="text-[9px] uppercase tracking-widest text-slate-400 font-black block mb-1">Present Registered Address</span>
-                  <span className="font-bold text-slate-700">{inspectSuspect.address}</span>
-                </div>
-              </div>
+                <SectionHeading title="Identity & Demographics" icon={User} />
+                <DynamicDataGrid data={inspectSuspect.person_details} />
 
-              {/* Physical Features */}
-              <div className="space-y-3">
-                <h5 className="font-black text-slate-800 font-heading text-[10px] uppercase tracking-wider border-b border-slate-200 pb-1.5">2. Physical Markings & Identifications</h5>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <DetailRow label="Height Profile" value={inspectSuspect.height} />
-                  <DetailRow label="Build Profile" value={inspectSuspect.build} />
-                  <DetailRow label="Complexion / Color" value={inspectSuspect.complexion} />
-                  <DetailRow label="Eyes / Hair" value={`${inspectSuspect.eyes} / ${inspectSuspect.hair}`} />
-                  <DetailRow label="Beard / Mustache" value={`${inspectSuspect.beard} / ${inspectSuspect.mustache}`} />
-                  <DetailRow label="Face Shape" value={inspectSuspect.face} />
-                </div>
-                <div className="p-2.5 bg-white border border-slate-200 rounded-xl mt-2">
-                  <span className="text-[9px] uppercase tracking-widest text-slate-400 font-black block mb-1">Special Moles & Scars (pf_mole)</span>
-                  <span className="font-bold text-slate-700">{inspectSuspect.identifications}</span>
-                </div>
-              </div>
-
-              {/* Crime details */}
-              <div className="space-y-3">
-                <h5 className="font-black text-slate-800 font-heading text-[10px] uppercase tracking-wider border-b border-slate-200 pb-1.5">3. Conviction Case Record</h5>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <DetailRow label="FIR Reference" value={inspectSuspect.firNo} />
-                  <DetailRow label="FIR Date Vetted" value={inspectSuspect.firDate} mono />
-                  <DetailRow label="Date of Conviction" value={inspectSuspect.convDate} mono />
-                  <DetailRow label="Sessions Court" value={inspectSuspect.courtName} />
-                </div>
-                <div className="p-2.5 bg-white border border-slate-200 rounded-xl mt-2">
-                  <span className="text-[9px] uppercase tracking-widest text-slate-400 font-black block mb-1">Assigned Conviction Offence</span>
-                  <span className="font-bold text-slate-700">{inspectSuspect.offence}</span>
-                </div>
+                <SectionHeading title="Physical Features" icon={Fingerprint} />
+                <DynamicDataGrid data={inspectSuspect.latest_physical_features} />
+                
+                <DynamicArrayList items={inspectSuspect.crimes} title="FIR & Crimes" icon={FileText} />
+                <DynamicArrayList items={inspectSuspect.arrests} title="Arrest Records" icon={AlertOctagon} />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
-              <span className="text-[10px] text-slate-455 font-bold">
-                Does candidate match this record?
+            <div className="p-4 bg-slate-100 border-t border-slate-200 text-right flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <ShieldAlert className="h-3.5 w-3.5" /> VERIFY CAREFULLY
               </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setConfirmedSuspect(inspectSuspect);
-                    setInspectSuspect(null);
-                  }}
-                  className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-black uppercase text-white tracking-widest transition-all shadow-md"
+              <div className="space-x-3 flex items-center">
+                <button 
+                  onClick={() => setInspectSuspect(null)} 
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors uppercase tracking-widest"
                 >
-                  <Check className="h-4 w-4" /> Confirm Match Vetting
+                  Close Match
                 </button>
                 <button
-                  onClick={() => setInspectSuspect(null)}
-                  className="btn-secondary px-4 py-2 text-xs font-bold rounded-xl"
+                  onClick={() => {
+                    // Extract name from the original list context since we overwrote inspectSuspect
+                    const name = inspectSuspect.person_details?.full_name || inspectSuspect._listContext?.name || 'Unknown';
+                    setConfirmedSuspect({ id: inspectSuspect.offender_id, name: name });
+                    setInspectSuspect(null);
+                  }}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black transition-colors uppercase tracking-widest shadow-lg shadow-red-200 flex items-center gap-2 inline-flex"
                 >
-                  Cancel
+                  <AlertOctagon className="h-4 w-4" /> Confirm Match -> Reject Clearance
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}

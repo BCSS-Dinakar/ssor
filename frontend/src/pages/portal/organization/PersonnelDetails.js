@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShieldAlert, Award, Download, User, Lock, ArrowLeft, CheckCircle2, Mail, Phone, Calendar, Clock } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
-import { useData } from '../../../context/DataContext';
+import { organizationApi } from '../../../api/organization.api';
 
 function DetailField({ label, value, mono = false, icon: Icon }) {
   return (
@@ -18,15 +18,34 @@ function DetailField({ label, value, mono = false, icon: Icon }) {
 
 function PersonnelDetails() {
   const { id } = useParams();
-  const { clearances } = useData();
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      const matched = clearances.find((c) => c.id.toUpperCase() === id.trim().toUpperCase());
-      if (matched) setSelectedCandidate(matched);
-    }
-  }, [id, clearances]);
+    const fetchDetails = async () => {
+      try {
+        if (id) {
+          const res = await organizationApi.getVerification(id);
+          if (res.success) {
+            setSelectedCandidate(res.data);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching personnel details:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetails();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20 text-slate-400">
+        <div className="animate-spin h-8 w-8 border-4 border-secondary border-t-transparent rounded-full mb-4"></div>
+      </div>
+    );
+  }
 
   if (!selectedCandidate) {
     return (

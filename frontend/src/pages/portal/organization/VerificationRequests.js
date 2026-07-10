@@ -40,7 +40,9 @@ function VerificationRequests() {
       render: (row) => (
         <div>
           <div className="font-semibold text-primary">{row.candidateName}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">{row.docType} {row.idNumber || 'ID on file'}</div>
+          <div className="text-[10px] text-slate-400 mt-0.5">
+            {row.fatherName ? `Father: ${row.fatherName} · ` : ''}ID on file
+          </div>
         </div>
       ),
     },

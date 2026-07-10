@@ -61,9 +61,10 @@ function VerificationDetails() {
           org: record.orgName,
           role: record.role,
           candidate: record.candidateName,
+          fatherName: record.fatherName,
           dob: new Date(record.dob).toLocaleDateString(),
           phone: record.phone,
-          email: record.email,
+
           submitted: submittedDate,
           decisionDate: !isCompleted ? '' : new Date(record.updatedAt).toLocaleDateString(),
           status: record.status,
@@ -130,6 +131,9 @@ function VerificationDetails() {
             />
             <DetailField label="Date of Birth" value={selectedRequest.dob} mono />
             <DetailField label="Contact Phone" value={selectedRequest.phone} mono />
+            {selectedRequest.fatherName && (
+              <DetailField label="Father's Name" value={selectedRequest.fatherName} />
+            )}
             <div className="sm:col-span-2">
               <DetailField label="Submitting Institution" value={selectedRequest.org} />
             </div>
@@ -220,11 +224,11 @@ function VerificationDetails() {
                   <p className="mt-1 text-red-700/90 font-medium">A potential mismatch has been flagged. The application is locked pending a formal investigation at the DSP Desk.</p>
                 </div>
 
-                {selectedRequest.reason && (
+                {selectedRequest.policeFeedback && (
                   <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-1">
                     <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Police Decision Log Reason</span>
                     <p className="text-xs font-semibold text-slate-655 leading-normal whitespace-pre-wrap">
-                      {selectedRequest.reason.split('\n\nOfficer Notes: ')[0]}
+                      {selectedRequest.policeFeedback.split('\n\nOfficer Notes: ')[0]}
                     </p>
                   </div>
                 )}

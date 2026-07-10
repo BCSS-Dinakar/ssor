@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { NAV } from '../utils/data/portalData';
-import { useData } from '../context/DataContext';
 
 function Sidebar({ role, collapsed, onNavigate }) {
-  const { counts } = useData();
+  const counts = {}; // Dynamic counts removed for API migration
   const items = NAV[role] || [];
 
   return (

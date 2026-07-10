@@ -7,34 +7,31 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  loginId      String   @unique
-  passwordHash String
-  role         String   // "police" or "organization"
-  status       String   @default("pending") // "pending", "approved", "rejected"
-  createdAt    DateTime @default(now())
-
-  policeProfile          PoliceProfile?
-  organizationProfile    OrganizationProfile?
-  auditLogs              SystemAuditLog[]
+  id                     String                  @id @default(uuid())
+  loginId                String                  @unique
+  passwordHash           String
+  role                   String
+  status                 String                  @default("pending")
+  createdAt              DateTime                @default(now())
   candidateVerifications CandidateVerification[]
+  organizationProfile    OrganizationProfile?
+  policeProfile          PoliceProfile?
   supportTickets         SupportTicket[]
+  auditLogs              SystemAuditLog[]
 }
 
 model SystemAuditLog {
   id        Int      @id @default(autoincrement())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   action    String
   ipAddress String?
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PoliceProfile {
-  id        String @id @default(uuid())
-  userId    String @unique
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id             String   @id @default(uuid())
+  userId         String   @unique
   name           String
   badgeId        String?
   rank           String?
@@ -51,93 +48,79 @@ model PoliceProfile {
   state          String?
   country        String?
   clearanceLevel String?
-  
   docsPaths      String[]
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OrganizationProfile {
-  id            String @id @default(uuid())
-  userId        String @unique
-  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  orgName       String
-  orgType       String
-  parentOrg     String?
-  department    String?
-  jurisdiction  String?
-  country       String
-  state         String
-  district      String
-  city          String
-  address       String
-  pinCode       String
-  officialEmail String
-  officialPhone String
-  altPhone      String?
-  website       String?
-  
-  adminName     String
-  designation   String
-  empId         String
-  adminEmail    String
-  mobile        String
-
-  authLetterPath       String?
-  govCertPath          String?
-  supportingDocsPaths  String[]
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  orgName             String
+  orgType             String
+  parentOrg           String?
+  department          String?
+  jurisdiction        String?
+  country             String
+  state               String
+  district            String
+  city                String
+  address             String
+  pinCode             String
+  officialEmail       String
+  officialPhone       String
+  altPhone            String?
+  website             String?
+  adminName           String
+  designation         String
+  empId               String
+  adminEmail          String
+  mobile              String
+  authLetterPath      String?
+  govCertPath         String?
+  supportingDocsPaths String[]
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CandidateVerification {
-  id              String   @id @default(uuid())
-  organizationId  String
-  organization    User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  orgName         String
-  orgType         String
-  
-  role            String
-  candidateName   String
-  dob             DateTime
-  email           String?
-  phone           String
-  
-  consent         Boolean
-
-  status          String   @default("pending") // "pending", "verifying", "cleared", "rejected"
-  policeFeedback  String?
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  organizationId String
+  orgName        String
+  orgType        String
+  role           String
+  candidateName  String
+  dob            DateTime
+  fatherName     String?
+  phone          String
+  consent        Boolean
+  status         String   @default("pending")
+  policeFeedback String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model SupportTicket {
-  id              String   @id @default(uuid())
-  ticketNumber    String   @unique @default(cuid())
-  
-  organizationId  String
-  organization    User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  subject         String
-  category        String
-  priority        String   @default("Medium")
-  reference       String?
-  status          String   @default("Open")
-  assignee        String?  @default("Unassigned")
-  
-  messages        TicketMessage[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String          @id @default(uuid())
+  ticketNumber   String          @unique @default(cuid())
+  organizationId String
+  subject        String
+  category       String
+  priority       String          @default("Medium")
+  reference      String?
+  status         String          @default("Open")
+  assignee       String?         @default("Unassigned")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   User            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages       TicketMessage[]
 }
 
 model TicketMessage {
-  id              String   @id @default(uuid())
-  ticketId        String
-  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
-  senderName      String
-  senderRole      String
-  text            String
-  
-  createdAt       DateTime @default(now())
+  id         String        @id @default(uuid())
+  ticketId   String
+  senderName String
+  senderRole String
+  text       String
+  createdAt  DateTime      @default(now())
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, CheckCircle2, Info, Calendar, User, Mail, Phone, ArrowRight } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, Info, Calendar, User, Phone, ArrowRight } from 'lucide-react';
 import { Field, inputClass, FeedbackBanner } from '../../../components/portal/FormControls';
 import { organizationApi } from '../../../api/organization.api';
 import { ORG_TYPES } from '../../../utils/data/authData';
 import SearchableSelect from '../../../components/SearchableSelect';
 
-const empty = { candidate: '', dob: '', email: '', phone: '', role: '', type: 'School', consent: false };
+const empty = { candidate: '', fatherName: '', dob: '', phone: '', role: '', type: 'School', consent: false };
 
 function SubmitVerification() {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ function SubmitVerification() {
     if (!form.consent) {
       return setAlert({ type: 'error', message: 'Candidate explicit consent must be confirmed before submitting.' });
     }
-    
+
     setLoading(true);
     setAlert(null);
     try {
@@ -49,7 +49,7 @@ function SubmitVerification() {
         <div className="card w-full max-w-xl space-y-8 p-10 border border-emerald-100 shadow-2xl bg-white relative overflow-hidden rounded-3xl">
           {/* Top aesthetic border */}
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 to-teal-400" />
-          
+
           <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 shadow-inner">
             <CheckCircle2 className="h-10 w-10" />
           </div>
@@ -95,16 +95,16 @@ function SubmitVerification() {
   // -------------------------------------------------------------
   return (
     <div className="animate-fadeIn -mx-4 sm:-mx-6 lg:-mx-8 -my-6 h-[calc(100vh-80px)] flex flex-col lg:flex-row bg-[#F8F9FA] overflow-hidden">
-      
+
       {/* Left Pane: Info & Tracker */}
       <div className="w-full lg:w-[380px] shrink-0 bg-gradient-to-br from-slate-900 to-primary text-white p-8 flex flex-col relative overflow-hidden border-r border-slate-800 shadow-2xl z-10 hidden lg:flex">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent via-transparent to-transparent" />
-        
+
         <div className="relative z-10 flex-grow">
           <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/20 backdrop-blur-sm shadow-inner">
             <ShieldAlert className="h-6 w-6 text-accent" />
           </div>
-          <h2 className="text-2xl font-black font-heading leading-tight mb-2">Verify New<br/>Candidate</h2>
+          <h2 className="text-2xl font-black font-heading leading-tight mb-2">Verify New<br />Candidate</h2>
           <p className="text-xs text-slate-350 font-medium leading-relaxed max-w-[280px]">
             Submit staff or volunteer details for background vetting against the State Sexual Offender Register.
           </p>
@@ -139,11 +139,11 @@ function SubmitVerification() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl border border-slate-200/60 p-6 sm:p-10 transition-all duration-500 relative overflow-hidden">
-            
+
             <FeedbackBanner type={alert?.type} message={alert?.message} />
 
             <form onSubmit={submit} className="space-y-8 animate-fadeIn">
-              
+
               {/* Section 1: Demographics */}
               <div>
                 <div className="border-b border-slate-100 pb-3 mb-5">
@@ -152,10 +152,17 @@ function SubmitVerification() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
-                  <Field label="Candidate Full Name" required hint="Enter candidate name exactly as printed on photo IDs.">
+                  <Field label="Candidate Full Name" required>
                     <div className="relative">
                       <User className="h-4.5 w-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input className={inputClass + ' pl-10'} value={form.candidate} onChange={set('candidate')} placeholder="e.g. Ashok Kumar Reddy" required />
+                      <input className={inputClass + ' pl-10'} value={form.candidate} onChange={set('candidate')} placeholder="e.g. John Doe" required />
+                    </div>
+                  </Field>
+
+                  <Field label="Father's Name" hint="Optional. Including father's name improves background check accuracy.">
+                    <div className="relative">
+                      <User className="h-4.5 w-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input className={inputClass + ' pl-10'} value={form.fatherName} onChange={set('fatherName')} placeholder="e.g. Richard Doe" />
                     </div>
                   </Field>
 
@@ -168,13 +175,6 @@ function SubmitVerification() {
 
                   <Field label="Sensitive Role Vetted" required hint="E.g. School Bus Driver, Auxiliary Ayah, Sports Coach.">
                     <input className={inputClass} value={form.role} onChange={set('role')} placeholder="e.g. Caregiver, School Bus Driver" required />
-                  </Field>
-
-                  <Field label="Contact Email Address">
-                    <div className="relative">
-                      <Mail className="h-4.5 w-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input className={inputClass + ' pl-10'} type="email" value={form.email} onChange={set('email')} placeholder="candidate@example.com" />
-                    </div>
                   </Field>
 
                   <Field label="Contact Phone Number" required hint="Candidate direct mobile number.">

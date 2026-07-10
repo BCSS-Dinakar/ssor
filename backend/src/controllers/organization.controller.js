@@ -4,7 +4,7 @@ export const submitVerification = async (req, res) => {
   try {
     const { 
       type, role, candidate,
-      dob, email, phone, consent 
+      dob, phone, consent, fatherName
     } = req.body;
 
     if (!candidate || !dob || !phone || !role || !consent) {
@@ -27,8 +27,8 @@ export const submitVerification = async (req, res) => {
         orgType: type,
         role: role,
         candidateName: candidate,
+        fatherName: fatherName || null,
         dob: new Date(dob),
-        email: email || null,
         phone: phone,
         consent: consent
       }

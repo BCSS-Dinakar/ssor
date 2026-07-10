@@ -25,6 +25,9 @@ import {
 } from 'recharts';
 import { useAuth } from '../../../context/AuthContext';
 import { organizationApi } from '../../../api/organization.api';
+import PageHeader from '../../../components/portal/PageHeader';
+import StatCard from '../../../components/portal/StatCard';
+import SecurityBanner from '../../../components/portal/SecurityBanner';
 
 function OrganizationDashboard() {
   const { auth } = useAuth();
@@ -58,13 +61,6 @@ function OrganizationDashboard() {
     { id: 3, type: 'warning', text: 'Clearance request CLR-2026-00468 requires additional consent document.', time: '2 days ago' },
   ];
 
-  const stats = [
-    { label: 'Total Submissions', value: data.stats.total, meta: 'All clearance audits YTD', icon: FileCheck, accent: 'bg-blue-50 text-secondary', valueClass: 'text-primary' },
-    { label: 'Cleared Candidates', value: data.stats.cleared, meta: 'Approved to work', icon: CheckCircle2, accent: 'bg-emerald-50 text-emerald-600', valueClass: 'text-emerald-600' },
-    { label: 'Pending Reviews', value: data.stats.pending, meta: 'Police check in progress', icon: Clock, accent: 'bg-amber-50 text-amber-600', valueClass: 'text-amber-500' },
-    { label: 'Rejected Cases', value: data.stats.rejected, meta: 'Review locks active', icon: AlertTriangle, accent: 'bg-red-50 text-red-600', valueClass: 'text-red-500' },
-  ];
-
   const quickActions = [
     { to: '/portal/requests', icon: Search, title: 'Track Clearance', desc: 'Live status timeline updates', accent: 'bg-blue-500' },
     { to: '/portal/disclosure', icon: Shield, title: 'Report Child Threat', desc: 'DSP desk risk evaluation', accent: 'bg-purple-500' },
@@ -73,73 +69,47 @@ function OrganizationDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="animate-spin h-8 w-8 border-4 border-secondary border-t-transparent rounded-full mb-4"></div>
+        <p className="font-bold">Loading dashboard...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 animate-fadeIn pb-10">
-      {/* ───────── HEADER BANNER (PREMIUM GRADIENT) ───────── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary p-8 text-white shadow-xl shadow-primary/10">
-        <div className="absolute inset-0 opacity-15 pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-accent rounded-full filter blur-[100px]" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500 rounded-full filter blur-[100px]" />
-        </div>
+      <PageHeader
+        crumb="Administration / Portal"
+        title={auth.name}
+        subtitle="Safe-Recruitment Clearance Terminal. Cross-check your child-facing personnel against the State Sexual Offender Register."
+      />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 uppercase tracking-wider">
-                <ShieldCheck className="h-3.5 w-3.5" /> TSP Verified Institution
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-white/10 border border-white/20 text-blue-200 uppercase tracking-wider">
-                Level 2 Authed
-              </span>
-            </div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold font-heading tracking-tight text-white leading-tight">
-              {auth.name}
-            </h1>
-            <p className="text-blue-100/70 max-w-2xl text-xs md:text-sm leading-relaxed font-medium">
-              Safe-Recruitment Clearance Terminal. Cross-check your child-facing personnel against the State Sexual Offender Register securely under the DPDP Act 2023 guidelines.
-            </p>
-          </div>
+      <SecurityBanner>
+        TSP Verified Institution Level 2 Authed. Ensuring compliance with the DPDP Act 2023 guidelines for data protection.
+      </SecurityBanner>
 
-          <div className="flex flex-wrap gap-3 shrink-0">
-            <Link to="/portal/apply" className="btn-accent hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-accent/20 text-xs px-5 py-3 font-extrabold">
-              <FileCheck className="h-4.5 w-4.5" /> Verify New Candidate
-            </Link>
-          </div>
-        </div>
+      <div className="flex justify-end mb-4">
+        <Link to="/portal/apply" className="btn-accent px-5 py-2.5 text-xs font-bold inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+          <FileCheck className="h-4 w-4" /> Verify New Candidate
+        </Link>
       </div>
 
-      {/* ───────── STATS ROW ───────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <div key={s.label} className="card p-5 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
-            <div className="flex justify-between items-start gap-2">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{s.label}</span>
-                <div className={`text-3xl font-black font-heading ${s.valueClass}`}>{s.value}</div>
-              </div>
-              <div className={`p-2.5 rounded-xl border shrink-0 ${s.accent.includes('emerald') ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : s.accent.includes('amber') ? 'bg-amber-50 text-amber-600 border-amber-100' : s.accent.includes('red') ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-secondary border-blue-100'}`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-slate-50 pt-2.5 mt-3">{s.meta}</div>
-          </div>
-        ))}
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total Submissions" value={data.stats.total} icon={FileCheck} meta="All clearance audits YTD" />
+        <StatCard label="Cleared Candidates" value={data.stats.cleared} icon={CheckCircle2} accent="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" meta="Approved to work" />
+        <StatCard label="Pending Reviews" value={data.stats.pending} icon={Clock} accent="bg-amber-50 text-amber-600" valueClass="text-amber-500" meta="Police check in progress" />
+        <StatCard label="Rejected Cases" value={data.stats.rejected} icon={AlertTriangle} accent="bg-red-50 text-red-600" valueClass="text-red-500" meta="Review locks active" />
       </div>
 
-      {/* ───────── MAIN DASHBOARD CONTENT ───────── */}
       <div className="grid lg:grid-cols-3 gap-6">
         
-        {/* ───────── LEFT COLUMN (DATA & TABLES) ───────── */}
+        {/* Left Column (Data & Tables) */}
         <div className="lg:col-span-2 space-y-6">
+          
           {/* Charts & Trends */}
-          <div className="card p-6 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-3">
+          <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
+            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Verification Trends</h3>
                 <p className="text-[10px] text-slate-455 font-bold mt-0.5">Submitted vs Cleared candidates (6M Trend).</p>
@@ -174,8 +144,8 @@ function OrganizationDashboard() {
           </div>
 
           {/* Recent Submissions Table */}
-          <div className="card p-6 flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+          <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
+            <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
               <div>
                 <h3 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Recent Clearance Submissions</h3>
                 <p className="text-[10px] text-slate-455 font-bold mt-0.5">Live status feed of checks in queue.</p>
@@ -185,25 +155,28 @@ function OrganizationDashboard() {
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="flex-1 overflow-y-auto">
               <table className="w-full text-xs text-left min-w-[500px]">
-                <thead>
-                  <tr className="bg-slate-50 text-[9px] uppercase font-bold text-slate-400 border-b border-slate-100">
-                    <th className="py-2.5 px-4 rounded-l-lg">Reference ID</th>
+                <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
+                  <tr className="text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
+                    <th className="py-2.5 px-6 rounded-tl-lg">Reference ID</th>
                     <th className="py-2.5 px-4">Candidate</th>
                     <th className="py-2.5 px-4">Role</th>
                     <th className="py-2.5 px-4">Submitted</th>
-                    <th className="py-2.5 px-4 text-right rounded-r-lg">Status</th>
+                    <th className="py-2.5 px-6 text-right rounded-tr-lg">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 text-slate-700">
+                <tbody className="divide-y divide-slate-100 text-slate-700">
                   {data.recentVerifications.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-3 px-4 font-mono font-bold text-secondary group-hover:text-primary transition-colors">{c.id.split('-')[0]}</td>
-                      <td className="py-3 px-4 font-bold text-primary">{c.candidateName}</td>
+                      <td className="py-3 px-6 font-mono font-bold text-secondary">{c.id.split('-')[0]}</td>
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-primary">{c.candidateName}</div>
+                        {c.fatherName && <div className="text-[10px] text-slate-400 font-semibold mt-0.5">Father: {c.fatherName}</div>}
+                      </td>
                       <td className="py-3 px-4 font-semibold text-slate-500">{c.role}</td>
                       <td className="py-3 px-4 text-slate-400 font-medium">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-6 text-right">
                         {c.status === 'cleared' ? (
                           <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">CLEARED</span>
                         ) : c.status === 'rejected' ? (
@@ -227,45 +200,41 @@ function OrganizationDashboard() {
           </div>
         </div>
 
-        {/* ───────── RIGHT COLUMN (WIDGETS & ACTIONS) ───────── */}
+        {/* Right Column (Widgets & Actions) */}
         <div className="space-y-6">
           
-          {/* Sleek Compliance Status Widget */}
-          <div className="card p-5 relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50/30 border-emerald-100/60 group hover:shadow-lg transition-all duration-300">
-            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-              <ShieldCheck className="h-24 w-24 text-emerald-600" />
-            </div>
-            
-            <div className="flex items-center gap-3 border-b border-emerald-100/50 pb-3 mb-3 relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+          {/* Compliance Status Widget */}
+          <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
+            <div className="flex items-center gap-3 border-b border-emerald-100 pb-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-emerald-900 font-heading text-sm uppercase tracking-wider leading-tight">Active Certificate</h4>
+                <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider leading-tight">Active Certificate</h4>
                 <p className="text-[10px] text-emerald-600 font-bold mt-0.5 uppercase tracking-wide">Safeguarding Compliant</p>
               </div>
             </div>
             
-            <div className="space-y-2.5 relative z-10">
+            <div className="space-y-2.5">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-emerald-700/70 font-bold uppercase tracking-wider text-[9px]">License ID</span>
-                <span className="font-mono font-black text-emerald-900">REG-2026-88341</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">License ID</span>
+                <span className="font-mono font-black text-primary">REG-2026-88341</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-emerald-700/70 font-bold uppercase tracking-wider text-[9px]">Valid Until</span>
-                <span className="font-bold text-emerald-800">05 Jan 2027</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Valid Until</span>
+                <span className="font-bold text-primary">05 Jan 2027</span>
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="card p-6 space-y-4">
+          <div className="card p-6 bg-white border border-slate-200/80 shadow-md space-y-4">
             <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider border-b border-slate-100 pb-2">Quick Services</h4>
             <div className="grid grid-cols-1 gap-2.5">
               {quickActions.map((a) => (
                 <Link key={a.to} to={a.to} className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-150 rounded-2xl transition-all duration-300 group">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl ${a.accent.includes('blue') ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : a.accent.includes('purple') ? 'bg-gradient-to-br from-purple-500 to-violet-600' : 'bg-gradient-to-br from-emerald-500 to-teal-600'} text-white flex items-center justify-center shadow-md shadow-slate-200/50`}>
+                    <div className={`w-9 h-9 rounded-xl ${a.accent} text-white flex items-center justify-center shadow-sm`}>
                       <a.icon className="h-4.5 w-4.5" />
                     </div>
                     <div>
@@ -280,7 +249,7 @@ function OrganizationDashboard() {
           </div>
 
           {/* Activity Advisory Feed */}
-          <div className="card p-6">
+          <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
               <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Security Bulletins</h4>
               <Bell className="h-4 w-4 text-slate-400" />
@@ -288,7 +257,7 @@ function OrganizationDashboard() {
             <div className="space-y-4">
               {notifications.map((n) => (
                 <div key={n.id} className="flex gap-3 text-xs">
-                  <div className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 ${n.type === 'success' ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : n.type === 'info' ? 'bg-blue-500 shadow-sm shadow-blue-500/50' : 'bg-amber-500 shadow-sm shadow-amber-500/50'}`} />
+                  <div className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 ${n.type === 'success' ? 'bg-emerald-500' : n.type === 'info' ? 'bg-blue-500' : 'bg-amber-500'}`} />
                   <div className="space-y-1 flex-1">
                     <span className="font-semibold text-slate-700 leading-relaxed block text-[11px]">{n.text}</span>
                     <span className="text-[9px] text-slate-400 font-mono block leading-none">{n.time}</span>
@@ -304,3 +273,4 @@ function OrganizationDashboard() {
 }
 
 export default OrganizationDashboard;
+

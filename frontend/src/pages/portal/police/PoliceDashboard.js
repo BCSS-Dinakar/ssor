@@ -1,26 +1,38 @@
 import { Link } from 'react-router-dom';
-import { FileCheck, Eye, Clock, Plus, Scale } from 'lucide-react';
+import { FileCheck, Scale } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
-import { useData } from '../../../context/DataContext';
 import React, { useState, useEffect } from 'react';
 import { policeApi } from '../../../api/police.api';
 import { TIERS } from '../../../utils/data/portalData';
 
 function PoliceDashboard() {
-  const { clearances, audit } = useData();
   const [stats, setStats] = useState(null);
+  const [clearances, setClearances] = useState([]);
+  const [audit, setAudit] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    policeApi.getDashboardStats()
-      .then(res => {
-        if (res.success) setStats(res.data);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const fetchAll = async () => {
+      try {
+        const [statsRes, clrRes, auditRes] = await Promise.all([
+          policeApi.getDashboardStats(),
+          policeApi.getVerifications(),
+          policeApi.getLogs()
+        ]);
+
+        if (statsRes.success) setStats(statsRes.data);
+        if (clrRes.success) setClearances(clrRes.data);
+        if (auditRes.success) setAudit(auditRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
 
   if (loading) {
@@ -32,17 +44,25 @@ function PoliceDashboard() {
     );
   }
 
-  const byTier = Object.keys(TIERS).map((key) => ({
-    key,
-    ...TIERS[key],
-    count: 0,
-  }));
-  
-  const total = 'N/A';
-  const convictedCount = 'N/A';
-  const underTrialCount = 'N/A';
+  const byTier = Object.keys(TIERS).map((key) => {
+    const match = stats?.byTier?.find(t => t.tier === key);
+    return {
+      key,
+      ...TIERS[key],
+      count: match ? match.count : 0,
+    };
+  });
 
-  const sectionData = [];
+  const total = stats?.totalOffenders || 0;
+  const convictedCount = stats?.convictedCount || 0;
+  const underTrialCount = stats?.underTrialCount || 0;
+
+  const colorPalette = ['#4f46e5', '#ec4899', '#f59e0b', '#10b981', '#6366f1', '#8b5cf6'];
+  const sectionData = (stats?.sectionData || []).map((s, i) => ({
+    name: s.name,
+    value: s.value,
+    color: colorPalette[i % colorPalette.length]
+  }));
 
 
   return (
@@ -50,13 +70,7 @@ function PoliceDashboard() {
       <PageHeader
         crumb="Administration / Portal"
         title="Register Console"
-        subtitle="Secure State Sexual Offender Register Admin Dashboard. Fictional demonstration data."
-        actions={
-          <Link to="/portal/new" className="btn-primary py-2.5 px-4 text-xs font-black shadow-lg shadow-primary/10">
-            <Plus className="h-4.5 w-4.5" />
-            New Registration
-          </Link>
-        }
+        subtitle="Secure State Sexual Offender Register Admin Dashboard."
       />
 
       <SecurityBanner>
@@ -64,10 +78,10 @@ function PoliceDashboard() {
       </SecurityBanner>
 
       {/* Stats Summary Panel */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
         {/* Conviction Status Card (Dynamic Split) */}
-        <div className="card p-5 flex flex-col justify-between col-span-2 lg:col-span-1 bg-white relative">
+        <div className="card p-5 flex flex-col justify-between bg-white relative">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 border border-indigo-100 text-indigo-600 shrink-0">
@@ -91,25 +105,6 @@ function PoliceDashboard() {
         </div>
 
         <StatCard label="Pending Clearances" value={stats?.clearPending || 0} icon={FileCheck} accent="bg-amber-50 text-accent" meta="Awaiting decision queue" />
-        <StatCard label="Disclosure Inquiries" value={stats?.discPending || 0} icon={Eye} accent="bg-pink-50 text-pink-600" meta="Awaiting manual DSP desk" />
-        
-        {/* CCTNS Sync Status widget */}
-        <div className="card p-5 flex flex-col justify-between bg-white relative">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 border border-emerald-100 text-emerald-600 shrink-0">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none">CCTNS Relay Status</h3>
-              <div className="text-sm font-black text-emerald-600 mt-1.5 flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                99.8% Online
-              </div>
-            </div>
-          </div>
-          <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-slate-50 pt-2.5 mt-3">Last Sync: 2 mins ago</div>
-        </div>
       </div>
 
       {/* Analytics Row */}
@@ -163,7 +158,7 @@ function PoliceDashboard() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 600, boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
@@ -175,50 +170,52 @@ function PoliceDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-6 mt-6">
         {/* Pending clearances */}
-        <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+        <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
+          <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
             <h3 className="font-extrabold text-primary font-heading uppercase text-[10px] tracking-widest text-slate-400">Clearance Vetting Queue</h3>
             <Link to="/portal/clearances" className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline">Vetting Console →</Link>
           </div>
-          <div className="divide-y divide-slate-150">
-            {clearances.filter((c) => c.status === 'pending').slice(0, 5).map((c) => (
-              <div key={c.id} className="flex items-center justify-between py-3">
-                <div>
-                  <div className="text-xs font-bold text-slate-800 truncate max-w-[280px]">{c.org}</div>
-                  <div className="text-[9px] font-mono font-bold text-slate-400 mt-0.5">{c.id} · Candidate: {c.candidate} · {c.role}</div>
+          <div className="flex-1 overflow-y-auto p-6 pt-0">
+            <div className="divide-y divide-slate-150">
+              {clearances.filter((c) => c.status === 'pending' || c.status === 'verifying').map((c) => (
+                <div key={c.id} className="flex items-center justify-between py-3">
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 truncate max-w-[280px]">{c.orgName || c.org}</div>
+                    <div className="text-[9px] font-mono font-bold text-slate-400 mt-0.5">{c.id.split('-')[0]} · Candidate: {c.candidateName || c.candidate} · {c.role}</div>
+                  </div>
+                  <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-widest animate-pulse">Review</span>
                 </div>
-                <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-widest animate-pulse">Review</span>
-              </div>
-            ))}
-            {clearances.filter((c) => c.status === 'pending').length === 0 && (
-              <div className="text-xs text-muted py-8 text-center font-semibold">Verification queue clear.</div>
-            )}
+              ))}
+              {clearances.filter((c) => c.status === 'pending' || c.status === 'verifying').length === 0 && (
+                <div className="text-xs text-muted py-8 text-center font-semibold">Verification queue clear.</div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Recent activity */}
-        <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-2">
+        <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
+          <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
             <h3 className="font-extrabold text-primary font-heading uppercase text-[10px] tracking-widest text-slate-400">Immutable System Log</h3>
             <Link to="/portal/audit" className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline">Full Audit Log →</Link>
           </div>
-          <div className="overflow-x-auto">
+          <div className="flex-1 overflow-y-auto">
             <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="bg-slate-50 text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
-                  <th className="py-2 px-3 rounded-l-lg">Officer</th>
-                  <th className="py-2 px-3">Action logged</th>
-                  <th className="py-2 px-3">Time</th>
-                  <th className="py-2 px-3 text-right rounded-r-lg">Node IP</th>
+              <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
+                <tr className="text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
+                  <th className="py-2.5 px-6 rounded-tl-lg">Officer</th>
+                  <th className="py-2.5 px-3">Action logged</th>
+                  <th className="py-2.5 px-3">Time</th>
+                  <th className="py-2.5 px-6 text-right rounded-tr-lg">Node IP</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {audit.slice(0, 5).map((a, i) => (
+                {audit.slice(0, 8).map((a, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-2.5 px-3 font-bold text-slate-800">{a.who}</td>
-                    <td className="py-2.5 px-3 text-slate-550 font-semibold">{a.action}</td>
-                    <td className="py-2.5 px-3 font-mono font-bold text-slate-400">{a.time}</td>
-                    <td className="py-2.5 px-3 text-right font-mono text-slate-400">{a.node}</td>
+                    <td className="py-3 px-6 font-bold text-slate-800">{a.who}</td>
+                    <td className="py-3 px-3 text-slate-550 font-semibold">{a.action}</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-400">{a.time}</td>
+                    <td className="py-3 px-6 text-right font-mono text-slate-400">{a.node}</td>
                   </tr>
                 ))}
               </tbody>
