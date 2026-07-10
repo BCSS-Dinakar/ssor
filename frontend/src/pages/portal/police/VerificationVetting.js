@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, Sparkles } from 'lucide-react';
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
@@ -53,10 +53,45 @@ function VerificationVetting() {
   const [checkState, setCheckState] = useState('idle'); // 'idle' | 'running' | 'done'
   const [activeLog, setActiveLog] = useState('');
   const [suspects, setSuspects] = useState([]);
-  const [inspectSuspect, setInspectSuspect] = useState(null); // Selected suspect for detail modal
-  const [confirmedSuspect, setConfirmedSuspect] = useState(null); // Suspect matched by officer
+  const [inspectSuspect, setInspectSuspect] = useState(null);
+  const [confirmedSuspect, setConfirmedSuspect] = useState(null);
   const [activeSuspectTab, setActiveSuspectTab] = useState('profile');
   const [officerFeedback, setOfficerFeedback] = useState('');
+
+  const [generatingReport, setGeneratingReport] = useState(false);
+
+  const handleConfirmSuspect = async (sus) => {
+    setConfirmedSuspect(sus);
+    setGeneratingReport(true);
+    try {
+      const reportRes = await policeApi.generateVerificationReport(id, 'rejected', sus);
+      if (reportRes && reportRes.report) {
+        setOfficerFeedback(reportRes.report);
+      }
+    } catch (e) {
+      console.error('Auto rejection report generation failed:', e);
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
+  const generateAiReport = async () => {
+    setGeneratingReport(true);
+    try {
+      const reportStatus = confirmedSuspect ? 'rejected' : 'cleared';
+      const res = await policeApi.generateVerificationReport(id, reportStatus, confirmedSuspect);
+      if (res && res.report) {
+        setOfficerFeedback(res.report);
+      } else {
+        alert('Failed to generate report text from API.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error generating report. Please verify that GEMINI_API_KEY is configured in your .env file.');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -73,9 +108,6 @@ function VerificationVetting() {
       </div>
     );
   }
-
-  // Check if we expect history based on status
-  const hasHistory = record.status === 'rejected' || record.candidateName?.includes('Reddy') || record.candidateName?.includes('Bai');
 
   const startCriminalCheck = async () => {
     setCheckState('running');
@@ -106,10 +138,30 @@ function VerificationVetting() {
     setTimeout(async () => {
       try {
         const scanRes = await policeApi.scanVerificationById(id);
-        if (scanRes && scanRes.suspects) {
-          setSuspects(scanRes.suspects);
+        const fetchedSuspects = (scanRes && scanRes.suspects) ? scanRes.suspects : [];
+        setSuspects(fetchedSuspects);
+        
+        if (fetchedSuspects.length === 0) {
+          // Clean candidate: automatically generate clearance report
+          try {
+            const reportRes = await policeApi.generateVerificationReport(id, 'cleared');
+            if (reportRes && reportRes.report) {
+              setOfficerFeedback(reportRes.report);
+            }
+          } catch(e) {
+            console.error('Auto report generation failed:', e);
+          }
         } else {
-          setSuspects([]);
+          // Offence found: automatically generate rejection report based on the first suspect match
+          try {
+            const firstSuspect = fetchedSuspects[0];
+            const reportRes = await policeApi.generateVerificationReport(id, 'rejected', firstSuspect);
+            if (reportRes && reportRes.report) {
+              setOfficerFeedback(reportRes.report);
+            }
+          } catch(e) {
+            console.error('Auto rejection report generation failed:', e);
+          }
         }
       } catch (err) {
         console.error('Scan failed:', err);
@@ -129,8 +181,9 @@ function VerificationVetting() {
   };
 
   const handleReject = async () => {
-    if (!confirmedSuspect) return;
-    const reasonText = `Identity matches registered offender profile: ${confirmedSuspect.name} (${confirmedSuspect.id}). Clearance request denied due to positive criminal register mapping.` + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
+    const reasonText = confirmedSuspect 
+      ? `Identity matches registered offender profile: ${confirmedSuspect.name} (${confirmedSuspect.id}). Clearance request denied due to positive criminal register mapping.` + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '')
+      : `Clearance request denied based on manual administrative review.` + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
     try {
       await policeApi.updateVerificationStatus(id, { status: 'rejected', policeFeedback: reasonText });
       alert(`Clearance Denied. The organization has been notified.`);
@@ -267,7 +320,7 @@ function VerificationVetting() {
                               </div>
                             )}
                             <div className="text-[10px] text-slate-550 mt-1 font-bold">
-                              Age: {sus.age} · Father: {sus.fatherName} · Alias: {sus.alias}
+                              Age: {sus.age} · Phone: {sus.phone} · Father: {sus.fatherName} · Alias: {sus.alias}
                             </div>
                           </div>
                           <button
@@ -397,6 +450,7 @@ function VerificationVetting() {
                             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                               <DetailRow label="Record suspect ID" value={record.matchedSuspect.id} mono />
                               <DetailRow label="Full Name" value={record.matchedSuspect.name} />
+                              <DetailRow label="Phone / Mobile" value={record.matchedSuspect.phone} />
                               <DetailRow label="Alias (alias)" value={record.matchedSuspect.alias} />
                               <DetailRow label="Father Name (relative_name)" value={record.matchedSuspect.fatherName} />
                               <DetailRow label="Date of Birth" value={record.matchedSuspect.dob} mono />
@@ -498,55 +552,57 @@ function VerificationVetting() {
                 {checkState === 'done' && (
                   <div className="space-y-4">
                     <div className="mb-2">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Officer Verification Notes / Feedback</label>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Officer Verification Notes / Feedback</label>
+                        <button
+                          type="button"
+                          onClick={generateAiReport}
+                          disabled={generatingReport}
+                          className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-secondary hover:text-primary transition-colors bg-blue-50 hover:bg-blue-100/80 border border-blue-200 px-2 py-1.5 rounded-xl shrink-0"
+                        >
+                          {generatingReport ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin text-secondary" /> Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-3 w-3 text-secondary animate-pulse" /> Generate Report
+                            </>
+                          )}
+                        </button>
+                      </div>
                       <textarea
                         value={officerFeedback}
                         onChange={(e) => setOfficerFeedback(e.target.value)}
                         placeholder="Enter description of candidate verification, findings, or reasons for decision..."
-                        className="w-full border border-slate-200 rounded-xl p-3 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none min-h-[80px]"
+                        className="w-full border border-slate-200 rounded-xl p-3 text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none min-h-[140px]"
                       ></textarea>
                     </div>
                     <div className="space-y-3">
-                    {hasHistory ? (
+                    {suspects.length > 0 ? (
                       <>
                         <button
-                          disabled={!confirmedSuspect}
                           onClick={handleReject}
-                          className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-white transition-all rounded-xl shadow-lg ${
-                            confirmedSuspect
-                              ? 'bg-red-600 hover:bg-red-700 shadow-red-100'
-                              : 'bg-slate-300 cursor-not-allowed opacity-60 shadow-none'
-                          }`}
+                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 transition-all rounded-xl shadow-lg shadow-red-100"
                         >
                           <XCircle className="h-4 w-4" /> Reject Clearance Request
                         </button>
-                        <button
-                          disabled={true}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200 transition-all rounded-xl cursor-not-allowed opacity-50"
-                        >
-                          <CheckCircle2 className="h-4 w-4" /> Issue Clearance (Disabled)
-                        </button>
-                        {!confirmedSuspect && (
-                          <p className="text-[9px] text-amber-600 font-bold text-center mt-2 leading-relaxed">
-                            Verify suspect details and confirm match identity to reject candidate.
-                          </p>
-                        )}
                       </>
                     ) : (
-                      <>
+                      <div className="flex flex-col sm:flex-row gap-3">
                         <button
                           onClick={handleClear}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition-all rounded-xl shadow-lg shadow-emerald-100"
+                          className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-700 text-white transition-all rounded-xl shadow-lg shadow-emerald-100"
                         >
                           <CheckCircle2 className="h-4 w-4" /> Approve Vetting Clearance
                         </button>
                         <button
-                          disabled={true}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-400 border border-slate-200 transition-all rounded-xl cursor-not-allowed opacity-50"
+                          onClick={handleReject}
+                          className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-3 text-[10px] font-black uppercase tracking-wider bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl transition-all shadow-sm"
                         >
-                          <XCircle className="h-4 w-4" /> Reject Request (Clean)
+                          <XCircle className="h-4 w-4" /> Reject Request (Non-Match)
                         </button>
-                      </>
+                      </div>
                     )}
                   </div>
                   </div>
@@ -594,6 +650,8 @@ function VerificationVetting() {
               <div className="space-y-3">
                 <h5 className="font-black text-slate-800 font-heading text-[10px] uppercase tracking-wider border-b border-slate-200 pb-1.5">1. Demographics & Address</h5>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <DetailRow label="Offender Name" value={inspectSuspect.name} />
+                  <DetailRow label="Phone / Mobile" value={inspectSuspect.phone} />
                   <DetailRow label="Father Name" value={inspectSuspect.fatherName} />
                   <DetailRow label="Date of Birth" value={inspectSuspect.dob} mono />
                   <DetailRow label="Age Profile" value={`${inspectSuspect.age} Years`} />
@@ -648,7 +706,7 @@ function VerificationVetting() {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    setConfirmedSuspect(inspectSuspect);
+                    handleConfirmSuspect(inspectSuspect);
                     setInspectSuspect(null);
                   }}
                   className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-xs font-black uppercase text-white tracking-widest transition-all shadow-md"

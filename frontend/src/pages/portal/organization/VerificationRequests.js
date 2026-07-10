@@ -26,7 +26,7 @@ function VerificationRequests() {
   const rejected = baseList.filter((r) => r.status === 'rejected').length;
   const pending = baseList.filter((r) => r.status === 'pending' || r.status === 'verifying').length;
 
-  const rows = baseList.filter((r) => r.status === 'pending' || r.status === 'rejected' || r.status === 'verifying');
+  const rows = baseList;
 
   const columns = [
     {
@@ -102,6 +102,7 @@ function VerificationRequests() {
         { label: 'Pending', value: 'pending' },
         { label: 'Verifying', value: 'verifying' },
         { label: 'Rejected', value: 'rejected' },
+        { label: 'Cleared', value: 'cleared' },
       ],
     },
   ];
