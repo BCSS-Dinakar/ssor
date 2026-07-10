@@ -152,8 +152,10 @@ export const login = async (req, res) => {
     const { passwordHash, ...userProfile } = user;
     if (userProfile.role === 'police' && userProfile.policeProfile) {
       userProfile.name = userProfile.policeProfile.name;
+      userProfile.clearance = userProfile.policeProfile.clearanceLevel || userProfile.policeProfile.rank || 'Police Officer';
     } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
       userProfile.name = userProfile.organizationProfile.adminName;
+      userProfile.clearance = userProfile.organizationProfile.designation || 'Org Admin';
     }
 
     res.status(200).json({ success: true, user: userProfile });
@@ -208,6 +210,7 @@ export const getMe = async (req, res) => {
     if (userProfile.organizationProfile) {
       const o = userProfile.organizationProfile;
       userProfile.name = o.adminName;
+      userProfile.clearance = o.designation || 'Org Admin';
       if (o.authLetterPath) userProfile.documentMetadata[o.authLetterPath] = getFileMetadata(o.authLetterPath);
       if (o.govCertPath) userProfile.documentMetadata[o.govCertPath] = getFileMetadata(o.govCertPath);
       if (o.supportingDocsPaths) {
@@ -220,6 +223,7 @@ export const getMe = async (req, res) => {
     if (userProfile.policeProfile) {
       const p = userProfile.policeProfile;
       userProfile.name = p.name;
+      userProfile.clearance = p.clearanceLevel || p.rank || 'Police Officer';
       if (p.docsPaths) {
         p.docsPaths.forEach(p => {
           userProfile.documentMetadata[p] = getFileMetadata(p);

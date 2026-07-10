@@ -59,5 +59,20 @@ export const policeApi = {
   addTicketMessage: async (id, text) => {
     const response = await api.post(`/police/tickets/${id}/messages`, { text });
     return response.data;
+  },
+
+  scanVerificationById: async (id) => {
+    const response = await api.post(`/police/verifications/${id}/scan`);
+    return response.data;
+  },
+
+  getOffendersList: async (params) => {
+    const response = await api.get('/police/offenders', { params });
+    return response.data;
+  },
+
+  getOffenderById: async (id) => {
+    const response = await api.get(`/police/offenders/${id}`);
+    return response.data;
   }
 };
