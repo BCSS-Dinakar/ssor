@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
+import { downloadClearanceCertificate } from '../../../utils/certificate';
 
 function DetailField({ label, value, mono = false }) {
   return (
@@ -205,7 +206,7 @@ function VerificationDetails() {
                 </div>
 
                 <button
-                  onClick={() => alert(`Downloading clearance certificate PDF for ${selectedRequest.candidate}`)}
+                  onClick={() => downloadClearanceCertificate(selectedRequest)}
                   className="btn-primary py-2.5 px-5 text-xs w-full justify-center shadow-lg"
                 >
                   <Download className="h-4.5 w-4.5" /> Download Clearance Certificate (PDF)
@@ -220,11 +221,11 @@ function VerificationDetails() {
                   <p className="mt-1 text-red-700/90 font-medium">A potential mismatch has been flagged. The application is locked pending a formal investigation at the DSP Desk.</p>
                 </div>
 
-                {selectedRequest.reason && (
+                {selectedRequest.policeFeedback && (
                   <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-1">
-                    <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Police Decision Log Reason</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Police Vetting Report / Reason</span>
                     <p className="text-xs font-semibold text-slate-655 leading-normal whitespace-pre-wrap">
-                      {selectedRequest.reason.split('\n\nOfficer Notes: ')[0]}
+                      {selectedRequest.policeFeedback}
                     </p>
                   </div>
                 )}
