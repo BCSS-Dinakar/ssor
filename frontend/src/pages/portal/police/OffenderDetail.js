@@ -46,11 +46,18 @@ function DynamicDataGrid({ data }) {
 }
 
 function DynamicArrayList({ items, title, icon }) {
-  if (!items || items.length === 0) {
+  const isItemEmpty = (item) => {
+    if (!item || typeof item !== 'object') return true;
+    return Object.values(item).every(val => !val || val === 'N/A' || val === '-');
+  };
+
+  const hasValidData = items && items.length > 0 && items.some(item => !isItemEmpty(item));
+
+  if (!hasValidData) {
     return (
       <div>
         <SectionHeading title={title} icon={icon} badge="0 RECORDS" />
-        <DetailRow label="Database Check" value="No entries found in this table." />
+        <DetailRow label="Database Check" value="No data found." />
       </div>
     );
   }
