@@ -16,5 +16,7 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET || 'fallback_secret_key',
   EPETTY_API_URL: process.env.EPETTY_API_URL || 'http://10.121.9.146:8083/api/epettyCase/personDetails',
   EPETTY_BASIC_AUTH: process.env.EPETTY_BASIC_AUTH || '',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
 };
+
 

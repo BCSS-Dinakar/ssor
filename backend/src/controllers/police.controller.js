@@ -2,6 +2,7 @@ import prisma from '../config/db.js';
 import path from 'path';
 import fs from 'fs';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
+import { generateClearanceReport } from '../services/gemini.service.js';
 
 
 export const getLogs = async (req, res) => {
@@ -299,3 +300,26 @@ export const getDashboardStats = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error.', error: error.message });
   }
 };
+
+export const generateVerificationReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, matchedSuspect } = req.body;
+
+    if (!['cleared', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status for report generation' });
+    }
+
+    const verification = await prisma.candidateVerification.findUnique({ where: { id } });
+    if (!verification) {
+      return res.status(404).json({ success: false, message: 'Verification record not found' });
+    }
+
+    const report = await generateClearanceReport(verification, status, matchedSuspect);
+    res.status(200).json({ success: true, report });
+  } catch (error) {
+    console.error('[generateVerificationReport Error]', error);
+    res.status(500).json({ success: false, message: 'Server error generating report.', error: error.message });
+  }
+};
+
