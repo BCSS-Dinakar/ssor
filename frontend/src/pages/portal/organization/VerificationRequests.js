@@ -6,6 +6,7 @@ import StatCard from '../../../components/portal/StatCard';
 import DataTable from '../../../components/common/DataTable';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
+import { downloadClearanceCertificate } from '../../../utils/certificate';
 
 function VerificationRequests() {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ function VerificationRequests() {
 
           {row.status === 'cleared' && (
             <button
-              onClick={() => alert(`Downloading clearance certificate for ${row.candidate} (${row.id})`)}
+              onClick={() => downloadClearanceCertificate(row)}
               className="inline-flex items-center gap-1 text-[11px] font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
             >
               <Download className="h-3.5 w-3.5" /> PDF

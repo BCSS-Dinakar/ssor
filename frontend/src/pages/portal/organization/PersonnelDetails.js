@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ShieldAlert, Award, Download, User, Lock, ArrowLeft, CheckCircle2, Mail, Phone, Calendar, Clock } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
 import { useData } from '../../../context/DataContext';
+import { downloadClearanceCertificate } from '../../../utils/certificate';
 
 function DetailField({ label, value, mono = false, icon: Icon }) {
   return (
@@ -129,7 +130,7 @@ function PersonnelDetails() {
                 </div>
 
                 <button
-                  onClick={() => alert(`Downloading clearance certificate PDF for ${selectedCandidate.candidate}`)}
+                  onClick={() => downloadClearanceCertificate(selectedCandidate)}
                   className="btn-primary py-2.5 px-5 text-xs w-full justify-center shadow-lg"
                 >
                   <Download className="h-4.5 w-4.5" /> Download Clearance Certificate (PDF)
@@ -144,11 +145,11 @@ function PersonnelDetails() {
                   <p className="mt-1 text-red-700 font-medium">A potential registry match is active. Candidate clearance has been rejected after formal investigation.</p>
                 </div>
 
-                {selectedCandidate.reason && (
+                {selectedCandidate.policeFeedback && (
                   <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-1">
-                    <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Police Decision Log Reason</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-455 font-black block">Police Vetting Report / Reason</span>
                     <p className="text-xs font-semibold text-slate-655 leading-normal whitespace-pre-wrap">
-                      {selectedCandidate.reason.split('\n\nOfficer Notes: ')[0]}
+                      {selectedCandidate.policeFeedback}
                     </p>
                   </div>
                 )}
