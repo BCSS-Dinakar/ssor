@@ -1,6 +1,8 @@
 import prisma from '../config/db.js';
 import path from 'path';
 import fs from 'fs';
+import { searchEpettyCandidate } from '../services/epetty.service.js';
+
 
 export const getLogs = async (req, res) => {
   try {
@@ -97,6 +99,8 @@ export const scanVerificationById = async (req, res) => {
 
     const candidateName = (verification.candidateName || '').trim().toLowerCase();
     const candidatePhone = (verification.phone || '').replace(/\D/g, '');
+    const requestDob = verification.dob ? new Date(verification.dob).toISOString().split('T')[0] : '—';
+
 
     // Step 1: Scan CCTNS first
     const cctnsAll = await prisma.cctnsRecord.findMany();
@@ -139,40 +143,13 @@ export const scanVerificationById = async (req, res) => {
       }
     }
 
-    // Step 2: If NO matches found in CCTNS, scan ePettyCase
+    // Step 2: If NO matches found in CCTNS, scan ePettyCase via live API
     if (matches.length === 0) {
-      const epettyAll = await prisma.ePettyCase.findMany();
-      
-      let highEpetty = epettyAll.filter(ep => {
-        const epName = (ep.offenderName || '').trim().toLowerCase();
-        const epPhone = (ep.phone || '').replace(/\D/g, '');
-        return epName === candidateName && (epPhone.endsWith(candidatePhone) || candidatePhone.endsWith(epPhone));
-      });
-
-      if (highEpetty.length > 0) {
-        matches = highEpetty;
-        priorityLabel = 'High Priority (Exact Name & Phone Match)';
-        matchedSource = 'ePetty Case';
-      } else {
-        let medEpetty = epettyAll.filter(ep => {
-          const epName = (ep.offenderName || '').trim().toLowerCase();
-          return epName === candidateName;
-        });
-        if (medEpetty.length > 0) {
-          matches = medEpetty;
-          priorityLabel = 'Medium Priority (Exact Name Match)';
-          matchedSource = 'ePetty Case';
-        } else {
-          let lowEpetty = epettyAll.filter(ep => {
-            const epPhone = (ep.phone || '').replace(/\D/g, '');
-            return candidatePhone.length >= 7 && (epPhone.endsWith(candidatePhone) || candidatePhone.endsWith(epPhone));
-          });
-          if (lowEpetty.length > 0) {
-            matches = lowEpetty;
-            priorityLabel = 'Low Priority (Exact Phone Match)';
-            matchedSource = 'ePetty Case';
-          }
-        }
+      const epettyOutcome = await searchEpettyCandidate(verification.candidateName, verification.phone);
+      if (epettyOutcome.matches && epettyOutcome.matches.length > 0) {
+        matches = epettyOutcome.matches;
+        priorityLabel = epettyOutcome.priorityLabel;
+        matchedSource = epettyOutcome.matchedSource;
       }
     }
 
@@ -183,7 +160,7 @@ export const scanVerificationById = async (req, res) => {
       alias: m.alias || '—',
       age: m.age || '—',
       fatherName: m.fatherName || '—',
-      dob: m.dob || m.incidentDate || '—',
+      dob: (matchedSource === 'ePetty Case' || !m.dob || m.dob === '—') ? requestDob : m.dob,
       phone: m.phone || '—',
       address: m.address || '—',
       offence: m.offence || m.offenceType || '—',

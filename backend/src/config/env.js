@@ -14,4 +14,7 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   DATABASE_URL: process.env.DATABASE_URL,
   JWT_SECRET: process.env.JWT_SECRET || 'fallback_secret_key',
+  EPETTY_API_URL: process.env.EPETTY_API_URL || 'http://10.121.9.146:8083/api/epettyCase/personDetails',
+  EPETTY_BASIC_AUTH: process.env.EPETTY_BASIC_AUTH || '',
 };
+
