@@ -57,11 +57,19 @@ function PoliceDashboard() {
   const convictedCount = stats?.convictedCount || 0;
   const underTrialCount = stats?.underTrialCount || 0;
 
-  const colorPalette = ['#4f46e5', '#ec4899', '#f59e0b', '#10b981', '#6366f1', '#8b5cf6'];
-  const sectionData = (stats?.sectionData || []).map((s, i) => ({
+  const categoryColors = {
+    'Bodily Offence': '#7E22CE', // Purple
+    'Crime Against Children': '#EF4444', // Red
+    'Crime Against SC/ST': '#111827', // Black
+    'Crime Against Women': '#C2410C', // Deep Orange (Rust orange)
+    'Cyber Crime': '#1E3A8A', // Blue (Dark Navy)
+    'Other': '#22C55E', // Green
+  };
+
+  const sectionData = (stats?.sectionData || []).map((s) => ({
     name: s.name,
     value: s.value,
-    color: colorPalette[i % colorPalette.length]
+    color: categoryColors[s.name] || '#6B5A63'
   }));
 
 
