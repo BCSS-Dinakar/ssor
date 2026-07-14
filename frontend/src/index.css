@@ -7,29 +7,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    font-size: 14px;
-    /* Base size */
-  }
-
-  /* Scale up UI on 1440px+ screens */
-  @media (min-width: 1440px) {
-    html {
-      font-size: 16px;
-    }
-  }
-
-  /* Scale up further on 1920px+ ultra-wides */
-  @media (min-width: 1920px) {
-    html {
-      font-size: 20px;
-    }
-  }
-
-  /* Scale up extremely large on 2560px+ 4K monitors */
-  @media (min-width: 2560px) {
-    html {
-      font-size: 24px;
-    }
+    /* Fluid typography: locked at 14px for screens <= 1440px, scaling up to 24px at 2560px */
+    font-size: clamp(14px, 0.89vw + 1.15px, 24px);
   }
 
   body {
