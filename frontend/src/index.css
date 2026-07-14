@@ -7,7 +7,24 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    font-size: 14px;
+    /* Base size */
   }
+
+  /* Scale up UI on 1440px+ screens */
+  @media (min-width: 1440px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
+  /* Scale up further on 1920px+ ultra-wides */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 20px;
+    }
+  }
+
   body {
     font-family: 'Inter', 'Roboto', sans-serif;
     color: #0F172A;
@@ -15,7 +32,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
@@ -28,27 +45,25 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold py-2.5 px-5 rounded-xl
-           hover:from-secondary hover:to-indigo-900 transition-all duration-300 transform active:scale-[0.98]
-           shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 inline-flex items-center gap-2;
+    @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold py-2.5 px-5 rounded-xl hover:from-secondary hover:to-indigo-900 transition-all duration-300 transform active:scale-[0.98] shadow-md shadow-primary/10 hover:shadow-lg hover:shadow-primary/20 inline-flex items-center gap-2;
   }
+
   .btn-secondary {
-    @apply border border-slate-200 text-slate-700 bg-white font-semibold py-2.5 px-5 rounded-xl
-           hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 transform active:scale-[0.98]
-           shadow-sm hover:shadow-md inline-flex items-center gap-2;
+    @apply border border-slate-200 text-slate-700 bg-white font-semibold py-2.5 px-5 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 transform active:scale-[0.98] shadow-sm hover:shadow-md inline-flex items-center gap-2;
   }
+
   .btn-accent {
-    @apply bg-gradient-to-r from-accent to-amber-500 text-primary font-bold py-2.5 px-5 rounded-xl
-           hover:from-amber-500 hover:to-yellow-400 transition-all duration-300 transform active:scale-[0.98]
-           shadow-md shadow-accent/20 hover:shadow-lg hover:shadow-accent/30 inline-flex items-center gap-2;
+    @apply bg-gradient-to-r from-accent to-amber-500 text-primary font-bold py-2.5 px-5 rounded-xl hover:from-amber-500 hover:to-yellow-400 transition-all duration-300 transform active:scale-[0.98] shadow-md shadow-accent/20 hover:shadow-lg hover:shadow-accent/30 inline-flex items-center gap-2;
   }
+
   .card {
-    @apply bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_30px_-6px_rgba(15,23,42,0.08)]
-           transition-all duration-300 border border-slate-100/80 overflow-hidden;
+    @apply bg-white rounded-2xl shadow-[0_4px_20px_-4px_#0f172a0d] hover:shadow-[0_12px_30px_-6px_#0f172a14] transition-all duration-300 border border-slate-100/80 overflow-hidden;
   }
+
   .section-title {
     @apply text-2xl md:text-3xl font-extrabold font-heading text-primary tracking-tight;
   }
+
   .section-subtitle {
     @apply text-muted text-sm md:text-base mt-1.5 max-w-2xl mx-auto;
   }

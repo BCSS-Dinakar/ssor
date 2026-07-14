@@ -37,7 +37,7 @@ function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: copy */}
             <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-8">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
                 <ShieldCheck className="h-4 w-4 text-accent" />
                 Government of Telangana · State Police
               </div>
@@ -66,7 +66,7 @@ function LandingPage() {
                 </Link>
               </div>
 
-              <div className="mt-12 flex flex-wrap items-center lg:justify-start justify-center gap-x-8 gap-y-4 text-gray-400 text-sm">
+              <div className="mt-12 flex flex-wrap items-center lg:justify-start justify-center gap-x-8 gap-y-4 text-gray-400 text-base">
                 <div className="flex items-center gap-2">
                   <Lock className="h-4 w-4 text-green-400" />
                   <span>Controlled disclosure</span>
@@ -116,14 +116,14 @@ function LandingPage() {
       {/* ───────── LEGAL FRAMEWORK STRIP ───────── */}
       <section className="bg-background border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-xs uppercase tracking-widest text-muted font-semibold mb-5">
+          <p className="text-center text-sm uppercase tracking-widest text-muted font-semibold mb-5">
             Built on the Constitution & Statutory Framework
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {legalFramework.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-primary text-sm font-medium px-4 py-2 rounded-full shadow-sm"
+                className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-primary text-base font-medium px-4 py-2 rounded-full shadow-sm"
               >
                 <Scale className="h-3.5 w-3.5 text-accent" />
                 {item}
@@ -138,7 +138,7 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
                 <Lock className="h-3.5 w-3.5" />
                 Privacy by Design
               </div>
@@ -155,7 +155,7 @@ function LandingPage() {
                   'Information is released through controlled channels, not thrown open to the public.',
                   'Every entry and disclosure meets the tests of legality, necessity and proportionality.',
                 ].map((point) => (
-                  <li key={point} className="flex items-start gap-3 text-sm text-gray-700">
+                  <li key={point} className="flex items-start gap-3 text-base text-gray-700">
                     <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
                     <span>{point}</span>
                   </li>
@@ -186,22 +186,22 @@ function LandingPage() {
               <div key={level.title} className="card p-8 relative group hover:-translate-y-1 flex flex-col">
                 <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${level.accent} rounded-t-xl`}></div>
                 <div className="absolute -top-3 right-6">
-                  <span className={`${level.tagClass} text-xs font-bold px-3 py-1 rounded-full shadow-md`}>{level.tag}</span>
+                  <span className={`${level.tagClass} text-sm font-bold px-3 py-1 rounded-full shadow-md`}>{level.tag}</span>
                 </div>
                 <div className={`${level.iconBg} w-16 h-16 rounded-xl flex items-center justify-center mb-6`}>
                   <level.icon className={`h-8 w-8 ${level.iconColor}`} />
                 </div>
                 <h3 className="text-xl font-bold text-primary font-heading mb-3">{level.title}</h3>
-                <p className="text-muted leading-relaxed mb-6 text-sm">{level.description}</p>
+                <p className="text-muted leading-relaxed mb-6 text-base">{level.description}</p>
                 <ul className="space-y-3 mb-8">
                   {level.points.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                    <li key={item} className="flex items-center gap-2 text-base text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link to={level.cta.to} className={`${level.ctaClass} w-full justify-center text-sm mt-auto`}>
+                <Link to={level.cta.to} className={`${level.ctaClass} w-full justify-center text-base mt-auto`}>
                   {level.cta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -228,15 +228,15 @@ function LandingPage() {
                   </span>
                   <div>
                     <h3 className="text-base font-bold text-primary font-heading leading-tight">{tier.name}</h3>
-                    <p className="text-xs text-muted">{tier.category}</p>
+                    <p className="text-sm text-muted">{tier.category}</p>
                   </div>
                 </div>
                 <div className="border-t border-gray-100 pt-4 space-y-2">
-                  <div className="flex items-start gap-2 text-xs text-gray-600">
+                  <div className="flex items-start gap-2 text-sm text-gray-600">
                     <Scale className="h-3.5 w-3.5 text-secondary flex-shrink-0 mt-0.5" />
                     <span className="font-mono">{tier.law}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Lock className="h-3.5 w-3.5 text-accent flex-shrink-0" />
                     <span>Retention: <strong className="text-primary">{tier.retention}</strong></span>
                   </div>
@@ -246,7 +246,7 @@ function LandingPage() {
             {/* Note card */}
             <div className="rounded-xl p-6 bg-gradient-to-br from-primary to-secondary text-white flex flex-col justify-center">
               <ShieldCheck className="h-8 w-8 text-accent mb-3" />
-              <p className="text-sm leading-relaxed text-gray-200">
+              <p className="text-base leading-relaxed text-gray-200">
                 A single act may attract more than one provision. Every applicable section is recorded and the
                 offender is classified at the <strong className="text-white">highest tier</strong> that applies.
               </p>
@@ -267,7 +267,7 @@ function LandingPage() {
               />
             </div>
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
                 <FileCheck className="h-3.5 w-3.5" />
                 Safe Recruitment
               </div>
@@ -288,8 +288,8 @@ function LandingPage() {
                       <step.icon className="h-4.5 w-4.5 text-secondary" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-primary">{step.title}</h4>
-                      <p className="text-xs text-muted leading-relaxed mt-0.5">{step.text}</p>
+                      <h4 className="text-base font-bold text-primary">{step.title}</h4>
+                      <p className="text-sm text-muted leading-relaxed mt-0.5">{step.text}</p>
                     </div>
                   </div>
                 ))}
@@ -314,7 +314,7 @@ function LandingPage() {
                   <feature.icon className={`h-7 w-7 ${feature.iconClass}`} />
                 </div>
                 <h3 className="text-lg font-bold text-primary font-heading mb-2">{feature.title}</h3>
-                <p className="text-muted text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-muted text-base leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -345,7 +345,7 @@ function LandingPage() {
                 <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:bg-white/15 transition-all duration-300 group-hover:-translate-y-1 h-full">
                   <stat.icon className={`h-8 w-8 ${stat.color} mx-auto mb-4`} />
                   <div className="text-3xl md:text-4xl font-bold text-white font-heading">{stat.value}</div>
-                  <div className="text-gray-400 text-xs mt-2 font-medium uppercase tracking-wider">{stat.label}</div>
+                  <div className="text-gray-400 text-sm mt-2 font-medium uppercase tracking-wider">{stat.label}</div>
                 </div>
               </div>
             ))}

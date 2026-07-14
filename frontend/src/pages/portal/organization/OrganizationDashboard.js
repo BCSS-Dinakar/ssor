@@ -89,7 +89,7 @@ function OrganizationDashboard() {
       </SecurityBanner>
 
       <div className="flex justify-end mb-4">
-        <Link to="/portal/apply" className="btn-accent px-5 py-2.5 text-xs font-bold inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
+        <Link to="/portal/apply" className="btn-accent px-5 py-2.5 text-sm font-bold inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all">
           <FileCheck className="h-4 w-4" /> Verify New Candidate
         </Link>
       </div>
@@ -111,10 +111,10 @@ function OrganizationDashboard() {
           <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
             <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
               <div>
-                <h3 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Verification Trends</h3>
-                <p className="text-[10px] text-slate-455 font-bold mt-0.5">Submitted vs Cleared candidates (6M Trend).</p>
+                <h3 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Verification Trends</h3>
+                <p className="text-sm text-slate-455 font-bold mt-0.5">Submitted vs Cleared candidates (6M Trend).</p>
               </div>
-              <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+              <span className="inline-flex items-center gap-1 text-sm font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
                 <TrendingUp className="h-3 w-3" /> +15% this month
               </span>
             </div>
@@ -147,18 +147,18 @@ function OrganizationDashboard() {
           <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
             <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
               <div>
-                <h3 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Recent Clearance Submissions</h3>
-                <p className="text-[10px] text-slate-455 font-bold mt-0.5">Live status feed of checks in queue.</p>
+                <h3 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Recent Clearance Submissions</h3>
+                <p className="text-sm text-slate-455 font-bold mt-0.5">Live status feed of checks in queue.</p>
               </div>
-              <Link to="/portal/requests" className="text-xs font-bold text-secondary flex items-center gap-1 hover:underline">
+              <Link to="/portal/requests" className="text-sm font-bold text-secondary flex items-center gap-1 hover:underline">
                 View all requests <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
 
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-xs text-left min-w-[500px]">
+              <table className="w-full text-sm text-left min-w-[500px]">
                 <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
-                  <tr className="text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
+                  <tr className="text-xs uppercase font-bold text-slate-400 border-b border-slate-150">
                     <th className="py-2.5 px-6 rounded-tl-lg">Reference ID</th>
                     <th className="py-2.5 px-4">Candidate</th>
                     <th className="py-2.5 px-4">Role</th>
@@ -172,19 +172,19 @@ function OrganizationDashboard() {
                       <td className="py-3 px-6 font-mono font-bold text-secondary">{c.id.split('-')[0]}</td>
                       <td className="py-3 px-4">
                         <div className="font-bold text-primary">{c.candidateName}</div>
-                        {c.fatherName && <div className="text-[10px] text-slate-400 font-semibold mt-0.5">Father: {c.fatherName}</div>}
+                        {c.fatherName && <div className="text-sm text-slate-400 font-semibold mt-0.5">Father: {c.fatherName}</div>}
                       </td>
                       <td className="py-3 px-4 font-semibold text-slate-500">{c.role}</td>
                       <td className="py-3 px-4 text-slate-400 font-medium">{new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                       <td className="py-3 px-6 text-right">
                         {c.status === 'cleared' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">CLEARED</span>
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">CLEARED</span>
                         ) : c.status === 'rejected' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">REJECTED</span>
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">REJECTED</span>
                         ) : c.status === 'verifying' ? (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 animate-pulse">VERIFYING</span>
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 animate-pulse">VERIFYING</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">PENDING</span>
+                          <span className="inline-flex items-center gap-1 text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">PENDING</span>
                         )}
                       </td>
                     </tr>
@@ -210,18 +210,18 @@ function OrganizationDashboard() {
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider leading-tight">Active Certificate</h4>
-                <p className="text-[10px] text-emerald-600 font-bold mt-0.5 uppercase tracking-wide">Safeguarding Compliant</p>
+                <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider leading-tight">Active Certificate</h4>
+                <p className="text-sm text-emerald-600 font-bold mt-0.5 uppercase tracking-wide">Safeguarding Compliant</p>
               </div>
             </div>
             
             <div className="space-y-2.5">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">License ID</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-xs">License ID</span>
                 <span className="font-mono font-black text-primary">REG-2026-88341</span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Valid Until</span>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-xs">Valid Until</span>
                 <span className="font-bold text-primary">05 Jan 2027</span>
               </div>
             </div>
@@ -229,7 +229,7 @@ function OrganizationDashboard() {
 
           {/* Quick Actions */}
           <div className="card p-6 bg-white border border-slate-200/80 shadow-md space-y-4">
-            <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider border-b border-slate-100 pb-2">Quick Services</h4>
+            <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider border-b border-slate-100 pb-2">Quick Services</h4>
             <div className="grid grid-cols-1 gap-2.5">
               {quickActions.map((a) => (
                 <Link key={a.to} to={a.to} className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-150 rounded-2xl transition-all duration-300 group">
@@ -238,8 +238,8 @@ function OrganizationDashboard() {
                       <a.icon className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-slate-800 block group-hover:text-primary transition-colors">{a.title}</span>
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-medium leading-none">{a.desc}</p>
+                      <span className="text-sm font-bold text-slate-800 block group-hover:text-primary transition-colors">{a.title}</span>
+                      <p className="text-sm text-slate-400 mt-0.5 font-medium leading-none">{a.desc}</p>
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
@@ -251,16 +251,16 @@ function OrganizationDashboard() {
           {/* Activity Advisory Feed */}
           <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
-              <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Security Bulletins</h4>
+              <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Security Bulletins</h4>
               <Bell className="h-4 w-4 text-slate-400" />
             </div>
             <div className="space-y-4">
               {notifications.map((n) => (
-                <div key={n.id} className="flex gap-3 text-xs">
+                <div key={n.id} className="flex gap-3 text-sm">
                   <div className={`h-2.5 w-2.5 rounded-full mt-1 shrink-0 ${n.type === 'success' ? 'bg-emerald-500' : n.type === 'info' ? 'bg-blue-500' : 'bg-amber-500'}`} />
                   <div className="space-y-1 flex-1">
-                    <span className="font-semibold text-slate-700 leading-relaxed block text-[11px]">{n.text}</span>
-                    <span className="text-[9px] text-slate-400 font-mono block leading-none">{n.time}</span>
+                    <span className="font-semibold text-slate-700 leading-relaxed block text-sm">{n.text}</span>
+                    <span className="text-xs text-slate-400 font-mono block leading-none">{n.time}</span>
                   </div>
                 </div>
               ))}

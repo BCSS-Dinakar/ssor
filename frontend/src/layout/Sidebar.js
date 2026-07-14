@@ -12,7 +12,7 @@ function Sidebar({ role, collapsed, onNavigate }) {
           return collapsed ? (
             <div key={`sec-${i}`} className="border-t border-white/10 my-4 mx-2" />
           ) : (
-            <div key={`sec-${i}`} className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 pt-5 pb-2">
+            <div key={`sec-${i}`} className="text-sm font-bold uppercase tracking-widest text-slate-500 px-3 pt-5 pb-2">
               {item.section}
             </div>
           );
@@ -24,7 +24,7 @@ function Sidebar({ role, collapsed, onNavigate }) {
           return (
             <div
               key={item.id}
-              className={`flex ${collapsed ? 'justify-center py-3' : 'items-start gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-all duration-200 opacity-40 cursor-not-allowed`}
+              className={`flex ${collapsed ? 'justify-center py-3' : 'items-start gap-3 px-3 py-2.5'} rounded-xl text-base font-medium transition-all duration-200 opacity-40 cursor-not-allowed`}
               title={collapsed ? `${item.label} (Upcoming)` : undefined}
             >
               <div className="relative flex items-center justify-center">
@@ -33,8 +33,8 @@ function Sidebar({ role, collapsed, onNavigate }) {
 
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold leading-tight text-slate-455">{item.label}</div>
-                  <div className="text-[9px] text-slate-500 mt-0.5 font-medium leading-none truncate">
+                  <div className="text-sm font-bold leading-tight text-slate-455">{item.label}</div>
+                  <div className="text-xs text-slate-500 mt-0.5 font-medium leading-none truncate">
                     {item.desc}
                   </div>
                 </div>
@@ -57,7 +57,7 @@ function Sidebar({ role, collapsed, onNavigate }) {
             onClick={onNavigate}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex ${collapsed ? 'justify-center py-3' : 'items-start gap-3 px-3 py-2.5'} rounded-xl text-sm font-medium transition-all duration-200 relative ${
+              `flex ${collapsed ? 'justify-center py-3' : 'items-start gap-3 px-3 py-2.5'} rounded-xl text-base font-medium transition-all duration-200 relative ${
                 isActive
                   ? 'bg-white/10 text-white'
                   : 'text-slate-300 hover:bg-white/5 hover:text-white'
@@ -77,9 +77,9 @@ function Sidebar({ role, collapsed, onNavigate }) {
 
                 {!collapsed && (
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold leading-tight">{item.label}</div>
+                    <div className="text-sm font-bold leading-tight">{item.label}</div>
                     {item.desc && (
-                      <div className="text-[9px] text-slate-400 mt-0.5 font-medium leading-none truncate">
+                      <div className="text-xs text-slate-400 mt-0.5 font-medium leading-none truncate">
                         {item.desc}
                       </div>
                     )}
@@ -87,7 +87,7 @@ function Sidebar({ role, collapsed, onNavigate }) {
                 )}
 
                 {!collapsed && badge > 0 && (
-                  <span className="bg-accent text-primary text-[10px] font-black px-2 py-0.5 rounded-full font-mono shrink-0 ml-1 shadow-sm shadow-accent/25">
+                  <span className="bg-accent text-primary text-sm font-black px-2 py-0.5 rounded-full font-mono shrink-0 ml-1 shadow-sm shadow-accent/25">
                     {badge}
                   </span>
                 )}

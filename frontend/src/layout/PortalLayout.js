@@ -24,7 +24,7 @@ function PortalLayout() {
             </div>
             <div className="truncate">
               <div className="text-lg font-bold text-white font-heading leading-none">SSOR</div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-1 leading-none">Secure Portal</div>
+              <div className="text-sm text-slate-400 uppercase tracking-wider mt-1 leading-none">Secure Portal</div>
             </div>
           </Link>
         )}
@@ -42,7 +42,7 @@ function PortalLayout() {
 
   return (
     <div className={`min-h-screen bg-slate-50 lg:grid transition-all duration-300 ${
-      collapsed ? 'lg:grid-cols-[75px_1fr]' : 'lg:grid-cols-[260px_1fr]'
+      collapsed ? 'lg:grid-cols-[4.6875rem_1fr]' : 'lg:grid-cols-[16.25rem_1fr] min-[1440px]:grid-cols-[18rem_1fr] min-[1920px]:grid-cols-[20rem_1fr]'
     }`}>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col bg-primary sticky top-0 h-screen overflow-y-auto z-20">
@@ -69,7 +69,7 @@ function PortalLayout() {
                 </div>
                 <div>
                   <div className="text-lg font-bold text-white font-heading leading-none">SSOR</div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider mt-1">Secure Portal</div>
+                  <div className="text-sm text-slate-400 uppercase tracking-wider mt-1">Secure Portal</div>
                 </div>
               </Link>
             </div>

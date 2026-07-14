@@ -135,10 +135,10 @@ function ComplianceAndSupport() {
       <div className={`w-full lg:w-96 flex flex-col bg-slate-50 border-r border-slate-200 shrink-0 ${(activeTicketId || showNewTicketForm) ? 'hidden lg:flex' : 'flex'}`}>
         {/* Left Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
-          <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Support Inbox</h4>
+          <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Support Inbox</h4>
           <button
             onClick={() => { setShowNewTicketForm(true); setActiveTicketId(null); setFormAlert(null); }}
-            className="inline-flex items-center gap-1 text-[10px] font-black text-white bg-secondary hover:bg-secondary/90 px-3 py-2 rounded-xl transition-all shadow-md shadow-secondary/10"
+            className="inline-flex items-center gap-1 text-sm font-black text-white bg-secondary hover:bg-secondary/90 px-3 py-2 rounded-xl transition-all shadow-md shadow-secondary/10"
           >
             <Plus className="h-3.5 w-3.5" /> Raise New
           </button>
@@ -149,11 +149,11 @@ function ComplianceAndSupport() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10 text-slate-400">
               <Loader2 className="h-6 w-6 animate-spin mb-3 text-secondary" />
-              <p className="text-[10px] font-bold">Loading inbox...</p>
+              <p className="text-sm font-bold">Loading inbox...</p>
             </div>
           ) : tickets.length === 0 ? (
             <div className="text-center text-slate-400 py-10">
-              <p className="text-[10px] font-bold">No active consultations.</p>
+              <p className="text-sm font-bold">No active consultations.</p>
             </div>
           ) : tickets.map((t) => {
             const isActive = activeTicketId === t.id && !showNewTicketForm;
@@ -170,10 +170,10 @@ function ComplianceAndSupport() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex justify-between items-baseline mb-1">
-                    <span className="font-bold text-xs text-slate-800 truncate">{t.ticketNumber}</span>
-                    <span className="font-mono text-[9px] text-slate-400 shrink-0">{new Date(t.createdAt).toLocaleDateString()}</span>
+                    <span className="font-bold text-sm text-slate-800 truncate">{t.ticketNumber}</span>
+                    <span className="font-mono text-xs text-slate-400 shrink-0">{new Date(t.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <div className="text-[11px] font-semibold text-slate-600 truncate mb-1.5">{t.subject}</div>
+                  <div className="text-sm font-semibold text-slate-600 truncate mb-1.5">{t.subject}</div>
                   <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
                     t.status === 'Closed' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'
                   }`}>
@@ -198,8 +198,8 @@ function ComplianceAndSupport() {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div>
-                  <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Raise New Consultation</h4>
-                  <p className="text-[10px] text-slate-455 font-bold mt-0.5">Submit an appeal or inquiry to the department</p>
+                  <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Raise New Consultation</h4>
+                  <p className="text-sm text-slate-455 font-bold mt-0.5">Submit an appeal or inquiry to the department</p>
                 </div>
               </div>
             </div>
@@ -246,7 +246,7 @@ function ComplianceAndSupport() {
                 </div>
                 
                 <div className="flex justify-end">
-                  <button type="submit" className="btn-primary py-3 px-6 shadow-lg shadow-primary/20 text-sm" disabled={creatingTicket}>
+                  <button type="submit" className="btn-primary py-3 px-6 shadow-lg shadow-primary/20 text-base" disabled={creatingTicket}>
                     {creatingTicket ? 'Submitting...' : 'Submit Inquiry File'}
                   </button>
                 </div>
@@ -267,17 +267,17 @@ function ComplianceAndSupport() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">{activeTicket.ticketNumber}</h4>
+                    <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">{activeTicket.ticketNumber}</h4>
                     <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
                       activeTicket.status === 'Closed' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {activeTicket.status}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-500 font-bold truncate max-w-sm mt-0.5">{activeTicket.subject}</p>
+                  <p className="text-sm text-slate-500 font-bold truncate max-w-sm mt-0.5">{activeTicket.subject}</p>
                 </div>
               </div>
-              <div className="hidden sm:flex items-center gap-4 text-[10px] text-slate-400 font-bold">
+              <div className="hidden sm:flex items-center gap-4 text-sm text-slate-400 font-bold">
                 <div className="flex items-center gap-1.5">
                   <AlertCircle className="h-3.5 w-3.5" />
                   <span className={`px-2 py-0.5 rounded-md border uppercase tracking-wider font-black ${
@@ -294,7 +294,7 @@ function ComplianceAndSupport() {
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col space-y-4 relative" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 0)', backgroundSize: '24px 24px' }}>
               
               {/* Context Info Box */}
-              <div className="self-center bg-white border border-slate-200 rounded-xl px-4 py-2 text-[10px] font-bold text-slate-500 text-center max-w-sm shadow-sm mb-4 mt-2">
+              <div className="self-center bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-500 text-center max-w-sm shadow-sm mb-4 mt-2">
                 Consultation securely initiated. <br/>
                 <span className="text-primary">Reference:</span> {activeTicket.reference || 'General Inquiry'}
               </div>
@@ -303,12 +303,12 @@ function ComplianceAndSupport() {
                 const isPolice = m.senderRole !== 'Organization';
                 return (
                   <div key={m.id} className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${isPolice ? 'self-start items-start' : 'self-end items-end'}`}>
-                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono px-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono px-1">
                       <span className={isPolice ? 'text-secondary font-black' : 'text-slate-600'}>{m.senderName}</span>
                       <span>·</span>
                       <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <div className={`p-3 text-xs leading-relaxed font-semibold rounded-2xl shadow-sm ${
+                    <div className={`p-3 text-sm leading-relaxed font-semibold rounded-2xl shadow-sm ${
                       isPolice 
                         ? 'bg-white text-slate-700 rounded-tl-none border border-slate-200/60' 
                         : 'bg-primary text-white rounded-tr-none'
@@ -329,7 +329,7 @@ function ComplianceAndSupport() {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder={`Message to ${activeTicket.assignee}...`}
-                      className="w-full bg-transparent px-4 py-3 text-sm outline-none resize-none min-h-[50px] max-h-[120px] self-end"
+                      className="w-full bg-transparent px-4 py-3 text-base outline-none resize-none min-h-[50px] max-h-[120px] self-end"
                       rows={1}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -344,7 +344,7 @@ function ComplianceAndSupport() {
                   </button>
                 </form>
               ) : (
-                <div className="text-center text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center justify-center gap-1.5 py-3 rounded-xl">
+                <div className="text-center text-sm text-slate-500 font-black uppercase tracking-widest flex items-center justify-center gap-1.5 py-3 rounded-xl">
                   <AlertCircle className="h-4 w-4" /> This consultation has been closed and is read-only.
                 </div>
               )}
@@ -356,8 +356,8 @@ function ComplianceAndSupport() {
             <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm mb-4">
               <MessageSquare className="h-7 w-7 text-slate-300" />
             </div>
-            <h3 className="text-slate-600 font-extrabold text-sm uppercase tracking-wider mb-2">Compliance & Support Console</h3>
-            <p className="text-xs text-slate-400 font-semibold max-w-sm">Select a ticket from the left panel to review notes, files, and message history with duty officers, or raise a new consultation.</p>
+            <h3 className="text-slate-600 font-extrabold text-base uppercase tracking-wider mb-2">Compliance & Support Console</h3>
+            <p className="text-sm text-slate-400 font-semibold max-w-sm">Select a ticket from the left panel to review notes, files, and message history with duty officers, or raise a new consultation.</p>
           </div>
         )}
       </div>

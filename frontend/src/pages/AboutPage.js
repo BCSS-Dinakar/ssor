@@ -23,7 +23,7 @@ function AboutPage() {
       {/* ───────── HERO ───────── */}
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-8">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
             <ShieldCheck className="h-4 w-4 text-accent" />
             Government of Telangana · State Police
           </div>
@@ -43,7 +43,7 @@ function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
                 <Target className="h-3.5 w-3.5" />
                 Our Mission
               </div>
@@ -65,8 +65,8 @@ function AboutPage() {
                 ].map((item) => (
                   <div key={item.label} className="card p-4 text-center group hover:-translate-y-1">
                     <item.icon className="h-6 w-6 text-accent mx-auto mb-2" />
-                    <div className="text-sm font-bold text-primary">{item.label}</div>
-                    <div className="text-xs text-muted mt-0.5">{item.text}</div>
+                    <div className="text-base font-bold text-primary">{item.label}</div>
+                    <div className="text-sm text-muted mt-0.5">{item.text}</div>
                   </div>
                 ))}
               </div>
@@ -76,12 +76,12 @@ function AboutPage() {
               <div className="relative card p-10 text-center">
                 <ShieldCheck className="h-16 w-16 text-accent mx-auto mb-6" />
                 <h3 className="text-2xl font-bold text-primary font-heading mb-3">Not a Public List</h3>
-                <p className="text-muted leading-relaxed text-sm">
+                <p className="text-muted leading-relaxed text-base">
                   This register is explicitly designed to <strong className="text-primary">never</strong> be a public search tool.
                   Information flows only through police-controlled channels — protecting privacy, preventing misuse,
                   and maintaining the integrity of the justice system.
                 </p>
-                <div className="mt-6 flex items-center justify-center gap-3 text-xs text-muted">
+                <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted">
                   <Lock className="h-4 w-4 text-green-500" />
                   <span>Consistent with K.S. Puttaswamy (2017) & DPDP Act 2023</span>
                 </div>
@@ -106,7 +106,7 @@ function AboutPage() {
                   <principle.icon className={`h-7 w-7 ${principle.iconClass}`} />
                 </div>
                 <h3 className="text-lg font-bold text-primary font-heading mb-2">{principle.title}</h3>
-                <p className="text-muted text-sm leading-relaxed">{principle.description}</p>
+                <p className="text-muted text-base leading-relaxed">{principle.description}</p>
               </div>
             ))}
           </div>
@@ -130,13 +130,13 @@ function AboutPage() {
                   </div>
                   <h3 className="text-base font-bold text-primary font-heading">{law.name}</h3>
                 </div>
-                <p className="text-muted text-sm leading-relaxed">{law.desc}</p>
+                <p className="text-muted text-base leading-relaxed">{law.desc}</p>
               </div>
             ))}
             <div className="rounded-xl p-6 bg-gradient-to-br from-primary to-secondary text-white flex flex-col justify-center">
               <Globe className="h-8 w-8 text-accent mb-3" />
               <h3 className="text-base font-bold text-white font-heading mb-2">NDSO Interoperability</h3>
-              <p className="text-sm leading-relaxed text-gray-200">
+              <p className="text-base leading-relaxed text-gray-200">
                 The state register is designed to be interoperable with the National Database on Sexual Offenders (NDSO) maintained by the NCRB.
               </p>
             </div>
@@ -159,7 +159,7 @@ function AboutPage() {
             {timeline.map((phase, i) => (
               <div key={phase.year} className="relative flex items-start gap-6 pb-10 last:pb-0">
                 <div className="relative z-10 flex-shrink-0">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-md ${
                     i === 0 ? 'bg-accent text-primary' : 'bg-white border-2 border-slate-200 text-slate-500'
                   }`}>
                     {i + 1}
@@ -167,11 +167,11 @@ function AboutPage() {
                 </div>
                 <div className="card p-5 flex-1 group hover:-translate-y-0.5">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-accent">{phase.year}</span>
-                    <span className="text-xs font-bold text-primary">·</span>
+                    <span className="text-sm font-bold uppercase tracking-wider text-accent">{phase.year}</span>
+                    <span className="text-sm font-bold text-primary">·</span>
                     <h3 className="text-base font-bold text-primary font-heading">{phase.title}</h3>
                   </div>
-                  <p className="text-sm text-muted leading-relaxed">{phase.text}</p>
+                  <p className="text-base text-muted leading-relaxed">{phase.text}</p>
                 </div>
               </div>
             ))}

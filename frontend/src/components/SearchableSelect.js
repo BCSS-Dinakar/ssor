@@ -31,7 +31,7 @@ export default function SearchableSelect({
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div 
-        className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm cursor-pointer flex items-center justify-between transition-all duration-300 ${
+        className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-base cursor-pointer flex items-center justify-between transition-all duration-300 ${
           disabled ? 'opacity-50 cursor-not-allowed border-slate-200' : 
           isOpen ? 'border-secondary bg-white ring-4 ring-secondary/10' : 
           value ? 'border-emerald-500 bg-emerald-50/30 text-emerald-900' : 
@@ -51,7 +51,7 @@ export default function SearchableSelect({
             <Search className="h-4 w-4 text-slate-400 ml-2" />
             <input
               type="text"
-              className="w-full bg-transparent border-none focus:ring-0 text-sm py-1.5 outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent border-none focus:ring-0 text-base py-1.5 outline-none placeholder:text-slate-400"
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -65,7 +65,7 @@ export default function SearchableSelect({
               filteredOptions.map((opt, idx) => (
                 <div
                   key={idx}
-                  className={`px-4 py-2.5 text-sm cursor-pointer rounded-lg flex items-center justify-between transition-colors ${
+                  className={`px-4 py-2.5 text-base cursor-pointer rounded-lg flex items-center justify-between transition-colors ${
                     value === opt 
                       ? 'bg-secondary/10 text-secondary font-bold' 
                       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
@@ -81,10 +81,10 @@ export default function SearchableSelect({
                 </div>
               ))
             ) : (
-              <div className="px-4 py-6 text-sm text-slate-500 text-center">
+              <div className="px-4 py-6 text-base text-slate-500 text-center">
                 No results found for "{search}"
                 <button 
-                  className="block mt-2 mx-auto text-xs font-bold text-primary hover:underline"
+                  className="block mt-2 mx-auto text-sm font-bold text-primary hover:underline"
                   onClick={() => {
                     onChange(search); // Allow using the typed search as value
                     setIsOpen(false);

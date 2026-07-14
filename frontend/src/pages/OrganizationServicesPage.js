@@ -22,7 +22,7 @@ function OrganizationServicesPage() {
     <div className="min-h-screen bg-background">
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-8">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
             <Building2 className="h-4 w-4 text-accent" />
             Clearance, Disclosure & Registration
           </div>
@@ -58,22 +58,22 @@ function OrganizationServicesPage() {
               <div key={service.title} className="card p-8 relative group hover:-translate-y-1 flex flex-col">
                 <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${service.accent} rounded-t-xl`}></div>
                 <div className="absolute -top-3 right-6">
-                  <span className={`${service.audienceColor} text-xs font-bold px-3 py-1 rounded-full shadow-md`}>{service.audience}</span>
+                  <span className={`${service.audienceColor} text-sm font-bold px-3 py-1 rounded-full shadow-md`}>{service.audience}</span>
                 </div>
                 <div className={`${service.iconBg} w-16 h-16 rounded-xl flex items-center justify-center mb-6`}>
                   <service.icon className={`h-8 w-8 ${service.iconColor}`} />
                 </div>
                 <h3 className="text-xl font-bold text-primary font-heading mb-3">{service.title}</h3>
-                <p className="text-muted leading-relaxed mb-6 text-sm">{service.description}</p>
+                <p className="text-muted leading-relaxed mb-6 text-base">{service.description}</p>
                 <ul className="space-y-3 mb-8">
                   {service.points.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+                    <li key={item} className="flex items-center gap-2 text-base text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link to={service.cta.to} className="btn-primary w-full justify-center text-sm mt-auto">
+                <Link to={service.cta.to} className="btn-primary w-full justify-center text-base mt-auto">
                   {service.cta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -101,12 +101,12 @@ function OrganizationServicesPage() {
                   <div className="bg-white border-2 border-slate-100 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:border-accent transition-all duration-300 shadow-md">
                     <step.icon className="h-9 w-9 text-secondary group-hover:text-accent transition-colors duration-300" />
                   </div>
-                  <div className="absolute -top-2 -right-2 bg-accent text-primary w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md">
+                  <div className="absolute -top-2 -right-2 bg-accent text-primary w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                     {i + 1}
                   </div>
                 </div>
                 <h3 className="text-lg font-bold text-primary font-heading mb-2">{step.title}</h3>
-                <p className="text-muted text-sm leading-relaxed">{step.text}</p>
+                <p className="text-muted text-base leading-relaxed">{step.text}</p>
               </div>
             ))}
           </div>
@@ -118,7 +118,7 @@ function OrganizationServicesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 Important Information
               </div>
@@ -134,7 +134,7 @@ function OrganizationServicesPage() {
                   { icon: Lock, text: 'All information submitted is encrypted and accessible only to authorised police officers.' },
                   { icon: Scale, text: 'Every disclosure meets the legal tests of legality, necessity, and proportionality under the DPDP Act, 2023.' },
                 ].map((item) => (
-                  <li key={item.text} className="flex items-start gap-3 text-sm text-gray-700">
+                  <li key={item.text} className="flex items-start gap-3 text-base text-gray-700">
                     <div className="bg-amber-50 h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
                       <item.icon className="h-4 w-4 text-amber-600" />
                     </div>
@@ -154,7 +154,7 @@ function OrganizationServicesPage() {
                   <div className={`text-3xl font-bold ${stat.color} font-heading`}>
                     {stat.value}<span className="text-lg text-muted font-normal">{stat.unit}</span>
                   </div>
-                  <p className="text-xs text-muted mt-2 uppercase tracking-wider font-semibold">{stat.label}</p>
+                  <p className="text-sm text-muted mt-2 uppercase tracking-wider font-semibold">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -179,7 +179,7 @@ function OrganizationServicesPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-primary font-heading">{faq.q}</h3>
-                    <p className="text-sm text-muted leading-relaxed mt-2">{faq.a}</p>
+                    <p className="text-base text-muted leading-relaxed mt-2">{faq.a}</p>
                   </div>
                 </div>
               </div>

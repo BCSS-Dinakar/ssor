@@ -66,7 +66,7 @@ function DataTable({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={searchPlaceholder}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-shadow"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-base focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-shadow"
             />
           </div>
           
@@ -75,7 +75,7 @@ function DataTable({
               key={filter.key}
               value={activeFilters[filter.key] || ''}
               onChange={(e) => setActiveFilters(prev => ({ ...prev, [filter.key]: e.target.value }))}
-              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-secondary appearance-none pr-8 cursor-pointer shadow-sm hover:border-slate-300 transition-colors"
+              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-base text-slate-700 focus:outline-none focus:border-secondary appearance-none pr-8 cursor-pointer shadow-sm hover:border-slate-300 transition-colors"
               style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
             >
               <option value="">{filter.label} (All)</option>
@@ -88,18 +88,18 @@ function DataTable({
           {hasActiveFilters && (
             <button 
               onClick={() => setActiveFilters({})}
-              className="text-xs font-semibold text-slate-500 hover:text-red-500 transition-colors underline underline-offset-2"
+              className="text-sm font-semibold text-slate-500 hover:text-red-500 transition-colors underline underline-offset-2"
             >
               Clear Filters
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-600 shrink-0">
+        <div className="flex items-center gap-2 text-sm text-slate-600 shrink-0">
           <span>Show</span>
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="border border-slate-200 rounded-xl px-2 py-1 bg-white focus:outline-none focus:border-secondary pr-8 text-sm"
+            className="border border-slate-200 rounded-xl px-2 py-1 bg-white focus:outline-none focus:border-secondary pr-8 text-base"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -112,9 +112,9 @@ function DataTable({
 
       {/* Table Container with fixed minHeight */}
       <div className={`overflow-x-auto ${minHeight} flex flex-col`}>
-        <table className="w-full text-left text-xs whitespace-nowrap h-full">
+        <table className="w-full text-left text-sm whitespace-nowrap h-full">
           <thead className="sticky top-0 bg-slate-50 border-b border-slate-100 z-10">
-            <tr className="text-[10px] uppercase font-bold tracking-widest text-slate-500">
+            <tr className="text-sm uppercase font-bold tracking-widest text-slate-500">
               {columns.map((col, idx) => (
                 <th key={col.key || idx} className={`px-6 py-4 font-semibold ${col.align === 'right' ? 'text-right' : ''}`}>
                   {col.label}
@@ -128,7 +128,7 @@ function DataTable({
                 <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
                   <EmptyIcon className="h-12 w-12 mx-auto text-slate-300 mb-3" />
                   <p className="text-base font-medium text-slate-700">{emptyTitle}</p>
-                  <p className="text-sm mt-1">{emptyMessage}</p>
+                  <p className="text-base mt-1">{emptyMessage}</p>
                 </td>
               </tr>
             ) : (
@@ -154,7 +154,7 @@ function DataTable({
       </div>
 
       {/* Pagination Footer */}
-      <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4 text-xs mt-auto">
+      <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-4 text-sm mt-auto">
         <div className="text-slate-600 font-medium">
           Showing {filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, filteredData.length)} of {filteredData.length} entries
         </div>
@@ -181,7 +181,7 @@ function DataTable({
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors ${
+                    className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
                       currentPage === page
                         ? 'bg-primary text-white border border-primary'
                         : 'border border-transparent text-slate-600 hover:bg-slate-100'

@@ -27,7 +27,7 @@ function Navbar() {
             </div>
             <div>
               <span className="text-xl font-bold text-white tracking-wide font-heading">SSOR</span>
-              <span className="hidden sm:block text-[10px] text-gray-400 -mt-1 tracking-wider uppercase">State Sexual Offender Register</span>
+              <span className="hidden sm:block text-sm text-gray-400 -mt-1 tracking-wider uppercase">State Sexual Offender Register</span>
             </div>
           </Link>
 
@@ -37,7 +37,7 @@ function Navbar() {
               <Link
                 key={link.name}
                 to={link.path}
-                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                className="text-gray-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg text-base font-medium transition-all duration-300"
               >
                 {link.name}
               </Link>
@@ -48,7 +48,7 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               to={signedIn ? '/portal' : '/login'}
-              className="bg-accent hover:bg-yellow-400 text-primary font-semibold px-5 py-2 rounded-xl text-sm transition-all duration-300 shadow-md hover:shadow-xl inline-flex items-center gap-2"
+              className="bg-accent hover:bg-yellow-400 text-primary font-semibold px-5 py-2 rounded-xl text-base transition-all duration-300 shadow-md hover:shadow-xl inline-flex items-center gap-2"
             >
               {signedIn ? <LayoutDashboard className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
               {signedIn ? 'Portal' : 'Login'}
@@ -74,7 +74,7 @@ function Navbar() {
                 key={link.name}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className="block text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg text-sm font-medium transition-all"
+                className="block text-gray-300 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg text-base font-medium transition-all"
               >
                 {link.name}
               </Link>
@@ -82,7 +82,7 @@ function Navbar() {
             <Link
               to={signedIn ? '/portal' : '/login'}
               onClick={() => setIsOpen(false)}
-              className="block bg-accent hover:bg-yellow-400 text-primary font-semibold px-4 py-3 rounded-xl text-sm text-center mt-3 transition-all shadow-md"
+              className="block bg-accent hover:bg-yellow-400 text-primary font-semibold px-4 py-3 rounded-xl text-base text-center mt-3 transition-all shadow-md"
             >
               <span className="inline-flex items-center gap-2">
                 {signedIn ? <LayoutDashboard className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}

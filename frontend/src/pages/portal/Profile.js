@@ -158,10 +158,10 @@ function Profile() {
           subtitle="View verified registration details and authorization parameters."
         />
         <div className="flex flex-col items-end shrink-0">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
             {isOrg ? 'Registry App ID' : 'Officer Badge ID'}
           </span>
-          <div className="text-xs font-mono font-bold text-secondary mt-0.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="text-sm font-mono font-bold text-secondary mt-0.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
             {isOrg ? mockOrgProfile.appId : mockPoliceProfile.badgeId}
           </div>
         </div>
@@ -179,8 +179,8 @@ function Profile() {
                   <ShieldCheck className="h-5.5 w-5.5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-slate-800 font-heading uppercase tracking-wider">Access License</h4>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 mt-0.5">
+                  <h4 className="text-sm font-extrabold text-slate-800 font-heading uppercase tracking-wider">Access License</h4>
+                  <span className="inline-flex items-center gap-1 text-sm font-bold text-emerald-600 mt-0.5">
                     Active & Approved
                   </span>
                 </div>
@@ -191,18 +191,18 @@ function Profile() {
             <div className="card p-5 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <FileCode className="h-4.5 w-4.5 text-secondary" />
-                <h4 className="text-xs font-bold text-primary font-heading uppercase tracking-wider">Verification Docs</h4>
+                <h4 className="text-sm font-bold text-primary font-heading uppercase tracking-wider">Verification Docs</h4>
               </div>
               <div className="space-y-3">
                 {mockOrgProfile.docs.map((doc, idx) => (
                   <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between hover:bg-slate-100 transition-colors gap-3">
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-800 font-extrabold truncate">{doc.name}</div>
-                      <div className="text-[9px] text-slate-400 mt-0.5">{doc.size}</div>
+                      <div className="text-sm text-slate-800 font-extrabold truncate">{doc.name}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{doc.size}</div>
                     </div>
                     <button
                       onClick={() => setPreviewDoc(doc)}
-                      className="inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-white border border-slate-200 hover:border-secondary hover:text-secondary px-2.5 py-1.5 rounded-lg shrink-0 transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-secondary bg-white border border-slate-200 hover:border-secondary hover:text-secondary px-2.5 py-1.5 rounded-lg shrink-0 transition-colors shadow-sm"
                     >
                       <Eye className="h-3 w-3" /> View
                     </button>
@@ -217,28 +217,28 @@ function Profile() {
             <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Building className="h-5 w-5 text-secondary" />
-                <h4 className="text-sm font-extrabold text-slate-800 font-heading">Institution Details</h4>
+                <h4 className="text-base font-extrabold text-slate-800 font-heading">Institution Details</h4>
               </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Organization Name</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.orgName}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Organization Name</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.orgName}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Organization Type</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.orgType}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Organization Type</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.orgType}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parent Organization</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.parentOrg}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Parent Organization</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.parentOrg}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Department Unit</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.department}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Department Unit</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.department}</div>
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jurisdiction</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.jurisdiction}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Jurisdiction</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.jurisdiction}</div>
                 </div>
               </div>
             </div>
@@ -246,33 +246,33 @@ function Profile() {
             <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <MapPin className="h-5 w-5 text-secondary" />
-                <h4 className="text-sm font-extrabold text-slate-800 font-heading">Registered Address</h4>
+                <h4 className="text-base font-extrabold text-slate-800 font-heading">Registered Address</h4>
               </div>
               <div className="space-y-5">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Physical Address</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.address}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Physical Address</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.address}</div>
                 </div>
                 <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">City</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.city}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">City</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.city}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">District</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.district}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">District</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.district}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">State</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.state}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">State</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.state}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Country</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.country}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Country</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.country}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PIN</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.pinCode}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">PIN</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.pinCode}</div>
                   </div>
                 </div>
               </div>
@@ -282,24 +282,24 @@ function Profile() {
               <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <Mail className="h-5 w-5 text-secondary" />
-                  <h4 className="text-sm font-extrabold text-slate-800 font-heading">Communication Details</h4>
+                  <h4 className="text-base font-extrabold text-slate-800 font-heading">Communication Details</h4>
                 </div>
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Email</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{mockOrgProfile.officialEmail}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Official Email</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{mockOrgProfile.officialEmail}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Phone</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.officialPhone}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Official Phone</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.officialPhone}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alternate Phone</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.altPhone}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Alternate Phone</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.altPhone}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Website</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm truncate">{mockOrgProfile.website}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Website</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm truncate">{mockOrgProfile.website}</div>
                   </div>
                 </div>
               </div>
@@ -307,30 +307,30 @@ function Profile() {
               <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <UserCheck className="h-5 w-5 text-secondary" />
-                  <h4 className="text-sm font-extrabold text-slate-800 font-heading">Administrator</h4>
+                  <h4 className="text-base font-extrabold text-slate-800 font-heading">Administrator</h4>
                 </div>
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.adminName}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.adminName}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Designation</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.designation}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Designation</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockOrgProfile.designation}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Emp ID</label>
-                      <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.empId}</div>
+                      <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Emp ID</label>
+                      <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.empId}</div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile</label>
-                      <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.mobile}</div>
+                      <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Mobile</label>
+                      <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockOrgProfile.mobile}</div>
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Personal Email</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{o.adminEmail || 'N/A'}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Personal Email</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{o.adminEmail || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -348,8 +348,8 @@ function Profile() {
                   <ShieldCheck className="h-5.5 w-5.5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-slate-800 font-heading uppercase tracking-wider">Access Status</h4>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 mt-0.5">
+                  <h4 className="text-sm font-extrabold text-slate-800 font-heading uppercase tracking-wider">Access Status</h4>
+                  <span className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 mt-0.5">
                     Verified Officer
                   </span>
                 </div>
@@ -359,25 +359,25 @@ function Profile() {
             <div className="card p-5 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <FileCode className="h-4.5 w-4.5 text-secondary" />
-                <h4 className="text-xs font-bold text-primary font-heading uppercase tracking-wider">Officer Documents</h4>
+                <h4 className="text-sm font-bold text-primary font-heading uppercase tracking-wider">Officer Documents</h4>
               </div>
               <div className="space-y-3">
                 {mockPoliceProfile.docs.map((doc, idx) => (
                   <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between hover:bg-slate-100 transition-colors gap-3">
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-800 font-extrabold truncate">{doc.name}</div>
-                      <div className="text-[9px] text-slate-400 mt-0.5">{doc.size}</div>
+                      <div className="text-sm text-slate-800 font-extrabold truncate">{doc.name}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{doc.size}</div>
                     </div>
                     <button
                       onClick={() => setPreviewDoc(doc)}
-                      className="inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-white border border-slate-200 hover:border-secondary hover:text-secondary px-2.5 py-1.5 rounded-lg shrink-0 transition-colors shadow-sm"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-secondary bg-white border border-slate-200 hover:border-secondary hover:text-secondary px-2.5 py-1.5 rounded-lg shrink-0 transition-colors shadow-sm"
                     >
                       <Eye className="h-3 w-3" /> View
                     </button>
                   </div>
                 ))}
                 {mockPoliceProfile.docs.length === 0 && (
-                  <div className="text-center py-6 text-slate-400 font-bold text-xs">No documents uploaded.</div>
+                  <div className="text-center py-6 text-slate-400 font-bold text-sm">No documents uploaded.</div>
                 )}
               </div>
             </div>
@@ -388,40 +388,40 @@ function Profile() {
             <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <UserCheck className="h-5 w-5 text-secondary" />
-                <h4 className="text-sm font-extrabold text-slate-800 font-heading">Officer Specifications</h4>
+                <h4 className="text-base font-extrabold text-slate-800 font-heading">Officer Specifications</h4>
               </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.name}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.name}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rank / Role</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.rank}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Rank / Role</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.rank}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Employee ID</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.empId}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Employee ID</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.empId}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Department</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.department}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Department</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.department}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Assigned Wing</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.wing}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Assigned Wing</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.wing}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jurisdiction</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.jurisdiction}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Jurisdiction</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.jurisdiction}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Deputation Date</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.joiningDate}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Deputation Date</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.joiningDate}</div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clearance Level</label>
-                  <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.clearanceLevel}</div>
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Clearance Level</label>
+                  <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.clearanceLevel}</div>
                 </div>
               </div>
             </div>
@@ -430,25 +430,25 @@ function Profile() {
               <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <MapPin className="h-5 w-5 text-secondary" />
-                  <h4 className="text-sm font-extrabold text-slate-800 font-heading">Station Posting</h4>
+                  <h4 className="text-base font-extrabold text-slate-800 font-heading">Station Posting</h4>
                 </div>
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Primary Station</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.station}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Primary Station</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.station}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Police District</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.district}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Police District</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.district}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">State</label>
-                      <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.state}</div>
+                      <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">State</label>
+                      <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.state}</div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Country</label>
-                      <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.country}</div>
+                      <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Country</label>
+                      <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm">{mockPoliceProfile.country}</div>
                     </div>
                   </div>
                 </div>
@@ -457,20 +457,20 @@ function Profile() {
               <div className="card p-6 bg-white border border-slate-200 shadow-sm rounded-2xl space-y-5">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <Mail className="h-5 w-5 text-secondary" />
-                  <h4 className="text-sm font-extrabold text-slate-800 font-heading">Contact Details</h4>
+                  <h4 className="text-base font-extrabold text-slate-800 font-heading">Contact Details</h4>
                 </div>
                 <div className="space-y-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Email</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{mockPoliceProfile.email}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Official Email</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono truncate">{mockPoliceProfile.email}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.mobile}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.mobile}</div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Alternate Phone</label>
-                    <div className="text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.altPhone}</div>
+                    <label className="text-sm font-bold text-slate-400 uppercase tracking-wider">Alternate Phone</label>
+                    <div className="text-base font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 shadow-sm font-mono">{mockPoliceProfile.altPhone}</div>
                   </div>
                 </div>
               </div>
@@ -480,7 +480,7 @@ function Profile() {
       )}
 
       {/* Lock policy notice */}
-      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 flex items-start gap-3 mt-4">
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-500 flex items-start gap-3 mt-4">
         <Lock className="h-4.5 w-4.5 text-secondary shrink-0 mt-0.5" />
         <div>
           <strong>Immutable Security Policy:</strong> Personal details, licenses, and verified documents are strictly audit-locked and cannot be edited. If you need to make changes, please contact the Police Cell Help Desk.
@@ -501,7 +501,7 @@ function Profile() {
             <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-primary to-[#0f2a4a] text-white border-b border-slate-700/30">
               <div className="flex items-center gap-2">
                 <FileText className="h-4.5 w-4.5 text-accent" />
-                <span className="text-xs font-bold font-heading">{previewDoc.name}</span>
+                <span className="text-sm font-bold font-heading">{previewDoc.name}</span>
               </div>
               <button
                 onClick={() => setPreviewDoc(null)}
@@ -516,7 +516,7 @@ function Profile() {
                 {isDocLoading ? (
                   <div className="flex flex-col items-center justify-center h-[50vh]">
                     <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-sm font-bold text-slate-500 mt-4">Loading document...</p>
+                    <p className="text-base font-bold text-slate-500 mt-4">Loading document...</p>
                   </div>
                 ) : docBlobUrl ? (
                   previewDoc.name.toLowerCase().endsWith('.pdf') ? (
@@ -529,7 +529,7 @@ function Profile() {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400">
                     <Award className="w-16 h-16 mb-2 opacity-50" />
-                    <p className="text-sm font-bold">Document preview unavailable</p>
+                    <p className="text-base font-bold">Document preview unavailable</p>
                   </div>
                 )}
 
@@ -544,13 +544,13 @@ function Profile() {
             <div className="px-5 py-3.5 bg-slate-100/50 border-t border-slate-100 flex justify-end gap-2 shrink-0">
               <button
                 onClick={() => downloadDoc(previewDoc.name)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-none transition-all"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-none transition-all"
               >
                 <Download className="h-3.5 w-3.5" /> Download PDF
               </button>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="btn-secondary py-1.5 px-4 rounded-none text-xs text-slate-700 hover:text-white border-slate-300 font-bold"
+                className="btn-secondary py-1.5 px-4 rounded-none text-sm text-slate-700 hover:text-white border-slate-300 font-bold"
               >
                 Close
               </button>

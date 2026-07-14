@@ -39,25 +39,25 @@ function OrganizationApprovals() {
       label: 'Organization',
       render: (row) => (
         <div>
-          <div className="font-extrabold text-slate-800 text-sm leading-tight">{row.name}</div>
-          <div className="text-[10px] text-slate-400 font-bold font-mono mt-0.5">{row.id}</div>
+          <div className="font-extrabold text-slate-800 text-base leading-tight">{row.name}</div>
+          <div className="text-sm text-slate-400 font-bold font-mono mt-0.5">{row.id}</div>
         </div>
       )
     },
     {
       key: 'type',
       label: 'Type',
-      render: (row) => <span className="text-xs text-slate-700 font-bold">{row.type}</span>
+      render: (row) => <span className="text-sm text-slate-700 font-bold">{row.type}</span>
     },
     {
       key: 'district',
       label: 'District',
-      render: (row) => <span className="text-xs text-slate-500 font-bold">{row.district}</span>
+      render: (row) => <span className="text-sm text-slate-500 font-bold">{row.district}</span>
     },
     {
       key: 'appliedOn',
       label: 'Applied On',
-      render: (row) => <span className="text-xs text-slate-455 font-mono font-bold">{row.appliedOn}</span>
+      render: (row) => <span className="text-sm text-slate-455 font-mono font-bold">{row.appliedOn}</span>
     },
     {
       key: 'status',
@@ -68,7 +68,7 @@ function OrganizationApprovals() {
           approved: 'bg-emerald-50 text-emerald-700 border-emerald-250',
           rejected: 'bg-red-50 text-red-700 border-red-250'
         }[row.status] || 'bg-slate-50 text-slate-700 border-slate-200';
-        return <span className={`px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full border ${styles}`}>{row.status}</span>;
+        return <span className={`px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-full border ${styles}`}>{row.status}</span>;
       }
     },
     {
@@ -78,7 +78,7 @@ function OrganizationApprovals() {
       render: (row) => (
         <Link
           to={`/portal/org-verify/${row.id}`}
-          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl border border-blue-200 transition-colors text-[10px] font-black text-secondary uppercase tracking-widest"
+          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl border border-blue-200 transition-colors text-sm font-black text-secondary uppercase tracking-widest"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Review File
@@ -128,7 +128,7 @@ function OrganizationApprovals() {
       />
 
       {loading ? (
-        <div className="p-8 text-center text-slate-500 font-medium text-sm">Loading organizations...</div>
+        <div className="p-8 text-center text-slate-500 font-medium text-base">Loading organizations...</div>
       ) : (
         <DataTable
           data={verifications}
