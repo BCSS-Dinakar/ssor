@@ -1,6 +1,10 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 
 export const policeApi = {
+  getDocumentUrl: (filename) => {
+    if (!filename) return '';
+    return `${API_BASE_URL}/police/documents/${filename.split('/').pop()}`;
+  },
   getLogs: async () => {
     const response = await api.get('/police/logs');
     return response.data;
