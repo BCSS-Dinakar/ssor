@@ -136,7 +136,7 @@ function SubmitVerification() {
   // Single Form State
   return (
     <div className="space-y-6 w-full animate-fadeIn pb-10">
-        
+
       {/* Header Section */}
       <div className="mb-6 border-b border-slate-200 pb-5">
         <h2 className="text-2xl font-bold text-slate-800 font-heading">Verify New Candidate</h2>
@@ -246,7 +246,7 @@ function SubmitVerification() {
               </div>
 
               <div className="flex-1 flex flex-col items-start justify-center">
-                <span className="block text-xs font-bold text-slate-700 mb-2">Need a template?</span>
+                <span className="block text-xs font-bold text-slate-700 mb-2">Download Consent form</span>
                 <button type="button" onClick={generateConsentForm} className="inline-flex justify-center items-center gap-2 text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 px-4 py-2 rounded-lg border border-slate-300 transition-all shadow-sm">
                   <DownloadCloud className="h-4 w-4" /> Download Consent Form
                 </button>
