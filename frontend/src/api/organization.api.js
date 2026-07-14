@@ -1,6 +1,10 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 
 export const organizationApi = {
+  getDocumentUrl: (filename) => {
+    if (!filename) return '';
+    return `${API_BASE_URL}/organization/documents/${filename.split('/').pop()}`;
+  },
   submitVerification: async (data) => {
     // If data is an instance of FormData, pass it directly. Otherwise, it sends JSON.
     const isFormData = data instanceof FormData;

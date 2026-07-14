@@ -4,7 +4,6 @@ import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, Sh
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
-import { API_BASE_URL } from '../../../api/api';
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
@@ -272,7 +271,7 @@ function VerificationVetting() {
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Candidate Image</span>
                   <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                     <img 
-                      src={`${API_BASE_URL}/police/documents/${record.candidateImage?.split('/').pop()}`} 
+                      src={policeApi.getDocumentUrl(record.candidateImage)} 
                       alt="Candidate" 
                       className="w-full h-full object-cover"
                       onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
@@ -284,7 +283,7 @@ function VerificationVetting() {
                 <div className="space-y-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Consent Declaration</span>
                   <a 
-                    href={`${API_BASE_URL}/police/documents/${record.consentFile?.split('/').pop()}`}
+                    href={policeApi.getDocumentUrl(record.consentFile)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
