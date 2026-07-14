@@ -1,15 +1,24 @@
 import prisma from '../config/db.js';
+import PDFDocument from 'pdfkit';
+import path from 'path';
+import fs from 'fs';
 
 export const submitVerification = async (req, res) => {
   try {
-    const { 
+    const {
       type, role, candidate,
-      dob, phone, consent, fatherName
+      dob, phone, consent, fatherName, aadharNumber
     } = req.body;
 
-    if (!candidate || !dob || !phone || !role || !consent) {
+    if (!candidate || !dob || !phone || !role || consent !== 'true' && consent !== true) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
+
+    const candidateImageFile = req.files?.['candidateImage']?.[0];
+    const consentDocFile = req.files?.['consentFile']?.[0];
+
+    const imagePath = candidateImageFile ? `/api/v1/police/documents/${candidateImageFile.filename}` : null;
+    const consentPath = consentDocFile ? `/api/v1/police/documents/${consentDocFile.filename}` : null;
 
     // We must find the user's organization profile to get the orgName
     const orgProfile = await prisma.organizationProfile.findUnique({
@@ -30,7 +39,10 @@ export const submitVerification = async (req, res) => {
         fatherName: fatherName || null,
         dob: new Date(dob),
         phone: phone,
-        consent: consent
+        consent: consent === 'true' || consent === true,
+        aadharNumber: aadharNumber || null,
+        candidateImage: imagePath,
+        consentFile: consentPath
       }
     });
 
@@ -242,5 +254,116 @@ export const addTicketMessage = async (req, res) => {
   } catch (error) {
     console.error('[addTicketMessage Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const generateConsentTemplate = async (req, res) => {
+  try {
+    const { candidate, fatherName, dob, aadharNumber, phone, role } = req.body;
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Consent_Template_${candidate ? candidate.replace(/\\s+/g, '_') : 'Candidate'}.pdf`);
+
+    doc.pipe(res);
+
+    // Draw border
+    doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).stroke();
+    doc.rect(22, 22, doc.page.width - 44, doc.page.height - 44).stroke(); // Double border
+
+    // Header
+    doc.moveDown(1);
+    doc.fontSize(16).font('Helvetica-Bold').text('GOVERNMENT OF TELANGANA - STATE POLICE', { align: 'center' });
+    doc.moveDown(0.2);
+    doc.fontSize(14).font('Helvetica-Bold').text('STATE SEXUAL OFFENDER REGISTER (SSOR)', { align: 'center' });
+    doc.moveDown(0.2);
+    doc.fontSize(12).font('Helvetica').text('CANDIDATE VERIFICATION CONSENT FORM', { align: 'center', underline: true });
+
+    doc.moveDown(1);
+
+    // Intro
+    doc.fontSize(11).font('Helvetica').text('This document serves as explicit, irrevocable consent for the below-mentioned individual to undergo a formal background verification against the State Sexual Offender Register, conducted by the Telangana State Police.', { align: 'justify' });
+
+    doc.moveDown(1);
+
+    // Details Box
+    const startX = 50;
+    let currentY = doc.y;
+    doc.rect(40, currentY - 10, doc.page.width - 80, 140).stroke();
+
+    doc.fontSize(12).font('Helvetica-Bold').text('I. CANDIDATE DEMOGRAPHICS', 50, currentY);
+    doc.moveDown(0.5);
+
+    const drawField = (label, value) => {
+      doc.font('Helvetica-Bold').fontSize(11).text(`${label}: `, { continued: true })
+        .font('Helvetica').text(value || '______________________');
+      doc.moveDown(0.2);
+    };
+
+    drawField('Candidate Name', candidate);
+    drawField('Father\'s Name', fatherName);
+    drawField('Date of Birth', dob);
+    drawField('Aadhar Number', aadharNumber);
+    drawField('Phone Number', phone);
+    drawField('Designated Role', role);
+
+    doc.moveDown(1.5);
+
+    // Declaration
+    doc.fontSize(12).font('Helvetica-Bold').text('II. DECLARATION OF CONSENT', 50, doc.y);
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fontSize(11).text(
+      `I, ${candidate || 'the undersigned'}, hereby voluntarily give my explicit consent to the requesting organization to forward my personal data, including demographics and biometrics (if applicable), to the Telangana State Police. I authorize the Telangana State Police to query the State Sexual Offender Register for the exclusive purpose of background verification for my employment/role.`,
+      { align: 'justify', lineGap: 3 }
+    );
+    doc.moveDown();
+    doc.text(
+      'I understand this process is strictly in compliance with the Digital Personal Data Protection (DPDP) Act, 2023, and my data will solely be used for this security vetting process and will not be retained for unauthorized purposes.',
+      { align: 'justify', lineGap: 3 }
+    );
+
+    doc.moveDown(2.5);
+
+    // Signatures
+    const sigY = doc.y;
+
+    doc.font('Helvetica').fontSize(11);
+    doc.text('Date: ________________', 50, sigY);
+    doc.text('Place: ________________', 50, sigY + 25);
+
+    doc.text('________________________________', 350, sigY);
+    doc.text('Signature / Thumb Impression of Candidate', 350, sigY + 15, { width: 200, align: 'center' });
+
+    // Footer text
+    doc.font('Helvetica-Oblique').fontSize(8).text('This is a system-generated document for SSOR compliance.', 50, doc.page.height - 50, { align: 'center' });
+
+    doc.end();
+  } catch (error) {
+    console.error('[generateConsentTemplate Error]', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Internal server error generating template' });
+    }
+  }
+};
+
+export const getDocument = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filepath = path.join(process.cwd(), 'storage/documents', filename);
+
+    // Security check: ensure they don't escape the directory
+    if (!filepath.startsWith(path.join(process.cwd(), 'storage/documents'))) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
+    }
+
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    res.sendFile(filepath);
+  } catch (err) {
+    console.error('[GetDocument Error]', err);
+    res.status(500).json({ success: false, message: 'Server error serving document' });
   }
 };

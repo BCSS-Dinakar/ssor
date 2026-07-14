@@ -92,6 +92,9 @@ model CandidateVerification {
   fatherName     String?
   phone          String
   consent        Boolean
+  aadharNumber   String?
+  candidateImage String?
+  consentFile    String?
   status         String   @default("pending")
   policeFeedback String?
   createdAt      DateTime @default(now())

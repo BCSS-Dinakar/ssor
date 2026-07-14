@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+export const API_BASE_URL = 'http://localhost:8000/api';
+
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api', // Use full URL for CORS since proxy is not set
+  baseURL: API_BASE_URL, // Use full URL for CORS since proxy is not set
   withCredentials: true, // Send cookies with requests
   headers: {
     'Content-Type': 'application/json'

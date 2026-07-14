@@ -116,7 +116,7 @@ function VerificationRequests() {
         subtitle="Search and inspect submitted checks for your organization."
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Submissions" value={total} icon={FileCheck} meta="All time" />
         <StatCard label="Cleared" value={cleared} icon={CheckCircle2} accent="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" meta="Approved to work" metaClass="text-emerald-600" />
         <StatCard label="Rejected" value={rejected} icon={AlertTriangle} accent="bg-red-50 text-red-600" valueClass="text-red-600" meta="Review locks" metaClass="text-red-600" />
