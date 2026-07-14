@@ -42,7 +42,7 @@ function PortalLayout() {
 
   return (
     <div className={`min-h-screen bg-slate-50 lg:grid transition-all duration-300 ${
-      collapsed ? 'lg:grid-cols-[4.6875rem_1fr]' : 'lg:grid-cols-[16.25rem_1fr] min-[1440px]:grid-cols-[18rem_1fr] min-[1920px]:grid-cols-[20rem_1fr]'
+      collapsed ? 'lg:grid-cols-[4.6875rem_1fr]' : 'lg:grid-cols-[16.25rem_1fr] min-[1440px]:grid-cols-[18rem_1fr] min-[1920px]:grid-cols-[20rem_1fr] min-[2560px]:grid-cols-[24rem_1fr]'
     }`}>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col bg-primary sticky top-0 h-screen overflow-y-auto z-20">

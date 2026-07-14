@@ -25,6 +25,13 @@
     }
   }
 
+  /* Scale up extremely large on 2560px+ 4K monitors */
+  @media (min-width: 2560px) {
+    html {
+      font-size: 24px;
+    }
+  }
+
   body {
     font-family: 'Inter', 'Roboto', sans-serif;
     color: #0F172A;
