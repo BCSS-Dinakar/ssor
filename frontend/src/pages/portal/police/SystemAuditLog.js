@@ -42,8 +42,8 @@ function SystemAuditLog() {
       key: 'rawTime',
       render: (row) => (
         <div>
-          <div className="font-mono text-xs text-slate-700 font-bold">{new Date(row.rawTime || row.time).toLocaleDateString()}</div>
-          <div className="text-[10px] text-slate-400 font-medium">{new Date(row.rawTime || row.time).toLocaleTimeString()}</div>
+          <div className="font-mono text-sm text-slate-700 font-bold">{new Date(row.rawTime || row.time).toLocaleDateString()}</div>
+          <div className="text-sm text-slate-400 font-medium">{new Date(row.rawTime || row.time).toLocaleTimeString()}</div>
         </div>
       )
     },
@@ -52,19 +52,19 @@ function SystemAuditLog() {
       key: 'who',
       render: (row) => (
         <div>
-          <div className="text-sm font-extrabold text-slate-800">{row.who}</div>
+          <div className="text-base font-extrabold text-slate-800">{row.who}</div>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-secondary">{row.role}</span>
+            <span className="text-sm uppercase font-bold tracking-wider text-secondary">{row.role}</span>
             {row.badgeId !== 'N/A' && (
               <>
                 <span className="text-slate-300">•</span>
-                <span className="text-[10px] font-medium text-slate-500">Badge: {row.badgeId}</span>
+                <span className="text-sm font-medium text-slate-500">Badge: {row.badgeId}</span>
               </>
             )}
             {row.rank !== 'N/A' && (
               <>
                 <span className="text-slate-300">•</span>
-                <span className="text-[10px] font-medium text-slate-500">{row.rank}</span>
+                <span className="text-sm font-medium text-slate-500">{row.rank}</span>
               </>
             )}
           </div>
@@ -76,7 +76,7 @@ function SystemAuditLog() {
       key: 'action',
       render: (row) => (
         <div>
-          <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mb-1 ${
+          <span className={`inline-block px-2 py-0.5 rounded text-xs font-black uppercase tracking-wider mb-1 ${
             row.category === 'Authentication' ? 'bg-blue-100 text-blue-700' :
             row.category === 'Record Access' ? 'bg-emerald-100 text-emerald-700' :
             row.category === 'Vetting' ? 'bg-purple-100 text-purple-700' :
@@ -85,7 +85,7 @@ function SystemAuditLog() {
           }`}>
             {row.category}
           </span>
-          <div className="text-slate-700 text-xs font-semibold">{row.action}</div>
+          <div className="text-slate-700 text-sm font-semibold">{row.action}</div>
         </div>
       )
     },
@@ -94,7 +94,7 @@ function SystemAuditLog() {
       key: 'node',
       align: 'right',
       render: (row) => (
-        <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md shadow-sm">
+        <span className="font-mono text-sm font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md shadow-sm">
           {row.node}
         </span>
       )

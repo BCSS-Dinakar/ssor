@@ -3,9 +3,9 @@ function StatCard({ label, value, meta, icon: Icon, accent = 'bg-blue-50 text-se
     <div className="card p-5 relative overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-xs text-muted font-medium">{label}</div>
+          <div className="text-sm text-muted font-medium">{label}</div>
           <div className={`text-3xl font-bold font-heading mt-2 leading-none ${valueClass}`}>{value}</div>
-          {meta && <div className={`text-xs mt-2 font-medium ${metaClass}`}>{meta}</div>}
+          {meta && <div className={`text-sm mt-2 font-medium ${metaClass}`}>{meta}</div>}
         </div>
         {Icon && (
           <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${accent}`}>

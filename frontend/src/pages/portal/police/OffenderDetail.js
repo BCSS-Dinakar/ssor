@@ -11,10 +11,10 @@ function DetailRow({ label, value, mono, span2 }) {
 
   return (
     <div className={`p-3 bg-slate-50 border border-slate-150 rounded-xl ${span2 ? 'sm:col-span-2 lg:col-span-2' : ''}`}>
-      <div className="text-[9px] uppercase tracking-widest text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
+      <div className="text-xs uppercase tracking-widest text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
         {label}
       </div>
-      <div className={`text-xs text-slate-700 font-bold break-words ${mono ? 'font-mono text-[10px]' : ''}`}>{displayValue}</div>
+      <div className={`text-sm text-slate-700 font-bold break-words ${mono ? 'font-mono text-sm' : ''}`}>{displayValue}</div>
     </div>
   );
 }
@@ -24,7 +24,7 @@ function SectionHeading({ title, icon: Icon, badge }) {
     <div className="flex flex-wrap items-center gap-2 mb-4 mt-8 pb-3 border-b border-slate-100">
       <Icon className="w-4 h-4 text-secondary" />
       <h3 className="font-heading font-black text-primary text-base uppercase tracking-wider">{title}</h3>
-      {badge && <span className="ml-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-wider rounded-md border border-slate-200">{badge}</span>}
+      {badge && <span className="ml-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs font-black uppercase tracking-wider rounded-md border border-slate-200">{badge}</span>}
     </div>
   );
 }
@@ -68,7 +68,7 @@ function DynamicArrayList({ items, title, icon }) {
       <div className="space-y-4">
         {items.map((item, index) => (
           <div key={index} className="p-4 bg-white border border-slate-200 rounded-xl relative shadow-sm">
-            <div className="absolute top-4 right-4 px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md text-[9px] font-black border border-slate-200">
+            <div className="absolute top-4 right-4 px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md text-xs font-black border border-slate-200">
               SEQ {index + 1}
             </div>
             <DynamicDataGrid data={item} />
@@ -110,7 +110,7 @@ function OffenderDetail() {
     return (
       <div className="flex flex-col items-center justify-center p-32 animate-fadeIn">
         <Loader2 className="w-12 h-12 text-secondary animate-spin mb-4" />
-        <span className="text-slate-500 font-bold tracking-widest uppercase text-sm animate-pulse">Fetching Classified Dossier...</span>
+        <span className="text-slate-500 font-bold tracking-widest uppercase text-base animate-pulse">Fetching Classified Dossier...</span>
       </div>
     );
   }
@@ -147,7 +147,7 @@ function OffenderDetail() {
         actions={
           <Link
             to="/portal/register"
-            className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm active:scale-95"
+            className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm active:scale-95"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Register
@@ -168,9 +168,9 @@ function OffenderDetail() {
             <div>
               <h4 className="font-black text-primary font-heading text-lg uppercase tracking-wider">{fName}</h4>
               <div className="flex flex-wrap items-center gap-3 mt-1">
-                <p className="text-[11px] text-slate-400 font-bold tracking-wide flex items-center gap-1.5">ID: <span className="font-mono text-secondary">{record.offender_id}</span></p>
+                <p className="text-sm text-slate-400 font-bold tracking-wide flex items-center gap-1.5">ID: <span className="font-mono text-secondary">{record.offender_id}</span></p>
                 <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
-                <p className="text-[11px] text-slate-400 font-bold tracking-wide">Alias: {(p.alias === 'N/A' || !p.alias) ? '-' : p.alias}</p>
+                <p className="text-sm text-slate-400 font-bold tracking-wide">Alias: {(p.alias === 'N/A' || !p.alias) ? '-' : p.alias}</p>
               </div>
             </div>
           </div>
@@ -178,7 +178,7 @@ function OffenderDetail() {
             <TierChip tier={record.highest_risk_tier?.toLowerCase()} />
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span className="text-[9px] font-black uppercase tracking-wider">Verified DB Sync</span>
+              <span className="text-xs font-black uppercase tracking-wider">Verified DB Sync</span>
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ function OffenderDetail() {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-heading font-black text-[10px] uppercase tracking-wider transition-all whitespace-nowrap ${active
+                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-heading font-black text-sm uppercase tracking-wider transition-all whitespace-nowrap ${active
                     ? 'border-secondary text-secondary font-black bg-slate-50/50 rounded-t-xl'
                     : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200 hover:bg-slate-50/30 rounded-t-xl'
                   }`}

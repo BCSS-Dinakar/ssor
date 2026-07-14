@@ -32,7 +32,7 @@ function VerificationRequests() {
     {
       label: 'Reference ID',
       key: 'id',
-      render: (row) => <span className="font-mono text-xs font-bold text-secondary">{row.id}</span>,
+      render: (row) => <span className="font-mono text-sm font-bold text-secondary">{row.id}</span>,
     },
     {
       label: 'Candidate Name',
@@ -40,7 +40,7 @@ function VerificationRequests() {
       render: (row) => (
         <div>
           <div className="font-semibold text-primary">{row.candidateName}</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">
+          <div className="text-sm text-slate-400 mt-0.5">
             {row.fatherName ? `Father: ${row.fatherName} · ` : ''}ID on file
           </div>
         </div>
@@ -49,12 +49,12 @@ function VerificationRequests() {
     {
       label: 'Designated Role',
       key: 'role',
-      render: (row) => <span className="text-xs font-semibold text-slate-600">{row.role}</span>,
+      render: (row) => <span className="text-sm font-semibold text-slate-600">{row.role}</span>,
     },
     {
       label: 'Date Submitted',
       key: 'createdAt',
-      render: (row) => <span className="font-mono text-xs text-slate-500">{new Date(row.createdAt).toLocaleDateString()}</span>,
+      render: (row) => <span className="font-mono text-sm text-slate-500">{new Date(row.createdAt).toLocaleDateString()}</span>,
     },
     {
       label: 'Verification Status',
@@ -69,7 +69,7 @@ function VerificationRequests() {
         <div className="flex items-center justify-end gap-2">
           <button
             onClick={() => navigate(`/portal/track/${row.id}`)}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors"
+            className="inline-flex items-center gap-1 text-sm font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors"
           >
             <Eye className="h-3.5 w-3.5" /> Track
           </button>
@@ -77,7 +77,7 @@ function VerificationRequests() {
           {row.status === 'cleared' && (
             <button
               onClick={() => alert(`Downloading clearance certificate for ${row.candidate} (${row.id})`)}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+              className="inline-flex items-center gap-1 text-sm font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
             >
               <Download className="h-3.5 w-3.5" /> PDF
             </button>
@@ -86,7 +86,7 @@ function VerificationRequests() {
           {row.status !== 'cleared' && (
             <button
               onClick={() => navigate('/portal/compliance', { state: { prefillTicket: { reference: row.id, candidate: row.candidateName, status: row.status } } })}
-              className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors"
+              className="inline-flex items-center gap-1 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors"
             >
               <HelpCircle className="h-3.5 w-3.5" /> Help
             </button>
@@ -127,7 +127,7 @@ function VerificationRequests() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin mb-4 text-emerald-500" />
-            <p className="text-sm font-semibold">Loading verification requests...</p>
+            <p className="text-base font-semibold">Loading verification requests...</p>
           </div>
         ) : (
           <DataTable 

@@ -73,20 +73,20 @@ function Field({ label, required, children, hint, className = '' }) {
   return (
     <div className={`flex flex-col h-full gap-2 ${className}`}>
       <div className="flex-1 flex flex-col justify-end">
-        <label className="text-sm font-semibold text-slate-700 tracking-wide">
+        <label className="text-base font-semibold text-slate-700 tracking-wide">
           {label} {required && <span className="text-red-500 ml-0.5">*</span>}
         </label>
       </div>
       <div className="w-full">
         {children}
       </div>
-      {hint && <span className="text-xs text-slate-500 font-medium">{hint}</span>}
+      {hint && <span className="text-sm text-slate-500 font-medium">{hint}</span>}
     </div>
   );
 }
 
 
-const baseInputClass = 'w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm outline-none transition-all duration-300 placeholder-slate-400';
+const baseInputClass = 'w-full bg-slate-50 border rounded-xl px-4 py-3 text-base outline-none transition-all duration-300 placeholder-slate-400';
 
 function getInputClass(val, type = 'text', matchVal = '') {
   const value = val || '';
@@ -169,7 +169,7 @@ function Alert({ type, message }) {
   }[type];
   const { cls, Icon } = styles;
   return (
-    <div className={`flex items-start gap-2.5 border rounded-lg px-4 py-3 text-sm ${cls}`}>
+    <div className={`flex items-start gap-2.5 border rounded-lg px-4 py-3 text-base ${cls}`}>
       <Icon className="h-4.5 w-4.5 flex-shrink-0 mt-0.5" />
       <span>{message}</span>
     </div>
@@ -192,7 +192,7 @@ function StepIndicator({ steps, currentStep }) {
         return (
           <div key={label} className="relative z-10 flex flex-col items-center">
             <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all duration-500 ${currentStep >= step
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all duration-500 ${currentStep >= step
                 ? 'bg-accent text-white shadow-md shadow-accent/30'
                 : 'bg-white text-slate-400 border-2 border-slate-200'
                 }`}
@@ -200,7 +200,7 @@ function StepIndicator({ steps, currentStep }) {
               {step}
             </div>
             <span
-              className={`text-[10px] font-bold uppercase tracking-wider absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
+              className={`text-sm font-bold uppercase tracking-wider absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
                 }`}
             >
               {label}
@@ -472,7 +472,7 @@ function LoginPage() {
           <img src="/images/hero-shield.png" alt="" className="w-full h-full object-cover opacity-30 mix-blend-overlay" />
         </div>
         <div className="relative z-10 p-12 lg:p-16 flex flex-col h-full justify-between">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm font-medium transition-colors w-max">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium transition-colors w-max">
             <ArrowLeft className="h-4 w-4" />
             Back to home
           </Link>
@@ -490,7 +490,7 @@ function LoginPage() {
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-blue-200/50 uppercase tracking-widest font-semibold">
+          <div className="flex items-center gap-2 text-sm text-blue-200/50 uppercase tracking-widest font-semibold">
             <Lock className="h-4 w-4" />
             Three roles · Strict access control
           </div>
@@ -500,7 +500,7 @@ function LoginPage() {
       {/* Right panel */}
       <div className="w-full lg:w-1/2 flex flex-col min-h-screen overflow-y-auto">
         <div className="lg:hidden bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary p-6 sm:p-8 text-white relative overflow-hidden shrink-0">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm font-medium mb-6 transition-colors relative z-10">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium mb-6 transition-colors relative z-10">
             <ArrowLeft className="h-4 w-4" />
             Back to home
           </Link>
@@ -527,8 +527,8 @@ function LoginPage() {
                 >
                   <r.Icon className={`h-5 w-5 shrink-0 ${active ? 'text-accent' : 'text-slate-400'}`} />
                   <div className="min-w-0">
-                    <div className={`font-bold text-sm truncate ${active ? 'text-primary' : 'text-slate-700'}`}>{r.label}</div>
-                    <div className="text-xs text-slate-500 truncate">{r.sub}</div>
+                    <div className={`font-bold text-base truncate ${active ? 'text-primary' : 'text-slate-700'}`}>{r.label}</div>
+                    <div className="text-sm text-slate-500 truncate">{r.sub}</div>
                   </div>
                 </button>
               );
@@ -546,7 +546,7 @@ function LoginPage() {
                     key={t.id}
                     type="button"
                     onClick={() => setMode(t.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-all duration-300 relative ${mode === t.id ? 'text-primary' : 'text-slate-500 hover:text-primary hover:bg-slate-100/50'
+                    className={`flex-1 flex items-center justify-center gap-2 py-4 text-base font-semibold transition-all duration-300 relative ${mode === t.id ? 'text-primary' : 'text-slate-500 hover:text-primary hover:bg-slate-100/50'
                       }`}
                   >
                     <t.Icon className="h-4 w-4" />
@@ -565,7 +565,7 @@ function LoginPage() {
                     <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
                       {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                    <p className="text-base text-slate-500 mt-2 leading-relaxed">
                       {role === 'police'
                         ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
                         : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
@@ -630,7 +630,7 @@ function LoginPage() {
                     Sign In
                   </button>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm pt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base pt-1">
                     <Link to="/login" className="text-secondary font-medium hover:text-blue-700 transition-colors">
                       Forgot password?
                     </Link>
@@ -639,7 +639,7 @@ function LoginPage() {
                         New user? Create account
                       </button>
                     ) : (
-                      <span className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                      <span className="text-sm text-slate-500 flex items-center gap-1.5 font-medium">
                         <Info className="h-4 w-4 shrink-0" />
                         Accounts provisioned by the department
                       </span>
@@ -662,7 +662,7 @@ function LoginPage() {
                     <p>
                       Thank you for registering <strong>{orgReg.orgName || 'your organization'}</strong>.
                     </p>
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm shadow-inner">
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-base shadow-inner">
                       Your application has been forwarded to the Police Verification Department. Verification typically takes 2-3 business days.
                     </div>
                     <p>
@@ -688,7 +688,7 @@ function LoginPage() {
                 <form onSubmit={handleRegister} className="space-y-5">
                   <div>
                     <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Organization Registration</h2>
-                    <p className="text-sm text-slate-500 mt-2">
+                    <p className="text-base text-slate-500 mt-2">
                       Register your institution to access clearance verification services. Accounts are licence-linked and verified by the police.
                     </p>
                   </div>
@@ -806,12 +806,12 @@ function LoginPage() {
                               disabled={otpVerified}
                             />
                             {otpTimer > 0 ? (
-                              <div className="btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0 flex items-center gap-1 opacity-70 cursor-not-allowed">
+                              <div className="btn-secondary whitespace-nowrap px-3 py-2 text-sm shrink-0 flex items-center gap-1 opacity-70 cursor-not-allowed">
                                 <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
                               </div>
                             ) : (
                               <button type="button" onClick={() => sendOtp(orgReg.mobile)} disabled={otpVerified}
-                                className={`btn-secondary whitespace-nowrap px-3 py-2 text-xs shrink-0 ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                className={`btn-secondary whitespace-nowrap px-3 py-2 text-sm shrink-0 ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
                               </button>
                             )}
@@ -836,7 +836,7 @@ function LoginPage() {
                           </Field>
                         )}
                         {otpVerified && (
-                          <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-sm font-semibold">
+                          <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-base font-semibold">
                             <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                             Mobile verified ✓
                           </div>
@@ -860,20 +860,20 @@ function LoginPage() {
                     {regStep === 5 && (
                       <div className="space-y-4">
                         <Field label="Authorization Letter" required hint="PDF or JPG. Max 5MB.">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, authLetter: e.target.files[0] })} />
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, authLetter: e.target.files[0] })} />
                         </Field>
                         <Field label="Government Certificate" required hint="e.g. School Registration Certificate">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
                         </Field>
                         <Field label="Supporting Documents" hint="Additional accreditations or licences (optional)">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
+                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
                         </Field>
-                        <p className="text-xs text-slate-500 mt-2 italic">Note: PDF, JPG or PNG accepted. Max 5MB per file.</p>
+                        <p className="text-sm text-slate-500 mt-2 italic">Note: PDF, JPG or PNG accepted. Max 5MB per file.</p>
                       </div>
                     )}
 
                     {regStep === 6 && (
-                      <div className="space-y-4 text-sm bg-white p-5 border border-slate-200 rounded-xl max-h-[400px] overflow-y-auto shadow-inner">
+                      <div className="space-y-4 text-base bg-white p-5 border border-slate-200 rounded-xl max-h-[400px] overflow-y-auto shadow-inner">
                         <h3 className="font-semibold text-primary mb-2 border-b pb-2">Application Review</h3>
                         <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                           <div className="text-slate-500">Organization Name</div>
@@ -893,7 +893,7 @@ function LoginPage() {
                             {orgReg.authLetter ? 'Letter' : ''} {orgReg.govCert ? ', Cert' : ''}
                           </div>
                         </div>
-                        <p className="text-xs text-slate-400 mt-4">Please ensure all details are correct. You cannot edit these once submitted.</p>
+                        <p className="text-sm text-slate-400 mt-4">Please ensure all details are correct. You cannot edit these once submitted.</p>
                       </div>
                     )}
 
@@ -902,15 +902,15 @@ function LoginPage() {
                         <div className="space-y-3 bg-white p-5 border border-slate-200 rounded-xl">
                           <label className="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptTerms} onChange={(e) => setOrgReg({ ...orgReg, acceptTerms: e.target.checked })} />
-                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Register.</span>
+                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Register.</span>
                           </label>
                           <label className="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptPrivacy} onChange={(e) => setOrgReg({ ...orgReg, acceptPrivacy: e.target.checked })} />
-                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Privacy Policy and consent to data processing for verification.</span>
+                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Privacy Policy and consent to data processing for verification.</span>
                           </label>
                           <label className="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.confirmInfo} onChange={(e) => setOrgReg({ ...orgReg, confirmInfo: e.target.checked })} />
-                            <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">I confirm that all information provided is true and accurate to the best of my knowledge.</span>
+                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I confirm that all information provided is true and accurate to the best of my knowledge.</span>
                           </label>
                         </div>
                         <Captcha
@@ -938,7 +938,7 @@ function LoginPage() {
                     </button>
                   </div>
 
-                  <p className="text-center text-sm text-slate-500 font-medium">
+                  <p className="text-center text-base text-slate-500 font-medium">
                     Already registered?{' '}
                     <button type="button" onClick={() => setMode('login')} className="text-secondary hover:text-blue-700 transition-colors">
                       Sign in
@@ -949,7 +949,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-slate-500 mt-6 max-w-lg mx-auto leading-relaxed px-4">
+          <p className="text-center text-sm text-slate-500 mt-6 max-w-lg mx-auto leading-relaxed px-4">
             This is a prototype. Authentication is simulated in the browser and no data is transmitted or stored.
           </p>
         </div>

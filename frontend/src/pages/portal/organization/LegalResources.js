@@ -12,7 +12,7 @@ function ResourceCard({ icon: Icon, title, description, color = 'bg-blue-50 text
         <h3 className="font-extrabold text-slate-800 text-base leading-tight">{title}</h3>
       </div>
       <div className="p-5 flex-1 bg-white">
-        <p className="text-sm text-slate-600 font-medium leading-relaxed">{description}</p>
+        <p className="text-base text-slate-600 font-medium leading-relaxed">{description}</p>
       </div>
     </div>
   );
@@ -25,12 +25,12 @@ function HelplineCard({ number, label, description, available }) {
         <Phone className="h-6 w-6" />
       </div>
       <div className="flex-1 min-w-0 px-4 py-2">
-        <div className="text-sm font-extrabold text-slate-800">{label}</div>
-        <div className="text-[11px] text-slate-500 font-medium mt-0.5 truncate">{description}</div>
+        <div className="text-base font-extrabold text-slate-800">{label}</div>
+        <div className="text-sm text-slate-500 font-medium mt-0.5 truncate">{description}</div>
       </div>
       <div className="pr-4 text-right shrink-0 border-l border-slate-100 pl-4 py-2">
         <div className="text-lg font-black text-slate-800 tracking-tight">{number}</div>
-        <div className="text-[9px] uppercase font-bold tracking-widest text-emerald-600 mt-0.5">{available}</div>
+        <div className="text-xs uppercase font-bold tracking-widest text-emerald-600 mt-0.5">{available}</div>
       </div>
     </div>
   );
@@ -43,13 +43,13 @@ function FaqItem({ question, answer, isOpen, onToggle }) {
         onClick={onToggle}
         className="w-full flex items-center justify-between p-5 text-left transition-colors"
       >
-        <span className="text-sm font-extrabold text-slate-800 pr-4">{question}</span>
+        <span className="text-base font-extrabold text-slate-800 pr-4">{question}</span>
         <div className={`p-1 rounded-full transition-colors ${isOpen ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-400'}`}>
           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </div>
       </button>
       {isOpen && (
-        <div className="px-5 pb-5 text-sm text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-4 bg-slate-50/50">
+        <div className="px-5 pb-5 text-base text-slate-600 font-medium leading-relaxed border-t border-slate-100 pt-4 bg-slate-50/50">
           {answer}
         </div>
       )}
@@ -77,7 +77,7 @@ function LegalResources() {
       />
 
       {/* Intro Banner */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 text-sm text-slate-700 shadow-sm flex items-start gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 text-base text-slate-700 shadow-sm flex items-start gap-4">
         <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 border border-blue-100">
           <AlertCircle className="h-5 w-5" />
         </div>
@@ -88,7 +88,7 @@ function LegalResources() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-slate-400" /> Policy & Guidelines
         </h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -102,7 +102,7 @@ function LegalResources() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <Phone className="h-4 w-4 text-slate-400" /> Emergency Helplines
         </h3>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -114,7 +114,7 @@ function LegalResources() {
       </div>
 
       <div className="space-y-4 max-w-4xl">
-        <h3 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
           <HelpCircle className="h-4 w-4 text-slate-400" /> Frequently Asked Questions
         </h3>
         <div className="space-y-4">

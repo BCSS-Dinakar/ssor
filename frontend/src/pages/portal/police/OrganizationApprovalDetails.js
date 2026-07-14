@@ -25,8 +25,8 @@ function InfoRow({ icon: Icon, label, value }) {
     <div className="flex items-start gap-3 py-2">
       <Icon className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{label}</div>
-        <div className="text-sm text-slate-800 font-semibold break-words mt-0.5">{value || '—'}</div>
+        <div className="text-sm text-slate-400 font-bold uppercase tracking-wider">{label}</div>
+        <div className="text-base text-slate-800 font-semibold break-words mt-0.5">{value || '—'}</div>
       </div>
     </div>
   );
@@ -35,7 +35,7 @@ function InfoRow({ icon: Icon, label, value }) {
 function Section({ title, children }) {
   return (
     <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
-      <h3 className="text-xs font-black text-primary font-heading mb-4 pb-3 border-b border-slate-100 uppercase tracking-wider">{title}</h3>
+      <h3 className="text-sm font-black text-primary font-heading mb-4 pb-3 border-b border-slate-100 uppercase tracking-wider">{title}</h3>
       {children}
     </div>
   );
@@ -170,7 +170,7 @@ function OrganizationApprovalDetails() {
         actions={
           <Link
             to="/portal/org-verify"
-            className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm"
+            className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to List
@@ -183,8 +183,8 @@ function OrganizationApprovalDetails() {
         <div className="flex items-center gap-3">
           <statusBadge.Icon className="h-5 w-5 shrink-0" />
           <div>
-            <div className="font-extrabold text-sm uppercase tracking-wide">{statusBadge.text}</div>
-            <div className="text-[11px] opacity-90 font-medium mt-0.5">
+            <div className="font-extrabold text-base uppercase tracking-wide">{statusBadge.text}</div>
+            <div className="text-sm opacity-90 font-medium mt-0.5">
               {status === 'pending' && 'This application is awaiting your review and credential validation.'}
               {status === 'approved' && 'This organization has been verified and granted portal access.'}
               {status === 'rejected' && 'This application has been rejected and credentials suspended.'}
@@ -195,13 +195,13 @@ function OrganizationApprovalDetails() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleReject}
-              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 font-extrabold text-xs uppercase tracking-wider rounded-xl border border-red-200 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 font-extrabold text-sm uppercase tracking-wider rounded-xl border border-red-200 transition-colors shadow-sm"
             >
               <XCircle className="h-4 w-4" /> Reject
             </button>
             <button
               onClick={handleApprove}
-              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold text-xs uppercase tracking-wider rounded-xl border border-emerald-600 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold text-sm uppercase tracking-wider rounded-xl border border-emerald-600 transition-colors shadow-sm"
             >
               <CheckCircle2 className="h-4 w-4" /> Approve
             </button>
@@ -252,25 +252,25 @@ function OrganizationApprovalDetails() {
 
           <Section title="Verification Documents">
             {org.documents.length === 0 ? (
-              <p className="text-xs text-slate-500 font-medium">No documents uploaded.</p>
+              <p className="text-sm text-slate-500 font-medium">No documents uploaded.</p>
             ) : (
               <div className="space-y-3">
                 {org.documents.map((doc, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100/50 transition-colors gap-4">
                     <div className="min-w-0">
-                      <div className="text-xs font-black text-slate-800 truncate">{doc.name}</div>
-                      <div className="text-[10px] font-bold text-slate-400 mt-0.5">{doc.type}</div>
+                      <div className="text-sm font-black text-slate-800 truncate">{doc.name}</div>
+                      <div className="text-sm font-bold text-slate-400 mt-0.5">{doc.type}</div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setViewingDoc(doc)}
-                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl border border-blue-200 transition-colors text-[9px] font-black text-secondary uppercase tracking-widest"
+                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl border border-blue-200 transition-colors text-xs font-black text-secondary uppercase tracking-widest"
                       >
                         <Eye className="h-3.5 w-3.5" /> View
                       </button>
                       <button
                         onClick={() => downloadDoc(doc.name)}
-                        className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-[9px] font-black text-emerald-700 uppercase tracking-widest"
+                        className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-xs font-black text-emerald-700 uppercase tracking-widest"
                       >
                         <Download className="h-3.5 w-3.5" /> DL
                       </button>
@@ -293,14 +293,14 @@ function OrganizationApprovalDetails() {
                   <FileText className="h-5 w-5 text-secondary" />
                 </div>
                 <div>
-                  <div className="font-extrabold text-slate-800 text-xs leading-none">{viewingDoc.name}</div>
-                  <div className="text-[10px] text-slate-400 font-bold mt-1.5">{viewingDoc.type}</div>
+                  <div className="font-extrabold text-slate-800 text-sm leading-none">{viewingDoc.name}</div>
+                  <div className="text-sm text-slate-400 font-bold mt-1.5">{viewingDoc.type}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => downloadDoc(viewingDoc.name)}
-                  className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-[9px] font-black text-emerald-700 uppercase tracking-widest"
+                  className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-xs font-black text-emerald-700 uppercase tracking-widest"
                 >
                   <Download className="h-4 w-4" /> Download
                 </button>
@@ -322,7 +322,7 @@ function OrganizationApprovalDetails() {
               ) : (
                 <div className="text-center space-y-4">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="text-sm font-black text-slate-700 uppercase tracking-wider">Loading Document...</p>
+                  <p className="text-base font-black text-slate-700 uppercase tracking-wider">Loading Document...</p>
                 </div>
               )}
             </div>

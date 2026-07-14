@@ -31,7 +31,7 @@ function PendingVerifications() {
     {
       label: 'Reference',
       key: 'id',
-      className: 'font-mono text-secondary text-xs font-bold',
+      className: 'font-mono text-secondary text-sm font-bold',
       render: (row) => row.id.split('-')[0]
     },
     {
@@ -39,8 +39,8 @@ function PendingVerifications() {
       key: 'org',
       render: (row) => (
         <div>
-          <div className="font-extrabold text-slate-800 text-sm leading-tight">{row.orgName}</div>
-          <div className="text-[10px] text-slate-400 font-bold mt-0.5">{row.orgType || 'Candidate Vetting'} · Candidate: {row.candidateName}</div>
+          <div className="font-extrabold text-slate-800 text-base leading-tight">{row.orgName}</div>
+          <div className="text-sm text-slate-400 font-bold mt-0.5">{row.orgType || 'Candidate Vetting'} · Candidate: {row.candidateName}</div>
         </div>
       ),
     },
@@ -67,7 +67,7 @@ function PendingVerifications() {
       render: (row) => (
         <Link
           to={`/portal/clearances/${row.id}`}
-          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors text-[10px] font-black text-secondary uppercase tracking-widest"
+          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors text-sm font-black text-secondary uppercase tracking-widest"
         >
           <ExternalLink className="h-3.5 w-3.5" /> Process Vetting
         </Link>
