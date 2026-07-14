@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, Download, CreditCard } from 'lucide-react';
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
+import { API_BASE_URL } from '../../../api/api';
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
@@ -243,7 +244,7 @@ function VerificationVetting() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Candidate Profile Details */}
-          <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <h3 className="font-extrabold text-primary font-heading text-xs uppercase tracking-wider mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
               <User className="h-4 w-4 text-secondary" /> Candidate Vetting Profile
             </h3>
@@ -261,12 +262,43 @@ function VerificationVetting() {
               
               <InfoRow icon={FileText} label="Submission Date" value={new Date(record.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} />
               <InfoRow icon={ShieldAlert} label="Current Status" value={record.status.toUpperCase()} />
+              {record.aadharNumber && <InfoRow icon={CreditCard} label="Aadhar Number" value={record.aadharNumber} />}
+            </div>
+
+            {/* Files Section */}
+            <div className="mt-6 pt-6 border-t border-slate-100 grid sm:grid-cols-2 gap-4">
+              {record.candidateImage && (
+                <div className="space-y-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Candidate Image</span>
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                    <img 
+                      src={`${API_BASE_URL}/police/documents/${record.candidateImage?.split('/').pop()}`} 
+                      alt="Candidate" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
+                    />
+                  </div>
+                </div>
+              )}
+              {record.consentFile && (
+                <div className="space-y-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Consent Declaration</span>
+                  <a 
+                    href={`${API_BASE_URL}/police/documents/${record.consentFile?.split('/').pop()}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
+                  >
+                    <Download className="h-4 w-4" /> View Signed Consent
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
           {(record.status === 'pending' || record.status === 'verifying') ? (
             /* Interactive Criminal Registry Checker */
-            <div className="card p-6 bg-white border border-slate-200/80 shadow-md space-y-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="font-extrabold text-primary font-heading text-xs uppercase tracking-wider">
                   Criminal History Check
@@ -423,7 +455,7 @@ function VerificationVetting() {
             </div>
           ) : (
             /* Vetting Audit Summary & Logs for Completed Records */
-            <div className="card p-6 bg-white border border-slate-200/80 shadow-md space-y-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-6">
               <h3 className="font-extrabold text-primary font-heading text-xs uppercase tracking-wider mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
                 <ShieldAlert className="h-4.5 w-4.5 text-secondary" /> Vetting Vouched Outcome Archive
               </h3>
@@ -466,7 +498,7 @@ function VerificationVetting() {
                   </div>
 
                   {record.matchedSuspect && (
-                    <div className="card p-5 bg-white border border-slate-200 rounded-2xl space-y-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
                       <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                         <div className="flex items-center gap-2">
                           <User className="h-4.5 w-4.5 text-secondary animate-pulse" />
@@ -574,7 +606,7 @@ function VerificationVetting() {
 
         {/* Action Decision Dashboard Column */}
         <div className="space-y-6">
-          <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <h3 className="font-extrabold text-primary font-heading text-xs uppercase tracking-wider mb-4 pb-3 border-b border-slate-100">Vetting Outcome</h3>
             
             <div className="mb-6">

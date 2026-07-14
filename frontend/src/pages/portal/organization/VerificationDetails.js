@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
+import { API_BASE_URL } from '../../../api/api';
 
 function DetailField({ label, value, mono = false }) {
   return (
@@ -62,6 +63,9 @@ function VerificationDetails() {
           role: record.role,
           candidate: record.candidateName,
           fatherName: record.fatherName,
+          aadharNumber: record.aadharNumber,
+          candidateImage: record.candidateImage,
+          consentFile: record.consentFile,
           dob: new Date(record.dob).toLocaleDateString(),
           phone: record.phone,
 
@@ -113,7 +117,7 @@ function VerificationDetails() {
 
       <div className="grid lg:grid-cols-2 gap-6 items-start">
         {/* Left Card: Audit File */}
-        <div className="card p-6 space-y-5 bg-white relative overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
           <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
             <User className="h-5 w-5 text-secondary" />
@@ -137,8 +141,46 @@ function VerificationDetails() {
             <div className="sm:col-span-2">
               <DetailField label="Submitting Institution" value={selectedRequest.org} />
             </div>
+            
+            {/* New Fields */}
+            {selectedRequest.aadharNumber && (
+              <div className="sm:col-span-2">
+                <DetailField label="Aadhar Number" value={selectedRequest.aadharNumber} mono />
+              </div>
+            )}
+            
             <DetailField label="Submission Date" value={selectedRequest.submitted} mono />
             <DetailField label="Decision Date" value={selectedRequest.decisionDate || 'Pending Vetting'} mono />
+          </div>
+
+          {/* Files Section */}
+          <div className="pt-4 border-t border-slate-100 grid sm:grid-cols-2 gap-4">
+            {selectedRequest.candidateImage && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Candidate Image</span>
+                <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                  <img 
+                    src={`${API_BASE_URL}/organization/documents/${selectedRequest.candidateImage?.split('/').pop()}`} 
+                    alt="Candidate" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
+                  />
+                </div>
+              </div>
+            )}
+            {selectedRequest.consentFile && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Consent Declaration</span>
+                <a 
+                  href={`${API_BASE_URL}/organization/documents/${selectedRequest.consentFile?.split('/').pop()}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
+                >
+                  <Download className="h-4 w-4" /> Download Signed PDF
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl text-[11px] text-slate-500 leading-relaxed flex items-start gap-2.5 font-medium">
@@ -150,7 +192,7 @@ function VerificationDetails() {
         {/* Right Card: Pipeline & Result */}
         <div className="space-y-6">
           {/* Verification Pipeline */}
-          <div className="card p-6 space-y-4 bg-white">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
             <div className="border-b border-slate-100 pb-2">
               <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Verification Pipeline</h4>
             </div>
@@ -173,7 +215,7 @@ function VerificationDetails() {
           </div>
 
           {/* Vetting Result Card */}
-          <div className="card p-6 space-y-4 bg-white">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
             <div className="border-b border-slate-100 pb-2">
               <h4 className="font-extrabold text-primary font-heading text-sm uppercase tracking-wider">Verification Result</h4>
             </div>

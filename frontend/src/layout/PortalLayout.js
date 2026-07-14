@@ -81,7 +81,7 @@ function PortalLayout() {
       {/* Main */}
       <div className="flex flex-col min-h-screen min-w-0">
         <Header onMenu={() => setMobileOpen(true)} />
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 w-full max-w-7xl mx-auto overflow-hidden">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 w-full overflow-hidden">
           <Outlet />
         </main>
       </div>

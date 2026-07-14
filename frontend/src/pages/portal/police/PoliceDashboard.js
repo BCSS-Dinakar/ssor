@@ -207,8 +207,8 @@ function PoliceDashboard() {
             <h3 className="font-extrabold text-primary font-heading uppercase text-[10px] tracking-widest text-slate-400">Immutable System Log</h3>
             <Link to="/portal/audit" className="text-[9px] font-black text-secondary uppercase tracking-widest hover:underline">Full Audit Log →</Link>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            <table className="w-full text-xs text-left">
+          <div className="flex-1 overflow-auto">
+            <table className="w-full text-xs text-left min-w-[500px]">
               <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
                 <tr className="text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
                   <th className="py-2.5 px-6 rounded-tl-lg">Officer</th>

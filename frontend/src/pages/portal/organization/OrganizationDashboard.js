@@ -155,7 +155,7 @@ function OrganizationDashboard() {
               </Link>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-auto">
               <table className="w-full text-xs text-left min-w-[500px]">
                 <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
                   <tr className="text-[9px] uppercase font-bold text-slate-400 border-b border-slate-150">
