@@ -118,7 +118,7 @@ function OrganizationServicesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 Important Information
               </div>
@@ -154,7 +154,7 @@ function OrganizationServicesPage() {
                   <div className={`text-3xl font-bold ${stat.color} font-heading`}>
                     {stat.value}<span className="text-lg text-muted font-normal">{stat.unit}</span>
                   </div>
-                  <p className="text-sm text-muted mt-2 uppercase tracking-wider font-semibold">{stat.label}</p>
+                  <p className="text-sm text-muted mt-2 tracking-wide font-semibold">{stat.label}</p>
                 </div>
               ))}
             </div>

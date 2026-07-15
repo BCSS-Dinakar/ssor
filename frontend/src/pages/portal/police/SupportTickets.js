@@ -84,7 +84,7 @@ function SupportTickets() {
       <div className={`w-full lg:w-96 flex flex-col bg-slate-50 border-r border-slate-200 shrink-0 ${selectedTicketId ? 'hidden lg:flex' : 'flex'}`}>
         {/* Left Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
-          <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Support Inbox</h4>
+          <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Support Inbox</h4>
           <span className="text-sm text-slate-400 font-bold px-2 py-1 bg-slate-100 rounded-md">POLICE DESK</span>
         </div>
 
@@ -106,7 +106,7 @@ function SupportTickets() {
                 key={t.id}
                 onClick={() => setSelectedTicketId(t.id)}
                 className={`p-4 border-b border-slate-100 cursor-pointer transition-all flex items-start gap-3 ${
-                  isActive ? 'bg-white shadow-[inset_4px_0_0_0_theme(colors.secondary)]' : 'hover:bg-slate-100/50'
+                  isActive ? 'bg-white shadow-[inset_4px_0_0_0_#1E3A8A]' : 'hover:bg-slate-100/50'
                 }`}
               >
                 <div className="h-10 w-10 bg-slate-200 rounded-full flex items-center justify-center shrink-0 text-slate-500">
@@ -120,7 +120,7 @@ function SupportTickets() {
                   <div className="text-sm font-semibold text-slate-600 truncate mb-1.5">{t.subject}</div>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-400 truncate max-w-[120px]">{t.organization?.organizationProfile?.orgName}</span>
-                    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-sm font-bold tracking-wide ${
                       t.status === 'Closed' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {t.status}
@@ -140,7 +140,7 @@ function SupportTickets() {
             <div className="w-16 h-16 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm mb-4">
               <MessageSquare className="h-7 w-7 text-slate-300" />
             </div>
-            <h3 className="text-slate-600 font-extrabold text-base uppercase tracking-wider mb-2">Police Support Console</h3>
+            <h3 className="text-slate-600 font-extrabold text-base tracking-wide mb-2">Police Support Console</h3>
             <p className="text-sm text-slate-400 font-semibold max-w-sm">Select a ticket from the left panel to review notes, files, and message history, and respond to organizations.</p>
           </div>
         ) : (
@@ -156,8 +156,8 @@ function SupportTickets() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">{selectedTicket.ticketNumber}</h4>
-                    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                    <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">{selectedTicket.ticketNumber}</h4>
+                    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-sm font-bold tracking-wide ${
                       selectedTicket.status === 'Closed' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {selectedTicket.status}
@@ -179,7 +179,7 @@ function SupportTickets() {
                   <option value="Closed">Status: Closed</option>
                 </select>
                 <div className="hidden sm:flex items-center gap-1.5 text-sm font-bold">
-                  <span className={`px-2 py-0.5 rounded-md border uppercase tracking-wider font-black ${
+                  <span className={`px-2 py-0.5 rounded-md border tracking-wide font-black ${
                     selectedTicket.priority === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' :
                     selectedTicket.priority === 'High' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                     selectedTicket.priority === 'Low' ? 'bg-slate-50 text-slate-600 border-slate-200' : 'bg-blue-50 text-blue-700 border-blue-200'
@@ -201,7 +201,7 @@ function SupportTickets() {
                 const isPolice = m.senderRole === 'Police';
                 return (
                   <div key={m.id} className={`flex flex-col max-w-[85%] sm:max-w-[70%] ${isPolice ? 'self-end items-end' : 'self-start items-start'}`}>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono px-1">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 tracking-wide mb-1 font-mono px-1">
                       <span className={isPolice ? 'text-secondary font-black' : 'text-slate-600'}>{m.senderName} ({m.senderRole})</span>
                       <span>·</span>
                       <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -242,7 +242,7 @@ function SupportTickets() {
                   </button>
                 </form>
               ) : (
-                <div className="text-center text-sm text-slate-500 font-black uppercase tracking-widest flex items-center justify-center gap-1.5 py-3 rounded-xl">
+                <div className="text-center text-sm text-slate-500 font-black tracking-wide flex items-center justify-center gap-1.5 py-3 rounded-xl">
                   <AlertCircle className="h-4 w-4" /> This consultation has been closed and is read-only.
                 </div>
               )}

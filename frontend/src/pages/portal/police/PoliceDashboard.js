@@ -1,18 +1,23 @@
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileCheck, Scale } from 'lucide-react';
+import { FileCheck, Scale, ClipboardList, ShieldCheck, ExternalLink } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
-import React, { useState, useEffect } from 'react';
 import { policeApi } from '../../../api/police.api';
 import { TIERS } from '../../../utils/data/portalData';
+import { PageSkeleton } from '../../../components/ui/Skeleton';
+import { Alert } from '../../../components/ui/Alert';
+import { StatusBadge } from '../../../components/ui/Badge';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/Card';
 
 function PoliceDashboard() {
   const [stats, setStats] = useState(null);
   const [clearances, setClearances] = useState([]);
   const [audit, setAudit] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -20,14 +25,14 @@ function PoliceDashboard() {
         const [statsRes, clrRes, auditRes] = await Promise.all([
           policeApi.getDashboardStats(),
           policeApi.getVerifications(),
-          policeApi.getLogs()
+          policeApi.getLogs(),
         ]);
-
         if (statsRes.success) setStats(statsRes.data);
         if (clrRes.success) setClearances(clrRes.data);
         if (auditRes.success) setAudit(auditRes.data);
       } catch (err) {
         console.error(err);
+        setError('Unable to load dashboard data. Please refresh.');
       } finally {
         setLoading(false);
       }
@@ -35,209 +40,237 @@ function PoliceDashboard() {
     fetchAll();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-        <div className="animate-spin h-8 w-8 border-4 border-secondary border-t-transparent rounded-full mb-4"></div>
-        <p className="font-bold">Loading dashboard...</p>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton />;
 
   const byTier = Object.keys(TIERS).map((key) => {
-    const match = stats?.byTier?.find(t => t.tier === key);
-    return {
-      key,
-      ...TIERS[key],
-      count: match ? match.count : 0,
-    };
+    const match = stats?.byTier?.find((t) => t.tier === key);
+    return { key, ...TIERS[key], count: match ? match.count : 0 };
   });
 
   const total = stats?.totalOffenders || 0;
   const convictedCount = stats?.convictedCount || 0;
   const underTrialCount = stats?.underTrialCount || 0;
+  const pendingQueue = clearances.filter((c) => c.status === 'pending' || c.status === 'verifying');
 
   const categoryColors = {
-    'Bodily Offence': '#8B5CF6',          // Purple
-    'Crime Against Children': '#EF4444',  // Red
-    'Crime Against SC/ST': '#111827',     // Black
-    'Crime Against Women': '#C2410C',     // Deep Orange (Rust)
-    'Cyber Crime': '#1E3A8A',             // Dark Navy Blue
-    'Other': '#10B981'                    // Green
+    'Bodily Offence': '#7C3AED',
+    'Crime Against Children': '#B91C1C',
+    'Crime Against SC/ST': '#111827',
+    'Crime Against Women': '#C2410C',
+    'Cyber Crime': '#1E3A8A',
+    Other: '#15803D',
   };
 
   const sectionData = (stats?.sectionData || []).map((s) => ({
     name: s.name,
     value: s.value,
-    color: categoryColors[s.name] || '#6B5A63'
+    color: categoryColors[s.name] || '#64748B',
   }));
 
-
   return (
-    <div className="space-y-6 animate-fadeIn pb-10">
+    <div className="space-y-5 pb-8 animate-fadeIn">
       <PageHeader
-        crumb="Administration / Portal"
+        crumbs={[
+          { label: 'Police', to: '/portal' },
+          { label: 'Dashboard' },
+        ]}
         title="Register Console"
-        subtitle="Secure State Sexual Offender Register Admin Dashboard."
+        subtitle="State Sexual Offender Register — clearance queues, registry metrics, and audit activity."
       />
 
       <SecurityBanner>
-        Controlled-access session. To comply with the privacy tests of legality, necessity and proportionality (Puttaswamy 2017), every record inquiry and query action is written to the immutable cryptographic audit log.
+        Controlled-access session. Every record inquiry is written to the immutable cryptographic audit log (Puttaswamy privacy tests).
       </SecurityBanner>
 
-      {/* Stats Summary Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {error && <Alert variant="danger" title="Dashboard error">{error}</Alert>}
 
-        {/* Conviction Status Card (Dynamic Split) */}
-        <div className="card p-5 flex flex-col justify-between bg-white relative">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 border border-indigo-100 text-indigo-600 shrink-0">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary" aria-hidden="true">
               <Scale className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider leading-none">Offenders</h3>
-              <div className="text-2xl font-black font-mono text-slate-800 mt-1 leading-none">{total}</div>
+              <h3 className="text-body-sm font-semibold text-muted">Offenders on register</h3>
+              <div className="mt-1 font-heading text-2xl font-bold text-primary">{total}</div>
             </div>
           </div>
           <div className="mt-4">
-            <div className="flex justify-between text-xs font-black uppercase tracking-wider mb-1.5">
-              <span className="text-indigo-700">Convictions: {convictedCount}</span>
-              <span className="text-amber-600">Trials: {underTrialCount}</span>
+            <div className="mb-1.5 flex justify-between text-body-sm font-semibold">
+              <span className="text-secondary">Convictions: {convictedCount}</span>
+              <span className="text-warning">Under trial: {underTrialCount}</span>
             </div>
-            <div className="flex h-2 rounded-full overflow-hidden border border-slate-100/50 bg-slate-100">
-              <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-full" style={{ width: `${total ? (convictedCount / total) * 100 : 0}%` }} />
-              <div className="bg-gradient-to-r from-amber-400 to-amber-300 rounded-full" style={{ width: `${total ? (underTrialCount / total) * 100 : 0}%` }} />
+            <div className="flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Convictions ${convictedCount}, under trial ${underTrialCount}`}>
+              <div className="bg-secondary" style={{ width: `${total ? (convictedCount / total) * 100 : 0}%` }} />
+              <div className="bg-warning" style={{ width: `${total ? (underTrialCount / total) * 100 : 0}%` }} />
             </div>
           </div>
-        </div>
+          <Link to="/portal/register" className="mt-3 inline-block text-body-sm font-semibold text-secondary hover:underline">
+            Open registry →
+          </Link>
+        </Card>
 
-        <StatCard label="Pending Clearances" value={stats?.clearPending || 0} icon={FileCheck} accent="bg-amber-50 text-accent" meta="Awaiting decision queue" />
+        <StatCard
+          label="Pending Clearances"
+          value={stats?.clearPending || pendingQueue.length || 0}
+          icon={FileCheck}
+          accent="bg-warning-50 text-warning"
+          meta="Awaiting officer decision"
+          to="/portal/clearances"
+        />
+
+        <StatCard
+          label="Audit events"
+          value={audit.length}
+          icon={ShieldCheck}
+          accent="bg-info-50 text-info"
+          meta="Recent system log entries"
+          to="/portal/audit"
+        />
       </div>
 
-      {/* Analytics Row */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Tier breakdown */}
-        <div className="card p-6 bg-white">
-          <div className="border-b border-slate-100 pb-3 mb-4">
-            <h3 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Register by Risk Tier</h3>
-            <p className="text-sm text-slate-400 mt-0.5 font-bold">Risk levels mapping to statutory penal categories.</p>
-          </div>
-          <div className="h-[250px] w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={byTier} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }} />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontWeight: 600 }}
-                  formatter={(value) => [value, 'Offenders']}
-                />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={40}>
-                  {byTier.map((entry, index) => {
-                    let hex = '#3b82f6';
-                    if (entry.color?.includes('red')) hex = '#ef4444';
-                    else if (entry.color?.includes('orange')) hex = '#f97316';
-                    else if (entry.color?.includes('blue')) hex = '#3b82f6';
-                    else if (entry.color?.includes('slate') || entry.color?.includes('black')) hex = '#0f172a';
-                    else if (entry.color?.includes('pink')) hex = '#ec4899';
-                    else if (entry.color?.includes('green')) hex = '#22c55e';
-                    else if (entry.color?.includes('gray') || entry.color?.includes('silver')) hex = '#94a3b8';
-                    return <Cell key={`cell-${index}`} fill={hex} />;
-                  })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Register by Risk Tier</CardTitle>
+            <CardDescription>Statutory risk levels across the offender register.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byTier} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontWeight: 600 }} formatter={(value) => [value, 'Offenders']} />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                    {byTier.map((entry, index) => {
+                      let hex = '#3b82f6';
+                      if (entry.color?.includes('red')) hex = '#ef4444';
+                      else if (entry.color?.includes('orange')) hex = '#f97316';
+                      else if (entry.color?.includes('blue') || entry.color?.includes('sky')) hex = '#0284c7';
+                      else if (entry.color?.includes('neutral') || entry.color?.includes('black')) hex = '#0f172a';
+                      else if (entry.color?.includes('pink')) hex = '#ec4899';
+                      else if (entry.color?.includes('green')) hex = '#16a34a';
+                      else if (entry.color?.includes('slate') || entry.color?.includes('silver')) hex = '#94a3b8';
+                      return <Cell key={`cell-${index}`} fill={hex} />;
+                    })}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Section-wise Distribution */}
-        <div className="card p-6 bg-white">
-          <div className="border-b border-slate-100 pb-3 mb-2">
-            <h3 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Offence Law Distribution</h3>
-            <p className="text-sm text-slate-400 mt-0.5 font-bold">Category segmentation as per statutory acts.</p>
-          </div>
-          <div className="h-[230px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sectionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {sectionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '11px', fontWeight: 600, boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 600 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
-        {/* Pending clearances */}
-        <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
-          <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
-            <h3 className="font-extrabold text-primary font-heading uppercase text-sm tracking-widest text-slate-400">Clearance Vetting Queue</h3>
-            <Link to="/portal/clearances" className="text-xs font-black text-secondary uppercase tracking-widest hover:underline">Vetting Console →</Link>
-          </div>
-          <div className="flex-1 overflow-y-auto p-6 pt-0">
-            <div className="divide-y divide-slate-150">
-              {clearances.filter((c) => c.status === 'pending' || c.status === 'verifying').map((c) => (
-                <div key={c.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="text-sm font-bold text-slate-800 truncate max-w-[280px]">{c.orgName || c.org}</div>
-                    <div className="text-xs font-mono font-bold text-slate-400 mt-0.5">{c.id.split('-')[0]} · Candidate: {c.candidateName || c.candidate} · {c.role}</div>
-                  </div>
-                  <span className="text-[8px] font-black px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-widest animate-pulse">Review</span>
-                </div>
-              ))}
-              {clearances.filter((c) => c.status === 'pending' || c.status === 'verifying').length === 0 && (
-                <div className="text-sm text-muted py-8 text-center font-semibold">Verification queue clear.</div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Offence Category Distribution</CardTitle>
+            <CardDescription>Category segmentation as per statutory acts.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[230px] w-full">
+              {sectionData.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={sectionData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
+                      {sectionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 600 }} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '13px', fontWeight: 600 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center text-muted">No category data available</div>
               )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Recent activity */}
-        <div className="card bg-white border border-slate-200/80 shadow-md flex flex-col h-[360px]">
-          <div className="p-6 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
-            <h3 className="font-extrabold text-primary font-heading uppercase text-sm tracking-widest text-slate-400">Immutable System Log</h3>
-            <Link to="/portal/audit" className="text-xs font-black text-secondary uppercase tracking-widest hover:underline">Full Audit Log →</Link>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="flex h-[380px] flex-col overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between shrink-0">
+            <div>
+              <CardTitle>Clearance Queue</CardTitle>
+              <CardDescription>Requests awaiting processing.</CardDescription>
+            </div>
+            <Link to="/portal/clearances" className="text-body-sm font-semibold text-secondary hover:underline">
+              Open queue →
+            </Link>
+          </CardHeader>
+          <div className="flex-1 overflow-y-auto px-2 pb-2">
+            {pendingQueue.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center px-6 text-center text-muted">
+                <ClipboardList className="mb-2 h-8 w-8" aria-hidden="true" />
+                <p className="font-semibold text-slate-700">Clearance queue is clear</p>
+                <p className="mt-1 text-body-sm">No pending or in-progress requests.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-slate-200">
+                {pendingQueue.slice(0, 10).map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      to={`/portal/clearances/${c.id}`}
+                      className="flex items-center justify-between gap-3 px-4 py-3.5 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold text-slate-800">{c.orgName || c.org}</div>
+                        <div className="mt-0.5 truncate font-mono text-body-sm text-muted">
+                          {String(c.id).split('-')[0]} · {c.candidateName || c.candidate} · {c.role}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <StatusBadge status={c.status} />
+                        <ExternalLink className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        </Card>
+
+        <Card className="flex h-[380px] flex-col overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between shrink-0">
+            <div>
+              <CardTitle>System Audit Log</CardTitle>
+              <CardDescription>Recent immutable access events.</CardDescription>
+            </div>
+            <Link to="/portal/audit" className="text-body-sm font-semibold text-secondary hover:underline">
+              Full audit log →
+            </Link>
+          </CardHeader>
           <div className="flex-1 overflow-auto">
-            <table className="w-full text-sm text-left min-w-[500px]">
-              <thead className="sticky top-0 bg-slate-50 shadow-sm z-10">
-                <tr className="text-xs uppercase font-bold text-slate-400 border-b border-slate-150">
-                  <th className="py-2.5 px-6 rounded-tl-lg">Officer</th>
-                  <th className="py-2.5 px-3">Action logged</th>
-                  <th className="py-2.5 px-3">Time</th>
-                  <th className="py-2.5 px-6 text-right rounded-tr-lg">Node IP</th>
+            <table className="w-full min-w-[480px] text-left text-base">
+              <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50">
+                <tr className="text-body-sm font-bold text-muted">
+                  <th scope="col" className="px-6 py-3">Officer</th>
+                  <th scope="col" className="px-3 py-3">Action</th>
+                  <th scope="col" className="px-3 py-3">Time</th>
+                  <th scope="col" className="px-6 py-3 text-right">Node</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {audit.slice(0, 8).map((a, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-6 font-bold text-slate-800">{a.who}</td>
-                    <td className="py-3 px-3 text-slate-550 font-semibold">{a.action}</td>
-                    <td className="py-3 px-3 font-mono font-bold text-slate-400">{a.time}</td>
-                    <td className="py-3 px-6 text-right font-mono text-slate-400">{a.node}</td>
+                  <tr key={i} className="hover:bg-slate-50/80">
+                    <td className="px-6 py-3 font-semibold text-slate-800">{a.who}</td>
+                    <td className="px-3 py-3 text-slate-600">{a.action}</td>
+                    <td className="px-3 py-3 font-mono text-body-sm text-muted">{a.time}</td>
+                    <td className="px-6 py-3 text-right font-mono text-body-sm text-muted">{a.node}</td>
                   </tr>
                 ))}
+                {audit.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-muted">No audit events yet.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

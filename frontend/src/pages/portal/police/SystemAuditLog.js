@@ -76,7 +76,7 @@ function SystemAuditLog() {
       key: 'action',
       render: (row) => (
         <div>
-          <span className={`inline-block px-2 py-0.5 rounded text-xs font-black uppercase tracking-wider mb-1 ${
+          <span className={`inline-block px-2 py-0.5 rounded text-sm font-bold tracking-wide mb-1 ${
             row.category === 'Authentication' ? 'bg-blue-100 text-blue-700' :
             row.category === 'Record Access' ? 'bg-emerald-100 text-emerald-700' :
             row.category === 'Vetting' ? 'bg-purple-100 text-purple-700' :

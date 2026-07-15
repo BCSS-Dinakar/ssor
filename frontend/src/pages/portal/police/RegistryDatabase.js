@@ -67,9 +67,12 @@ function RegistryDatabase() {
   return (
     <div className="space-y-6 animate-fadeIn pb-10">
       <PageHeader
-        crumb="Administration / Register"
-        title="Offender register"
-        subtitle="Search and filter convicted records. Click open for full detail."
+        crumbs={[
+          { label: 'Police', to: '/portal' },
+          { label: 'Registry Database' },
+        ]}
+        title="Registry Database"
+        subtitle="Search and filter conviction records. Open a file for the full dossier."
       />
 
       <SecurityBanner>
@@ -119,7 +122,7 @@ function RegistryDatabase() {
         {isFilterOpen && (
           <div className="mt-5 pt-5 border-t border-slate-100 animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+              <h3 className="text-sm font-black tracking-wide text-slate-400 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
                 Risk Tier
               </h3>
@@ -134,7 +137,7 @@ function RegistryDatabase() {
                   <div className={`w-5 h-5 rounded-[6px] border-2 flex items-center justify-center transition-all duration-200 ${selectedTiers.includes(t) ? 'bg-secondary border-secondary text-white' : 'border-slate-300 bg-white'}`}>
                     {selectedTiers.includes(t) && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
                   </div>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wider">{TIERS[t].name}</span>
+                  <span className="text-sm font-bold text-slate-700 tracking-wide">{TIERS[t].name}</span>
                 </label>
               ))}
             </div>
@@ -170,9 +173,9 @@ function RegistryDatabase() {
             <tbody className="divide-y divide-slate-100 bg-white">
               {data.map((o) => (
                 <tr key={o.id} className="group hover:bg-white hover:shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-300 font-semibold relative z-10 hover:z-20">
-                  <td className="py-4 px-5 font-mono text-[13px] text-secondary font-bold group-hover:text-secondary/80 transition-colors align-top">{o.id}</td>
+                  <td className="py-4 px-5 font-mono text-sm text-secondary font-bold group-hover:text-secondary/80 transition-colors align-top">{o.id}</td>
                   <td className="py-4 px-5 align-top">
-                    <div className="font-black text-slate-800 text-[15px] leading-tight group-hover:text-primary transition-colors truncate max-w-[180px]" title={o.name === 'N/A' || o.name === '—' || !o.name ? '-' : o.name}>
+                    <div className="font-black text-slate-800 text-base leading-tight group-hover:text-primary transition-colors truncate max-w-[180px]" title={o.name === 'N/A' || o.name === '—' || !o.name ? '-' : o.name}>
                       {o.name === 'N/A' || o.name === '—' || !o.name ? '-' : o.name}
                     </div>
                   </td>
@@ -191,7 +194,7 @@ function RegistryDatabase() {
                   <td className="py-4 px-5 text-right align-top whitespace-nowrap">
                     <Link
                       to={`/portal/register/${o.id}`}
-                      className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm hover:shadow transition-all duration-300 text-sm font-black text-slate-700 uppercase tracking-widest active:scale-95"
+                      className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-sm hover:shadow transition-all duration-300 text-sm font-black text-slate-700 tracking-wide active:scale-95"
                     >
                       <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-secondary transition-colors" /> Open File
                     </Link>

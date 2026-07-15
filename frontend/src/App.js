@@ -31,10 +31,12 @@ import VerificationDetails from './pages/portal/organization/VerificationDetails
 import LegalResources from './pages/portal/organization/LegalResources';
 import ComplianceAndSupport from './pages/portal/organization/ComplianceAndSupport';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
+import { ToastProvider } from './components/ui';
 
 
 function App() {
   return (
+    <ToastProvider>
     <Router>
       <Routes>
         {/* Marketing site */}
@@ -85,6 +87,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
+    </ToastProvider>
   );
 }
 

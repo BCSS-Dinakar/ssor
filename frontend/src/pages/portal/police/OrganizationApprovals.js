@@ -57,7 +57,7 @@ function OrganizationApprovals() {
     {
       key: 'appliedOn',
       label: 'Applied On',
-      render: (row) => <span className="text-sm text-slate-455 font-mono font-bold">{row.appliedOn}</span>
+      render: (row) => <span className="text-sm text-slate-500 font-mono font-bold">{row.appliedOn}</span>
     },
     {
       key: 'status',
@@ -65,10 +65,10 @@ function OrganizationApprovals() {
       render: (row) => {
         const styles = {
           pending: 'bg-amber-50 text-amber-700 border-amber-250',
-          approved: 'bg-emerald-50 text-emerald-700 border-emerald-250',
-          rejected: 'bg-red-50 text-red-700 border-red-250'
+          approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          rejected: 'bg-red-50 text-red-700 border-red-200'
         }[row.status] || 'bg-slate-50 text-slate-700 border-slate-200';
-        return <span className={`px-2.5 py-0.5 text-xs font-black uppercase tracking-wider rounded-full border ${styles}`}>{row.status}</span>;
+        return <span className={`px-2.5 py-0.5 text-sm font-bold tracking-wide rounded-full border ${styles}`}>{row.status}</span>;
       }
     },
     {
@@ -78,7 +78,7 @@ function OrganizationApprovals() {
       render: (row) => (
         <Link
           to={`/portal/org-verify/${row.id}`}
-          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl border border-blue-200 transition-colors text-sm font-black text-secondary uppercase tracking-widest"
+          className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-xl border border-blue-200 transition-colors text-sm font-black text-secondary tracking-wide"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Review File

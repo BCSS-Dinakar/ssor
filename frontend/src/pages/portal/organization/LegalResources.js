@@ -9,7 +9,7 @@ function ResourceCard({ icon: Icon, title, description, color = 'bg-blue-50 text
         <div className={`p-2 rounded-xl ${color} shadow-sm border ${borderColor} group-hover:scale-105 transition-transform`}>
           <Icon className="h-5 w-5" />
         </div>
-        <h3 className="font-extrabold text-slate-800 text-base leading-tight">{title}</h3>
+        <h3 className="font-heading text-title font-bold leading-tight text-slate-800">{title}</h3>
       </div>
       <div className="p-5 flex-1 bg-white">
         <p className="text-base text-slate-600 font-medium leading-relaxed">{description}</p>
@@ -20,17 +20,24 @@ function ResourceCard({ icon: Icon, title, description, color = 'bg-blue-50 text
 
 function HelplineCard({ number, label, description, available }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all p-1 flex items-center group">
-      <div className="w-14 h-14 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shrink-0 border border-red-100 ml-1 group-hover:bg-red-600 group-hover:text-white transition-colors">
-        <Phone className="h-6 w-6" />
+    <div className="flex h-full flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-panel transition-shadow hover:shadow-elevated">
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-danger/20 bg-danger-50 text-danger">
+          <Phone className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-base font-bold leading-snug text-slate-800">{label}</div>
+          <p className="mt-1 text-body-sm leading-snug text-muted">{description}</p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0 px-4 py-2">
-        <div className="text-base font-extrabold text-slate-800">{label}</div>
-        <div className="text-sm text-slate-500 font-medium mt-0.5 truncate">{description}</div>
-      </div>
-      <div className="pr-4 text-right shrink-0 border-l border-slate-100 pl-4 py-2">
-        <div className="text-lg font-black text-slate-800 tracking-tight">{number}</div>
-        <div className="text-xs uppercase font-bold tracking-widest text-emerald-600 mt-0.5">{available}</div>
+      <div className="mt-auto flex items-end justify-between gap-2 border-t border-slate-100 pt-3">
+        <a
+          href={`tel:${number}`}
+          className="font-heading text-2xl font-bold tracking-tight text-primary hover:text-secondary focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-secondary"
+        >
+          {number}
+        </a>
+        <span className="text-body-sm font-semibold text-success">{available}</span>
       </div>
     </div>
   );
@@ -88,10 +95,10 @@ function LegalResources() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-slate-400" /> Policy & Guidelines
+        <h3 className="section-label flex items-center gap-2">
+          <BookOpen className="h-4.5 w-4.5 text-slate-400" aria-hidden="true" /> Policy & Guidelines
         </h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <ResourceCard icon={Shield} title="Safe Recruitment" description="Ensure all support staff undergo clearance checks prior to deployment. Maintain secure employment records." color="bg-blue-50 text-blue-600" borderColor="border-blue-100" />
           <ResourceCard icon={BookOpen} title="POCSO Compliance" description="Under Section 19 of the POCSO Act, any individual with knowledge of child sexual abuse must report it immediately." color="bg-amber-50 text-amber-600" borderColor="border-amber-100" />
           <ResourceCard icon={FileCheck} title="Verification Limits" description="Clearance is a binary check against convicted registry databases. Offender identities are never shared with you." color="bg-emerald-50 text-emerald-600" borderColor="border-emerald-100" />
@@ -102,10 +109,10 @@ function LegalResources() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <Phone className="h-4 w-4 text-slate-400" /> Emergency Helplines
+        <h3 className="section-label flex items-center gap-2">
+          <Phone className="h-4.5 w-4.5 text-slate-400" aria-hidden="true" /> Emergency Helplines
         </h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <HelplineCard number="112" label="National Emergency" description="All-in-one distress response" available="24 Hours" />
           <HelplineCard number="100" label="Police Control" description="Immediate police desk" available="24 Hours" />
           <HelplineCard number="1098" label="Childline India" description="Protection of children" available="24 Hours" />
@@ -113,9 +120,9 @@ function LegalResources() {
         </div>
       </div>
 
-      <div className="space-y-4 max-w-4xl">
-        <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-          <HelpCircle className="h-4 w-4 text-slate-400" /> Frequently Asked Questions
+      <div className="max-w-4xl space-y-4">
+        <h3 className="section-label flex items-center gap-2">
+          <HelpCircle className="h-4.5 w-4.5 text-slate-400" aria-hidden="true" /> Frequently Asked Questions
         </h3>
         <div className="space-y-4">
           {faqs.map((faq, index) => (

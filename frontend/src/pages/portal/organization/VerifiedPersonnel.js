@@ -62,7 +62,7 @@ function VerifiedPersonnel() {
           const isCleared = c.status === 'cleared';
           const isRejected = c.status === 'rejected';
 
-          let borderClass = 'border-slate-150 hover:border-slate-300';
+          let borderClass = 'border-slate-200 hover:border-slate-300';
           let badgeText = 'Under Review';
           let badgeClass = 'bg-slate-100 text-slate-600 border border-slate-200';
           let glowClass = 'bg-slate-500/20';
@@ -70,12 +70,12 @@ function VerifiedPersonnel() {
           if (isCleared) {
             borderClass = 'border-emerald-100/80 hover:border-emerald-300 bg-gradient-to-br from-white to-emerald-50/5';
             badgeText = 'Clearance Vetted';
-            badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-250';
+            badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
             glowClass = 'bg-emerald-500';
           } else if (isRejected) {
             borderClass = 'border-red-100/80 hover:border-red-300 bg-gradient-to-br from-white to-red-50/5';
             badgeText = 'Rejected / Locked';
-            badgeClass = 'bg-red-50 text-red-700 border border-red-250';
+            badgeClass = 'bg-red-50 text-red-700 border border-red-200';
             glowClass = 'bg-red-500';
           }
 
@@ -83,8 +83,8 @@ function VerifiedPersonnel() {
             <div key={c.id} className={`card p-5 border flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 ${borderClass}`}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
-                  <span className="text-sm font-mono font-bold text-secondary uppercase tracking-wider">{c.id}</span>
-                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${badgeClass}`}>
+                  <span className="text-sm font-mono font-bold text-secondary tracking-wide">{c.id}</span>
+                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-sm font-bold tracking-wide ${badgeClass}`}>
                     {badgeText}
                   </span>
                 </div>
@@ -109,7 +109,7 @@ function VerifiedPersonnel() {
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-150 p-4 space-y-3 relative overflow-hidden">
+                <div className="bg-slate-50 border border-slate-200 p-4 space-y-3 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-3 opacity-10 pointer-events-none">
                     <ShieldCheck className="h-16 w-16" />
                   </div>

@@ -19,13 +19,14 @@ import {
 } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import { policeApi } from '../../../api/police.api';
+import { useToast } from '../../../components/ui/Toast';
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-start gap-3 py-2">
       <Icon className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <div className="text-sm text-slate-400 font-bold uppercase tracking-wider">{label}</div>
+        <div className="text-sm text-slate-400 font-bold tracking-wide">{label}</div>
         <div className="text-base text-slate-800 font-semibold break-words mt-0.5">{value || '—'}</div>
       </div>
     </div>
@@ -35,7 +36,7 @@ function InfoRow({ icon: Icon, label, value }) {
 function Section({ title, children }) {
   return (
     <div className="card p-6 bg-white border border-slate-200/80 shadow-md">
-      <h3 className="text-sm font-black text-primary font-heading mb-4 pb-3 border-b border-slate-100 uppercase tracking-wider">{title}</h3>
+      <h3 className="text-sm font-black text-primary font-heading mb-4 pb-3 border-b border-slate-100 tracking-wide">{title}</h3>
       {children}
     </div>
   );
@@ -43,6 +44,7 @@ function Section({ title, children }) {
 
 function OrganizationApprovalDetails() {
   const { id } = useParams();
+  const toast = useToast();
   const [org, setOrg] = useState(null);
   const [status, setStatus] = useState('pending');
   const [viewingDoc, setViewingDoc] = useState(null);
@@ -116,8 +118,8 @@ function OrganizationApprovalDetails() {
 
   const statusBadge = {
     pending: { cls: 'bg-amber-50 text-amber-700 border-amber-200', Icon: Clock, text: 'Pending Review' },
-    approved: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-250', Icon: CheckCircle2, text: 'Approved Registration' },
-    rejected: { cls: 'bg-red-50 text-red-700 border-red-250', Icon: XCircle, text: 'Registration Rejected' },
+    approved: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', Icon: CheckCircle2, text: 'Approved Registration' },
+    rejected: { cls: 'bg-red-50 text-red-700 border-red-200', Icon: XCircle, text: 'Registration Rejected' },
   }[status];
 
   const handleApprove = async () => {
@@ -125,10 +127,10 @@ function OrganizationApprovalDetails() {
       const res = await policeApi.updateOrganizationStatus(id, 'approved');
       if (res.success) {
         setStatus('approved');
-        alert(`Organization ${org.id} has been approved.`);
+        toast.success('Organization approved', `${org.orgName || org.id} can now access the portal.`);
       }
     } catch (err) {
-      alert('Failed to approve organization.');
+      toast.error('Approval failed', 'Unable to approve this organization. Please try again.');
     }
   };
 
@@ -137,10 +139,10 @@ function OrganizationApprovalDetails() {
       const res = await policeApi.updateOrganizationStatus(id, 'rejected');
       if (res.success) {
         setStatus('rejected');
-        alert(`Organization ${org.id} has been rejected.`);
+        toast.success('Organization rejected', `${org.orgName || org.id} registration has been rejected.`);
       }
     } catch (err) {
-      alert('Failed to reject organization.');
+      toast.error('Rejection failed', 'Unable to reject this organization. Please try again.');
     }
   };
 
@@ -157,7 +159,7 @@ function OrganizationApprovalDetails() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to download document:', err);
-      alert('Failed to download document.');
+      toast.error('Download failed', 'Unable to download this document.');
     }
   };
 
@@ -195,13 +197,13 @@ function OrganizationApprovalDetails() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={handleReject}
-              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 font-extrabold text-sm uppercase tracking-wider rounded-xl border border-red-200 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-white text-red-600 hover:bg-red-50 hover:text-red-700 font-extrabold text-sm tracking-wide rounded-xl border border-red-200 transition-colors shadow-sm"
             >
               <XCircle className="h-4 w-4" /> Reject
             </button>
             <button
               onClick={handleApprove}
-              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold text-sm uppercase tracking-wider rounded-xl border border-emerald-600 transition-colors shadow-sm"
+              className="flex-1 sm:flex-none justify-center inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold text-sm tracking-wide rounded-xl border border-emerald-600 transition-colors shadow-sm"
             >
               <CheckCircle2 className="h-4 w-4" /> Approve
             </button>
@@ -264,13 +266,13 @@ function OrganizationApprovalDetails() {
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setViewingDoc(doc)}
-                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl border border-blue-200 transition-colors text-xs font-black text-secondary uppercase tracking-widest"
+                        className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl border border-blue-200 transition-colors text-sm font-bold text-secondary tracking-wide"
                       >
                         <Eye className="h-3.5 w-3.5" /> View
                       </button>
                       <button
                         onClick={() => downloadDoc(doc.name)}
-                        className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-xs font-black text-emerald-700 uppercase tracking-widest"
+                        className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-200 transition-colors text-sm font-bold text-emerald-700 tracking-wide"
                       >
                         <Download className="h-3.5 w-3.5" /> DL
                       </button>
@@ -286,7 +288,7 @@ function OrganizationApprovalDetails() {
       {/* Document Preview Modal */}
       {viewingDoc && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingDoc(null)}>
-          <div className="bg-white rounded-3xl border border-slate-150 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-scaleUp" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-scaleUp" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center">
@@ -300,7 +302,7 @@ function OrganizationApprovalDetails() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => downloadDoc(viewingDoc.name)}
-                  className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-250 transition-colors text-xs font-black text-emerald-700 uppercase tracking-widest"
+                  className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-xl border border-emerald-200 transition-colors text-sm font-bold text-emerald-700 tracking-wide"
                 >
                   <Download className="h-4 w-4" /> Download
                 </button>
@@ -322,7 +324,7 @@ function OrganizationApprovalDetails() {
               ) : (
                 <div className="text-center space-y-4">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                  <p className="text-base font-black text-slate-700 uppercase tracking-wider">Loading Document...</p>
+                  <p className="text-base font-black text-slate-700 tracking-wide">Loading Document...</p>
                 </div>
               )}
             </div>
