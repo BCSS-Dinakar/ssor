@@ -2,15 +2,16 @@
 -- PostgreSQL database dump
 --
 
-\restrict vnTf0g8jnDHgP8NdFfK65s9pXER3chlwozJVahnaMcS33fecbokaOz1gGkqNyzt
+\restrict QXEkdQlNBoE1gCqJ8DcWl6mWhMYnfavxntRX7ba3p0JNXr5E0lVFqfLqKKcB0lf
 
 -- Dumped from database version 16.14 (Debian 16.14-1.pgdg12+1)
--- Dumped by pg_dump version 17.10 (Homebrew)
+-- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
+
+-- Started on 2026-07-15 15:13:19 IST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -20,22 +21,16 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: cctns_prod
---
-
--- *not* creating schema, since initdb creates it
-
-
-ALTER SCHEMA public OWNER TO cctns_prod;
-
---
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: cctns_prod
+-- TOC entry 4317 (class 0 OID 0)
+-- Dependencies: 11
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
 --
 
 COMMENT ON SCHEMA public IS '';
 
 
 --
+-- TOC entry 2 (class 3079 OID 33937)
 -- Name: dblink; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -43,6 +38,8 @@ CREATE EXTENSION IF NOT EXISTS dblink WITH SCHEMA public;
 
 
 --
+-- TOC entry 4318 (class 0 OID 0)
+-- Dependencies: 2
 -- Name: EXTENSION dblink; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -50,6 +47,7 @@ COMMENT ON EXTENSION dblink IS 'connect to other PostgreSQL databases from withi
 
 
 --
+-- TOC entry 3 (class 3079 OID 33983)
 -- Name: fuzzystrmatch; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -57,6 +55,8 @@ CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
 
 
 --
+-- TOC entry 4319 (class 0 OID 0)
+-- Dependencies: 3
 -- Name: EXTENSION fuzzystrmatch; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -64,6 +64,7 @@ COMMENT ON EXTENSION fuzzystrmatch IS 'determine similarities and distance betwe
 
 
 --
+-- TOC entry 4 (class 3079 OID 33995)
 -- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -71,6 +72,8 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
 
 
 --
+-- TOC entry 4320 (class 0 OID 0)
+-- Dependencies: 4
 -- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -78,6 +81,7 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 
 
 --
+-- TOC entry 5 (class 3079 OID 34076)
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -85,6 +89,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 
 
 --
+-- TOC entry 4321 (class 0 OID 0)
+-- Dependencies: 5
 -- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -92,6 +98,7 @@ COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
+-- TOC entry 6 (class 3079 OID 34113)
 -- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -99,6 +106,8 @@ CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
 
 
 --
+-- TOC entry 4322 (class 0 OID 0)
+-- Dependencies: 6
 -- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -106,6 +115,7 @@ COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
 
 
 --
+-- TOC entry 7 (class 3079 OID 34120)
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -113,6 +123,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 
 --
+-- TOC entry 4323 (class 0 OID 0)
+-- Dependencies: 7
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -120,6 +132,7 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 
 
 --
+-- TOC entry 8 (class 3079 OID 34131)
 -- Name: vector; Type: EXTENSION; Schema: -; Owner: -
 --
 
@@ -127,6 +140,8 @@ CREATE EXTENSION IF NOT EXISTS vector WITH SCHEMA public;
 
 
 --
+-- TOC entry 4324 (class 0 OID 0)
+-- Dependencies: 8
 -- Name: EXTENSION vector; Type: COMMENT; Schema: -; Owner: 
 --
 
@@ -134,6 +149,7 @@ COMMENT ON EXTENSION vector IS 'vector data type and ivfflat and hnsw access met
 
 
 --
+-- TOC entry 1214 (class 1247 OID 34460)
 -- Name: source_field_enum; Type: TYPE; Schema: public; Owner: cctns_prod
 --
 
@@ -151,6 +167,7 @@ CREATE TYPE public.source_field_enum AS ENUM (
 ALTER TYPE public.source_field_enum OWNER TO cctns_prod;
 
 --
+-- TOC entry 1217 (class 1247 OID 34476)
 -- Name: source_type_enum; Type: TYPE; Schema: public; Owner: cctns_prod
 --
 
@@ -168,6 +185,7 @@ CREATE TYPE public.source_type_enum AS ENUM (
 ALTER TYPE public.source_type_enum OWNER TO cctns_prod;
 
 --
+-- TOC entry 439 (class 1255 OID 34491)
 -- Name: auto_generate_file_paths(); Type: FUNCTION; Schema: public; Owner: cctns_prod
 --
 
@@ -252,6 +270,7 @@ $_$;
 ALTER FUNCTION public.auto_generate_file_paths() OWNER TO cctns_prod;
 
 --
+-- TOC entry 575 (class 1255 OID 34492)
 -- Name: enforce_case_property_mo_reference(); Type: FUNCTION; Schema: public; Owner: cctns_prod
 --
 
@@ -280,6 +299,7 @@ $$;
 ALTER FUNCTION public.enforce_case_property_mo_reference() OWNER TO cctns_prod;
 
 --
+-- TOC entry 386 (class 1255 OID 34493)
 -- Name: generate_file_path(public.source_type_enum, public.source_field_enum, uuid); Type: FUNCTION; Schema: public; Owner: cctns_prod
 --
 
@@ -331,6 +351,7 @@ $$;
 ALTER FUNCTION public.generate_file_path(p_source_type public.source_type_enum, p_source_field public.source_field_enum, p_file_id uuid) OWNER TO cctns_prod;
 
 --
+-- TOC entry 563 (class 1255 OID 34494)
 -- Name: generate_file_url(public.source_type_enum, public.source_field_enum, uuid); Type: FUNCTION; Schema: public; Owner: cctns_prod
 --
 
@@ -359,6 +380,226 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- TOC entry 320 (class 1259 OID 37442)
+-- Name: CandidateVerification; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."CandidateVerification" (
+    id text NOT NULL,
+    "organizationId" text NOT NULL,
+    "orgName" text NOT NULL,
+    "orgType" text NOT NULL,
+    role text NOT NULL,
+    "candidateName" text NOT NULL,
+    dob timestamp(3) without time zone NOT NULL,
+    "fatherName" text,
+    phone text NOT NULL,
+    consent boolean NOT NULL,
+    "aadharNumber" text,
+    "candidateImage" text,
+    "consentFile" text,
+    status text DEFAULT 'pending'::text NOT NULL,
+    "policeFeedback" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."CandidateVerification" OWNER TO cctns_prod;
+
+--
+-- TOC entry 323 (class 1259 OID 37473)
+-- Name: EPettyCase; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."EPettyCase" (
+    id text NOT NULL,
+    "caseNumber" text NOT NULL,
+    "offenderName" text NOT NULL,
+    alias text,
+    age integer,
+    "fatherName" text,
+    phone text NOT NULL,
+    email text,
+    address text,
+    "policeStation" text,
+    district text,
+    "incidentDate" text,
+    "offenceType" text,
+    "penaltyAmount" double precision DEFAULT 500.0,
+    "disposalStatus" text DEFAULT 'Fine Paid'::text,
+    "riskTier" text DEFAULT 'Orange'::text NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."EPettyCase" OWNER TO cctns_prod;
+
+--
+-- TOC entry 319 (class 1259 OID 37433)
+-- Name: OrganizationProfile; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."OrganizationProfile" (
+    id text NOT NULL,
+    "userId" text NOT NULL,
+    "orgName" text NOT NULL,
+    "orgType" text NOT NULL,
+    "parentOrg" text,
+    department text,
+    jurisdiction text,
+    country text NOT NULL,
+    state text NOT NULL,
+    district text NOT NULL,
+    city text NOT NULL,
+    address text NOT NULL,
+    "pinCode" text NOT NULL,
+    "officialEmail" text NOT NULL,
+    "officialPhone" text NOT NULL,
+    "altPhone" text,
+    website text,
+    "adminName" text NOT NULL,
+    designation text NOT NULL,
+    "empId" text NOT NULL,
+    "adminEmail" text NOT NULL,
+    mobile text NOT NULL,
+    "authLetterPath" text,
+    "govCertPath" text,
+    "supportingDocsPaths" text[] DEFAULT ARRAY[]::text[] NOT NULL
+);
+
+
+ALTER TABLE public."OrganizationProfile" OWNER TO cctns_prod;
+
+--
+-- TOC entry 318 (class 1259 OID 37424)
+-- Name: PoliceProfile; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."PoliceProfile" (
+    id text NOT NULL,
+    "userId" text NOT NULL,
+    name text NOT NULL,
+    "badgeId" text,
+    rank text,
+    "empId" text,
+    department text,
+    wing text,
+    jurisdiction text,
+    "joiningDate" text,
+    email text,
+    mobile text,
+    "altPhone" text,
+    station text,
+    district text,
+    state text,
+    country text,
+    "clearanceLevel" text,
+    "docsPaths" text[] DEFAULT ARRAY[]::text[] NOT NULL
+);
+
+
+ALTER TABLE public."PoliceProfile" OWNER TO cctns_prod;
+
+--
+-- TOC entry 321 (class 1259 OID 37452)
+-- Name: SupportTicket; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."SupportTicket" (
+    id text NOT NULL,
+    "ticketNumber" text NOT NULL,
+    "organizationId" text NOT NULL,
+    subject text NOT NULL,
+    category text NOT NULL,
+    priority text DEFAULT 'Medium'::text NOT NULL,
+    reference text,
+    status text DEFAULT 'Open'::text NOT NULL,
+    assignee text DEFAULT 'Unassigned'::text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."SupportTicket" OWNER TO cctns_prod;
+
+--
+-- TOC entry 317 (class 1259 OID 37415)
+-- Name: SystemAuditLog; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."SystemAuditLog" (
+    id integer NOT NULL,
+    "userId" text NOT NULL,
+    action text NOT NULL,
+    "ipAddress" text,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."SystemAuditLog" OWNER TO cctns_prod;
+
+--
+-- TOC entry 316 (class 1259 OID 37414)
+-- Name: SystemAuditLog_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
+--
+
+CREATE SEQUENCE public."SystemAuditLog_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."SystemAuditLog_id_seq" OWNER TO cctns_prod;
+
+--
+-- TOC entry 4325 (class 0 OID 0)
+-- Dependencies: 316
+-- Name: SystemAuditLog_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
+--
+
+ALTER SEQUENCE public."SystemAuditLog_id_seq" OWNED BY public."SystemAuditLog".id;
+
+
+--
+-- TOC entry 322 (class 1259 OID 37465)
+-- Name: TicketMessage; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."TicketMessage" (
+    id text NOT NULL,
+    "ticketId" text NOT NULL,
+    "senderName" text NOT NULL,
+    "senderRole" text NOT NULL,
+    text text NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."TicketMessage" OWNER TO cctns_prod;
+
+--
+-- TOC entry 315 (class 1259 OID 37404)
+-- Name: User; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public."User" (
+    id text NOT NULL,
+    "loginId" text NOT NULL,
+    "passwordHash" text NOT NULL,
+    role text NOT NULL,
+    status text DEFAULT 'pending'::text NOT NULL,
+    "createdAt" timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."User" OWNER TO cctns_prod;
+
+--
+-- TOC entry 223 (class 1259 OID 34495)
 -- Name: accused; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -392,6 +633,8 @@ CREATE TABLE public.accused (
 ALTER TABLE public.accused OWNER TO cctns_prod;
 
 --
+-- TOC entry 4326 (class 0 OID 0)
+-- Dependencies: 223
 -- Name: TABLE accused; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -399,6 +642,8 @@ COMMENT ON TABLE public.accused IS 'Links persons to crimes as accused with phys
 
 
 --
+-- TOC entry 4327 (class 0 OID 0)
+-- Dependencies: 223
 -- Name: COLUMN accused.person_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -406,6 +651,8 @@ COMMENT ON COLUMN public.accused.person_id IS 'Can be NULL - stub persons are cr
 
 
 --
+-- TOC entry 4328 (class 0 OID 0)
+-- Dependencies: 223
 -- Name: COLUMN accused.is_ccl; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -413,6 +660,7 @@ COMMENT ON COLUMN public.accused.is_ccl IS 'Is Child in Conflict with Law';
 
 
 --
+-- TOC entry 224 (class 1259 OID 34502)
 -- Name: arrests; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -440,6 +688,7 @@ CREATE TABLE public.arrests (
 ALTER TABLE public.arrests OWNER TO cctns_prod;
 
 --
+-- TOC entry 225 (class 1259 OID 34508)
 -- Name: charge_sheet_updates; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -461,6 +710,8 @@ CREATE TABLE public.charge_sheet_updates (
 ALTER TABLE public.charge_sheet_updates OWNER TO cctns_prod;
 
 --
+-- TOC entry 4329 (class 0 OID 0)
+-- Dependencies: 225
 -- Name: TABLE charge_sheet_updates; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -470,6 +721,7 @@ COMMENT ON TABLE public.charge_sheet_updates IS 'Stores charge sheet update reco
 
 
 --
+-- TOC entry 226 (class 1259 OID 34511)
 -- Name: charge_sheet_updates_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -485,6 +737,8 @@ CREATE SEQUENCE public.charge_sheet_updates_id_seq
 ALTER SEQUENCE public.charge_sheet_updates_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4330 (class 0 OID 0)
+-- Dependencies: 226
 -- Name: charge_sheet_updates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -492,6 +746,7 @@ ALTER SEQUENCE public.charge_sheet_updates_id_seq OWNED BY public.charge_sheet_u
 
 
 --
+-- TOC entry 227 (class 1259 OID 34512)
 -- Name: chargesheet_accused; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -510,6 +765,7 @@ CREATE TABLE public.chargesheet_accused (
 ALTER TABLE public.chargesheet_accused OWNER TO cctns_prod;
 
 --
+-- TOC entry 228 (class 1259 OID 34520)
 -- Name: chargesheet_acts; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -528,6 +784,7 @@ CREATE TABLE public.chargesheet_acts (
 ALTER TABLE public.chargesheet_acts OWNER TO cctns_prod;
 
 --
+-- TOC entry 229 (class 1259 OID 34527)
 -- Name: chargesheet_acts_sections; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -549,6 +806,8 @@ CREATE TABLE public.chargesheet_acts_sections (
 ALTER TABLE public.chargesheet_acts_sections OWNER TO cctns_prod;
 
 --
+-- TOC entry 4331 (class 0 OID 0)
+-- Dependencies: 229
 -- Name: TABLE chargesheet_acts_sections; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -556,6 +815,8 @@ COMMENT ON TABLE public.chargesheet_acts_sections IS 'Normalized sections for ch
 
 
 --
+-- TOC entry 4332 (class 0 OID 0)
+-- Dependencies: 229
 -- Name: COLUMN chargesheet_acts_sections.chargesheet_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -563,6 +824,7 @@ COMMENT ON COLUMN public.chargesheet_acts_sections.chargesheet_id IS 'API charge
 
 
 --
+-- TOC entry 230 (class 1259 OID 34536)
 -- Name: chargesheet_files; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -577,6 +839,7 @@ CREATE TABLE public.chargesheet_files (
 ALTER TABLE public.chargesheet_files OWNER TO cctns_prod;
 
 --
+-- TOC entry 231 (class 1259 OID 34540)
 -- Name: chargesheet_media; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -594,6 +857,8 @@ CREATE TABLE public.chargesheet_media (
 ALTER TABLE public.chargesheet_media OWNER TO cctns_prod;
 
 --
+-- TOC entry 4333 (class 0 OID 0)
+-- Dependencies: 231
 -- Name: TABLE chargesheet_media; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -601,6 +866,8 @@ COMMENT ON TABLE public.chargesheet_media IS 'Normalized media references for ch
 
 
 --
+-- TOC entry 4334 (class 0 OID 0)
+-- Dependencies: 231
 -- Name: COLUMN chargesheet_media.chargesheet_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -608,6 +875,8 @@ COMMENT ON COLUMN public.chargesheet_media.chargesheet_id IS 'API chargeSheetId 
 
 
 --
+-- TOC entry 4335 (class 0 OID 0)
+-- Dependencies: 231
 -- Name: COLUMN chargesheet_media.file_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -615,6 +884,7 @@ COMMENT ON COLUMN public.chargesheet_media.file_id IS 'uploadChargeSheet.fileId 
 
 
 --
+-- TOC entry 232 (class 1259 OID 34547)
 -- Name: chargesheets; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -637,6 +907,8 @@ CREATE TABLE public.chargesheets (
 ALTER TABLE public.chargesheets OWNER TO cctns_prod;
 
 --
+-- TOC entry 4336 (class 0 OID 0)
+-- Dependencies: 232
 -- Name: COLUMN chargesheets.charge_sheet_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -644,6 +916,7 @@ COMMENT ON COLUMN public.chargesheets.charge_sheet_id IS 'API chargeSheetId. Nat
 
 
 --
+-- TOC entry 233 (class 1259 OID 34555)
 -- Name: crimes; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -694,6 +967,8 @@ CREATE TABLE public.crimes (
 ALTER TABLE public.crimes OWNER TO cctns_prod;
 
 --
+-- TOC entry 4337 (class 0 OID 0)
+-- Dependencies: 233
 -- Name: TABLE crimes; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -701,6 +976,8 @@ COMMENT ON TABLE public.crimes IS 'Crime/FIR records registered at police statio
 
 
 --
+-- TOC entry 4338 (class 0 OID 0)
+-- Dependencies: 233
 -- Name: COLUMN crimes.brief_facts; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -708,6 +985,7 @@ COMMENT ON COLUMN public.crimes.brief_facts IS 'Detailed description of the crim
 
 
 --
+-- TOC entry 234 (class 1259 OID 34560)
 -- Name: disposal; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -726,6 +1004,7 @@ CREATE TABLE public.disposal (
 ALTER TABLE public.disposal OWNER TO cctns_prod;
 
 --
+-- TOC entry 235 (class 1259 OID 34566)
 -- Name: etl_run_state; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -739,6 +1018,7 @@ CREATE TABLE public.etl_run_state (
 ALTER TABLE public.etl_run_state OWNER TO cctns_prod;
 
 --
+-- TOC entry 236 (class 1259 OID 34570)
 -- Name: files; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -767,6 +1047,8 @@ CREATE TABLE public.files (
 ALTER TABLE public.files OWNER TO cctns_prod;
 
 --
+-- TOC entry 4339 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: TABLE files; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -774,6 +1056,8 @@ COMMENT ON TABLE public.files IS 'Stores file references (UUIDs) from various so
 
 
 --
+-- TOC entry 4340 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.source_type; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -781,6 +1065,8 @@ COMMENT ON COLUMN public.files.source_type IS 'Type of source: crime, interrogat
 
 
 --
+-- TOC entry 4341 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.source_field; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -788,6 +1074,8 @@ COMMENT ON COLUMN public.files.source_field IS 'Field name from source: FIR_COPY
 
 
 --
+-- TOC entry 4342 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.parent_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -795,6 +1083,8 @@ COMMENT ON COLUMN public.files.parent_id IS 'ID of the parent record (crime_id, 
 
 
 --
+-- TOC entry 4343 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.file_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -802,6 +1092,8 @@ COMMENT ON COLUMN public.files.file_id IS 'The actual file UUID that can be used
 
 
 --
+-- TOC entry 4344 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.has_field; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -809,6 +1101,8 @@ COMMENT ON COLUMN public.files.has_field IS 'TRUE if the field exists in API res
 
 
 --
+-- TOC entry 4345 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.is_empty; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -816,6 +1110,8 @@ COMMENT ON COLUMN public.files.is_empty IS 'TRUE if field exists but is null or 
 
 
 --
+-- TOC entry 4346 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.file_path; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -823,6 +1119,8 @@ COMMENT ON COLUMN public.files.file_path IS 'Relative file path on Tomcat server
 
 
 --
+-- TOC entry 4347 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.file_url; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -830,6 +1128,8 @@ COMMENT ON COLUMN public.files.file_url IS 'Full file URL on Tomcat server (auto
 
 
 --
+-- TOC entry 4348 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.file_index; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -837,6 +1137,8 @@ COMMENT ON COLUMN public.files.file_index IS 'Index position in array (for MEDIA
 
 
 --
+-- TOC entry 4349 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.identity_type; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -844,6 +1146,8 @@ COMMENT ON COLUMN public.files.identity_type IS 'For IDENTITY_DETAILS: type of i
 
 
 --
+-- TOC entry 4350 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.identity_number; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -851,6 +1155,8 @@ COMMENT ON COLUMN public.files.identity_number IS 'For IDENTITY_DETAILS: identit
 
 
 --
+-- TOC entry 4351 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.downloaded_at; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -858,6 +1164,8 @@ COMMENT ON COLUMN public.files.downloaded_at IS 'Timestamp when file was success
 
 
 --
+-- TOC entry 4352 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.is_downloaded; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -865,6 +1173,8 @@ COMMENT ON COLUMN public.files.is_downloaded IS 'Flag indicating if file has bee
 
 
 --
+-- TOC entry 4353 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.download_error; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -872,6 +1182,8 @@ COMMENT ON COLUMN public.files.download_error IS 'Error message if file download
 
 
 --
+-- TOC entry 4354 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.download_attempts; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -879,6 +1191,8 @@ COMMENT ON COLUMN public.files.download_attempts IS 'Number of download attempts
 
 
 --
+-- TOC entry 4355 (class 0 OID 0)
+-- Dependencies: 236
 -- Name: COLUMN files.created_at; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -886,6 +1200,7 @@ COMMENT ON COLUMN public.files.created_at IS 'Timestamp from API (DATE_CREATED o
 
 
 --
+-- TOC entry 237 (class 1259 OID 34581)
 -- Name: files_summary; Type: VIEW; Schema: public; Owner: cctns_prod
 --
 
@@ -902,6 +1217,7 @@ CREATE VIEW public.files_summary AS
 ALTER VIEW public.files_summary OWNER TO cctns_prod;
 
 --
+-- TOC entry 238 (class 1259 OID 34585)
 -- Name: fpb_accused; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -973,6 +1289,7 @@ CREATE TABLE public.fpb_accused (
 ALTER TABLE public.fpb_accused OWNER TO cctns_prod;
 
 --
+-- TOC entry 239 (class 1259 OID 34591)
 -- Name: fpb_accused_fpb_accused_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -987,6 +1304,8 @@ CREATE SEQUENCE public.fpb_accused_fpb_accused_id_seq
 ALTER SEQUENCE public.fpb_accused_fpb_accused_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4356 (class 0 OID 0)
+-- Dependencies: 239
 -- Name: fpb_accused_fpb_accused_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -994,6 +1313,7 @@ ALTER SEQUENCE public.fpb_accused_fpb_accused_id_seq OWNED BY public.fpb_accused
 
 
 --
+-- TOC entry 240 (class 1259 OID 34592)
 -- Name: fpb_additional_crimes; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1012,6 +1332,7 @@ CREATE TABLE public.fpb_additional_crimes (
 ALTER TABLE public.fpb_additional_crimes OWNER TO cctns_prod;
 
 --
+-- TOC entry 241 (class 1259 OID 34597)
 -- Name: fpb_additional_crimes_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -1026,6 +1347,8 @@ CREATE SEQUENCE public.fpb_additional_crimes_id_seq
 ALTER SEQUENCE public.fpb_additional_crimes_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4357 (class 0 OID 0)
+-- Dependencies: 241
 -- Name: fpb_additional_crimes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -1033,6 +1356,7 @@ ALTER SEQUENCE public.fpb_additional_crimes_id_seq OWNED BY public.fpb_additiona
 
 
 --
+-- TOC entry 242 (class 1259 OID 34598)
 -- Name: fsl_case_property; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1079,6 +1403,8 @@ CREATE TABLE public.fsl_case_property (
 ALTER TABLE public.fsl_case_property OWNER TO cctns_prod;
 
 --
+-- TOC entry 4358 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: TABLE fsl_case_property; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1086,6 +1412,8 @@ COMMENT ON TABLE public.fsl_case_property IS 'Main table storing case property r
 
 
 --
+-- TOC entry 4359 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.case_property_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1093,6 +1421,8 @@ COMMENT ON COLUMN public.fsl_case_property.case_property_id IS 'Primary key from
 
 
 --
+-- TOC entry 4360 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.crime_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1100,6 +1430,8 @@ COMMENT ON COLUMN public.fsl_case_property.crime_id IS 'Reference to crime/case 
 
 
 --
+-- TOC entry 4361 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.mo_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1107,6 +1439,8 @@ COMMENT ON COLUMN public.fsl_case_property.mo_id IS 'Material Object ID (MO_ID)'
 
 
 --
+-- TOC entry 4362 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.status; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1114,6 +1448,8 @@ COMMENT ON COLUMN public.fsl_case_property.status IS 'Current status (e.g., Send
 
 
 --
+-- TOC entry 4363 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.date_created; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1121,6 +1457,8 @@ COMMENT ON COLUMN public.fsl_case_property.date_created IS 'Record creation time
 
 
 --
+-- TOC entry 4364 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.date_modified; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1128,6 +1466,8 @@ COMMENT ON COLUMN public.fsl_case_property.date_modified IS 'Record modification
 
 
 --
+-- TOC entry 4365 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.fsl_no; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1135,6 +1475,8 @@ COMMENT ON COLUMN public.fsl_case_property.fsl_no IS 'FSL case number';
 
 
 --
+-- TOC entry 4366 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.report_received; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1142,6 +1484,8 @@ COMMENT ON COLUMN public.fsl_case_property.report_received IS 'Whether FSL repor
 
 
 --
+-- TOC entry 4367 (class 0 OID 0)
+-- Dependencies: 242
 -- Name: COLUMN fsl_case_property.property_received_back; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1149,6 +1493,7 @@ COMMENT ON COLUMN public.fsl_case_property.property_received_back IS 'Whether pr
 
 
 --
+-- TOC entry 243 (class 1259 OID 34603)
 -- Name: hierarchy; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1177,6 +1522,8 @@ CREATE TABLE public.hierarchy (
 ALTER TABLE public.hierarchy OWNER TO cctns_prod;
 
 --
+-- TOC entry 4368 (class 0 OID 0)
+-- Dependencies: 243
 -- Name: TABLE hierarchy; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1184,6 +1531,7 @@ COMMENT ON TABLE public.hierarchy IS 'Police organizational hierarchy from ADG t
 
 
 --
+-- TOC entry 244 (class 1259 OID 34608)
 -- Name: interrogation_reports; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1252,6 +1600,8 @@ CREATE TABLE public.interrogation_reports (
 ALTER TABLE public.interrogation_reports OWNER TO cctns_prod;
 
 --
+-- TOC entry 4369 (class 0 OID 0)
+-- Dependencies: 244
 -- Name: TABLE interrogation_reports; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1259,6 +1609,7 @@ COMMENT ON TABLE public.interrogation_reports IS 'Main table storing Interrogati
 
 
 --
+-- TOC entry 245 (class 1259 OID 34613)
 -- Name: ir_associate_details; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1274,6 +1625,8 @@ CREATE TABLE public.ir_associate_details (
 ALTER TABLE public.ir_associate_details OWNER TO cctns_prod;
 
 --
+-- TOC entry 4370 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: TABLE ir_associate_details; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1281,6 +1634,7 @@ COMMENT ON TABLE public.ir_associate_details IS 'Associate information for each 
 
 
 --
+-- TOC entry 246 (class 1259 OID 34618)
 -- Name: ir_associate_details_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -1295,6 +1649,8 @@ CREATE SEQUENCE public.ir_associate_details_id_seq
 ALTER SEQUENCE public.ir_associate_details_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4371 (class 0 OID 0)
+-- Dependencies: 246
 -- Name: ir_associate_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -1302,6 +1658,7 @@ ALTER SEQUENCE public.ir_associate_details_id_seq OWNED BY public.ir_associate_d
 
 
 --
+-- TOC entry 247 (class 1259 OID 34619)
 -- Name: ir_consumer_details; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1320,6 +1677,7 @@ CREATE TABLE public.ir_consumer_details (
 ALTER TABLE public.ir_consumer_details OWNER TO cctns_prod;
 
 --
+-- TOC entry 248 (class 1259 OID 34624)
 -- Name: ir_conviction_acquittal; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1347,6 +1705,8 @@ CREATE TABLE public.ir_conviction_acquittal (
 ALTER TABLE public.ir_conviction_acquittal OWNER TO cctns_prod;
 
 --
+-- TOC entry 4372 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: TABLE ir_conviction_acquittal; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1354,6 +1714,8 @@ COMMENT ON TABLE public.ir_conviction_acquittal IS 'Conviction/acquittal details
 
 
 --
+-- TOC entry 4373 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1361,6 +1723,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.interrogation_report_id IS 'For
 
 
 --
+-- TOC entry 4374 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.crime_num; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1368,6 +1732,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.crime_num IS 'Associated crime 
 
 
 --
+-- TOC entry 4375 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.court_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1375,6 +1741,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.court_name IS 'Court name where
 
 
 --
+-- TOC entry 4376 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.verdict; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1382,6 +1750,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.verdict IS 'Verdict (Convicted,
 
 
 --
+-- TOC entry 4377 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.verdict_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1389,6 +1759,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.verdict_date IS 'Date of verdic
 
 
 --
+-- TOC entry 4378 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.reason_if_acquitted; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1396,6 +1768,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.reason_if_acquitted IS 'Reason 
 
 
 --
+-- TOC entry 4379 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.sentence_if_convicted; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1403,6 +1777,8 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.sentence_if_convicted IS 'Detai
 
 
 --
+-- TOC entry 4380 (class 0 OID 0)
+-- Dependencies: 248
 -- Name: COLUMN ir_conviction_acquittal.appeal_status; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1410,6 +1786,7 @@ COMMENT ON COLUMN public.ir_conviction_acquittal.appeal_status IS 'Status of any
 
 
 --
+-- TOC entry 249 (class 1259 OID 34631)
 -- Name: ir_defence_counsel; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1433,6 +1810,7 @@ CREATE TABLE public.ir_defence_counsel (
 ALTER TABLE public.ir_defence_counsel OWNER TO cctns_prod;
 
 --
+-- TOC entry 250 (class 1259 OID 34638)
 -- Name: ir_dopams_links; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1447,6 +1825,7 @@ CREATE TABLE public.ir_dopams_links (
 ALTER TABLE public.ir_dopams_links OWNER TO cctns_prod;
 
 --
+-- TOC entry 251 (class 1259 OID 34643)
 -- Name: ir_execution_of_nbw; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1469,6 +1848,8 @@ CREATE TABLE public.ir_execution_of_nbw (
 ALTER TABLE public.ir_execution_of_nbw OWNER TO cctns_prod;
 
 --
+-- TOC entry 4381 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: TABLE ir_execution_of_nbw; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1476,6 +1857,8 @@ COMMENT ON TABLE public.ir_execution_of_nbw IS 'Execution of NBW (Non-Bailable W
 
 
 --
+-- TOC entry 4382 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1483,6 +1866,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.interrogation_report_id IS 'Foreign
 
 
 --
+-- TOC entry 4383 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.nbw_number; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1490,6 +1875,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.nbw_number IS 'NBW number/reference
 
 
 --
+-- TOC entry 4384 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.issued_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1497,6 +1884,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.issued_date IS 'Date NBW was issued
 
 
 --
+-- TOC entry 4385 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.executed_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1504,6 +1893,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.executed_date IS 'Date NBW was exec
 
 
 --
+-- TOC entry 4386 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.jurisdiction_ps; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1511,6 +1902,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.jurisdiction_ps IS 'Police station 
 
 
 --
+-- TOC entry 4387 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.crime_num; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1518,6 +1911,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.crime_num IS 'Associated crime numb
 
 
 --
+-- TOC entry 4388 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.executed_by; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1525,6 +1920,8 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.executed_by IS 'Name of officer who
 
 
 --
+-- TOC entry 4389 (class 0 OID 0)
+-- Dependencies: 251
 -- Name: COLUMN ir_execution_of_nbw.place_of_execution; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1532,6 +1929,7 @@ COMMENT ON COLUMN public.ir_execution_of_nbw.place_of_execution IS 'Location of 
 
 
 --
+-- TOC entry 252 (class 1259 OID 34650)
 -- Name: ir_family_history; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1550,6 +1948,7 @@ CREATE TABLE public.ir_family_history (
 ALTER TABLE public.ir_family_history OWNER TO cctns_prod;
 
 --
+-- TOC entry 253 (class 1259 OID 34658)
 -- Name: ir_financial_history; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1571,6 +1970,7 @@ CREATE TABLE public.ir_financial_history (
 ALTER TABLE public.ir_financial_history OWNER TO cctns_prod;
 
 --
+-- TOC entry 254 (class 1259 OID 34663)
 -- Name: ir_indulgance_before_offence; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1585,6 +1985,8 @@ CREATE TABLE public.ir_indulgance_before_offence (
 ALTER TABLE public.ir_indulgance_before_offence OWNER TO cctns_prod;
 
 --
+-- TOC entry 4390 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: TABLE ir_indulgance_before_offence; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1592,6 +1994,8 @@ COMMENT ON TABLE public.ir_indulgance_before_offence IS 'Substances/habits indul
 
 
 --
+-- TOC entry 4391 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: COLUMN ir_indulgance_before_offence.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1599,6 +2003,8 @@ COMMENT ON COLUMN public.ir_indulgance_before_offence.interrogation_report_id IS
 
 
 --
+-- TOC entry 4392 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: COLUMN ir_indulgance_before_offence.indulgance; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1606,6 +2012,7 @@ COMMENT ON COLUMN public.ir_indulgance_before_offence.indulgance IS 'Type of ind
 
 
 --
+-- TOC entry 255 (class 1259 OID 34669)
 -- Name: ir_interrogation_report_refs; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1619,6 +2026,7 @@ CREATE TABLE public.ir_interrogation_report_refs (
 ALTER TABLE public.ir_interrogation_report_refs OWNER TO cctns_prod;
 
 --
+-- TOC entry 256 (class 1259 OID 34674)
 -- Name: ir_jail_sentence; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1645,6 +2053,8 @@ CREATE TABLE public.ir_jail_sentence (
 ALTER TABLE public.ir_jail_sentence OWNER TO cctns_prod;
 
 --
+-- TOC entry 4393 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: TABLE ir_jail_sentence; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1652,6 +2062,8 @@ COMMENT ON TABLE public.ir_jail_sentence IS 'Jail sentence details for each IR r
 
 
 --
+-- TOC entry 4394 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1659,6 +2071,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.interrogation_report_id IS 'Foreign ke
 
 
 --
+-- TOC entry 4395 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.crime_num; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1666,6 +2080,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.crime_num IS 'Associated crime number'
 
 
 --
+-- TOC entry 4396 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.sentence_type; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1673,6 +2089,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.sentence_type IS 'Type of sentence (RI
 
 
 --
+-- TOC entry 4397 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.sentence_duration_in_months; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1680,6 +2098,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.sentence_duration_in_months IS 'Durati
 
 
 --
+-- TOC entry 4398 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.sentence_start_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1687,6 +2107,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.sentence_start_date IS 'When sentence 
 
 
 --
+-- TOC entry 4399 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.sentence_end_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1694,6 +2116,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.sentence_end_date IS 'When sentence en
 
 
 --
+-- TOC entry 4400 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.sentence_amount_in_inr; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1701,6 +2125,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.sentence_amount_in_inr IS 'Fine amount
 
 
 --
+-- TOC entry 4401 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.jail_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1708,6 +2134,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.jail_name IS 'Name of jail where serve
 
 
 --
+-- TOC entry 4402 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.date_of_jail_entry; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1715,6 +2143,8 @@ COMMENT ON COLUMN public.ir_jail_sentence.date_of_jail_entry IS 'When admitted t
 
 
 --
+-- TOC entry 4403 (class 0 OID 0)
+-- Dependencies: 256
 -- Name: COLUMN ir_jail_sentence.date_of_jail_release; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1722,6 +2152,7 @@ COMMENT ON COLUMN public.ir_jail_sentence.date_of_jail_release IS 'When released
 
 
 --
+-- TOC entry 257 (class 1259 OID 34681)
 -- Name: ir_local_contacts; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1738,6 +2169,7 @@ CREATE TABLE public.ir_local_contacts (
 ALTER TABLE public.ir_local_contacts OWNER TO cctns_prod;
 
 --
+-- TOC entry 258 (class 1259 OID 34686)
 -- Name: ir_media; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1751,6 +2183,7 @@ CREATE TABLE public.ir_media (
 ALTER TABLE public.ir_media OWNER TO cctns_prod;
 
 --
+-- TOC entry 259 (class 1259 OID 34691)
 -- Name: ir_modus_operandi; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1766,6 +2199,7 @@ CREATE TABLE public.ir_modus_operandi (
 ALTER TABLE public.ir_modus_operandi OWNER TO cctns_prod;
 
 --
+-- TOC entry 260 (class 1259 OID 34696)
 -- Name: ir_new_gang_formation; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1790,6 +2224,8 @@ CREATE TABLE public.ir_new_gang_formation (
 ALTER TABLE public.ir_new_gang_formation OWNER TO cctns_prod;
 
 --
+-- TOC entry 4404 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: TABLE ir_new_gang_formation; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1797,6 +2233,8 @@ COMMENT ON TABLE public.ir_new_gang_formation IS 'New gang formation details for
 
 
 --
+-- TOC entry 4405 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1804,6 +2242,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.interrogation_report_id IS 'Forei
 
 
 --
+-- TOC entry 4406 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.gang_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1811,6 +2251,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.gang_name IS 'Name of the gang';
 
 
 --
+-- TOC entry 4407 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.gang_formation_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1818,6 +2260,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.gang_formation_date IS 'When gang
 
 
 --
+-- TOC entry 4408 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.number_of_members; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1825,6 +2269,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.number_of_members IS 'Number of m
 
 
 --
+-- TOC entry 4409 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.leader_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1832,6 +2278,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.leader_name IS 'Name of gang lead
 
 
 --
+-- TOC entry 4410 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.leader_person_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1839,6 +2287,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.leader_person_id IS 'Reference to
 
 
 --
+-- TOC entry 4411 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.gang_objective; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1846,6 +2296,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.gang_objective IS 'Stated objecti
 
 
 --
+-- TOC entry 4412 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.criminal_history; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1853,6 +2305,8 @@ COMMENT ON COLUMN public.ir_new_gang_formation.criminal_history IS 'Known crimin
 
 
 --
+-- TOC entry 4413 (class 0 OID 0)
+-- Dependencies: 260
 -- Name: COLUMN ir_new_gang_formation.active; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1860,6 +2314,7 @@ COMMENT ON COLUMN public.ir_new_gang_formation.active IS 'Whether gang is still 
 
 
 --
+-- TOC entry 261 (class 1259 OID 34703)
 -- Name: ir_pending_nbw; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1881,6 +2336,8 @@ CREATE TABLE public.ir_pending_nbw (
 ALTER TABLE public.ir_pending_nbw OWNER TO cctns_prod;
 
 --
+-- TOC entry 4414 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: TABLE ir_pending_nbw; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1888,6 +2345,8 @@ COMMENT ON TABLE public.ir_pending_nbw IS 'Pending NBW (Non-Bailable Warrant) fo
 
 
 --
+-- TOC entry 4415 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1895,6 +2354,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.interrogation_report_id IS 'Foreign key 
 
 
 --
+-- TOC entry 4416 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.nbw_number; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1902,6 +2363,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.nbw_number IS 'NBW number/reference';
 
 
 --
+-- TOC entry 4417 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.issued_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1909,6 +2372,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.issued_date IS 'Date NBW was issued';
 
 
 --
+-- TOC entry 4418 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.jurisdiction_ps; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1916,6 +2381,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.jurisdiction_ps IS 'Police station where
 
 
 --
+-- TOC entry 4419 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.crime_num; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1923,6 +2390,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.crime_num IS 'Associated crime number';
 
 
 --
+-- TOC entry 4420 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.reason_for_pending; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1930,6 +2399,8 @@ COMMENT ON COLUMN public.ir_pending_nbw.reason_for_pending IS 'Reason why NBW is
 
 
 --
+-- TOC entry 4421 (class 0 OID 0)
+-- Dependencies: 261
 -- Name: COLUMN ir_pending_nbw.expected_execution_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1937,6 +2408,7 @@ COMMENT ON COLUMN public.ir_pending_nbw.expected_execution_date IS 'Expected dat
 
 
 --
+-- TOC entry 262 (class 1259 OID 34710)
 -- Name: ir_previous_offences_confessed; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -1966,6 +2438,8 @@ CREATE TABLE public.ir_previous_offences_confessed (
 ALTER TABLE public.ir_previous_offences_confessed OWNER TO cctns_prod;
 
 --
+-- TOC entry 4422 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: COLUMN ir_previous_offences_confessed.conviction_status; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1973,6 +2447,8 @@ COMMENT ON COLUMN public.ir_previous_offences_confessed.conviction_status IS 'St
 
 
 --
+-- TOC entry 4423 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: COLUMN ir_previous_offences_confessed.bail_status; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1980,6 +2456,8 @@ COMMENT ON COLUMN public.ir_previous_offences_confessed.bail_status IS 'Bail sta
 
 
 --
+-- TOC entry 4424 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: COLUMN ir_previous_offences_confessed.court_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1987,6 +2465,8 @@ COMMENT ON COLUMN public.ir_previous_offences_confessed.court_name IS 'Court han
 
 
 --
+-- TOC entry 4425 (class 0 OID 0)
+-- Dependencies: 262
 -- Name: COLUMN ir_previous_offences_confessed.judge_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -1994,6 +2474,7 @@ COMMENT ON COLUMN public.ir_previous_offences_confessed.judge_name IS 'Judge han
 
 
 --
+-- TOC entry 263 (class 1259 OID 34715)
 -- Name: ir_property_disposal; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2014,6 +2495,8 @@ CREATE TABLE public.ir_property_disposal (
 ALTER TABLE public.ir_property_disposal OWNER TO cctns_prod;
 
 --
+-- TOC entry 4426 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: TABLE ir_property_disposal; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2021,6 +2504,8 @@ COMMENT ON TABLE public.ir_property_disposal IS 'Property disposal details for e
 
 
 --
+-- TOC entry 4427 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2028,6 +2513,8 @@ COMMENT ON COLUMN public.ir_property_disposal.interrogation_report_id IS 'Foreig
 
 
 --
+-- TOC entry 4428 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.mode_of_disposal; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2035,6 +2522,8 @@ COMMENT ON COLUMN public.ir_property_disposal.mode_of_disposal IS 'How property 
 
 
 --
+-- TOC entry 4429 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.buyer_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2042,6 +2531,8 @@ COMMENT ON COLUMN public.ir_property_disposal.buyer_name IS 'Name of buyer or re
 
 
 --
+-- TOC entry 4430 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.sold_amount_in_inr; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2049,6 +2540,8 @@ COMMENT ON COLUMN public.ir_property_disposal.sold_amount_in_inr IS 'Amount in I
 
 
 --
+-- TOC entry 4431 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.location_of_disposal; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2056,6 +2549,8 @@ COMMENT ON COLUMN public.ir_property_disposal.location_of_disposal IS 'Location 
 
 
 --
+-- TOC entry 4432 (class 0 OID 0)
+-- Dependencies: 263
 -- Name: COLUMN ir_property_disposal.date_of_disposal; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2063,6 +2558,7 @@ COMMENT ON COLUMN public.ir_property_disposal.date_of_disposal IS 'Date of dispo
 
 
 --
+-- TOC entry 264 (class 1259 OID 34722)
 -- Name: ir_regular_habits; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2076,6 +2572,7 @@ CREATE TABLE public.ir_regular_habits (
 ALTER TABLE public.ir_regular_habits OWNER TO cctns_prod;
 
 --
+-- TOC entry 265 (class 1259 OID 34725)
 -- Name: ir_regularization_transit_warrants; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2097,6 +2594,8 @@ CREATE TABLE public.ir_regularization_transit_warrants (
 ALTER TABLE public.ir_regularization_transit_warrants OWNER TO cctns_prod;
 
 --
+-- TOC entry 4433 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: TABLE ir_regularization_transit_warrants; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2104,6 +2603,8 @@ COMMENT ON TABLE public.ir_regularization_transit_warrants IS 'Regularization of
 
 
 --
+-- TOC entry 4434 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2111,6 +2612,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.interrogation_report
 
 
 --
+-- TOC entry 4435 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.warrant_number; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2118,6 +2621,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.warrant_number IS 'W
 
 
 --
+-- TOC entry 4436 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.warrant_type; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2125,6 +2630,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.warrant_type IS 'Typ
 
 
 --
+-- TOC entry 4437 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.issued_date; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2132,6 +2639,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.issued_date IS 'Date
 
 
 --
+-- TOC entry 4438 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.jurisdiction_ps; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2139,6 +2648,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.jurisdiction_ps IS '
 
 
 --
+-- TOC entry 4439 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.crime_num; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2146,6 +2657,8 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.crime_num IS 'Associ
 
 
 --
+-- TOC entry 4440 (class 0 OID 0)
+-- Dependencies: 265
 -- Name: COLUMN ir_regularization_transit_warrants.status; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2153,6 +2666,7 @@ COMMENT ON COLUMN public.ir_regularization_transit_warrants.status IS 'Current s
 
 
 --
+-- TOC entry 266 (class 1259 OID 34732)
 -- Name: ir_shelter; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2170,6 +2684,7 @@ CREATE TABLE public.ir_shelter (
 ALTER TABLE public.ir_shelter OWNER TO cctns_prod;
 
 --
+-- TOC entry 267 (class 1259 OID 34737)
 -- Name: ir_sim_details; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2187,6 +2702,7 @@ CREATE TABLE public.ir_sim_details (
 ALTER TABLE public.ir_sim_details OWNER TO cctns_prod;
 
 --
+-- TOC entry 268 (class 1259 OID 34742)
 -- Name: ir_sureties; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2218,6 +2734,8 @@ CREATE TABLE public.ir_sureties (
 ALTER TABLE public.ir_sureties OWNER TO cctns_prod;
 
 --
+-- TOC entry 4441 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: TABLE ir_sureties; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2225,6 +2743,8 @@ COMMENT ON TABLE public.ir_sureties IS 'Surety information for bail for each IR 
 
 
 --
+-- TOC entry 4442 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.interrogation_report_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2232,6 +2752,8 @@ COMMENT ON COLUMN public.ir_sureties.interrogation_report_id IS 'Foreign key to 
 
 
 --
+-- TOC entry 4443 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.surety_person_id; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2239,6 +2761,8 @@ COMMENT ON COLUMN public.ir_sureties.surety_person_id IS 'Reference to person_id
 
 
 --
+-- TOC entry 4444 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.surety_name; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2246,6 +2770,8 @@ COMMENT ON COLUMN public.ir_sureties.surety_name IS 'Name of surety';
 
 
 --
+-- TOC entry 4445 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.relation_to_accused; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2253,6 +2779,8 @@ COMMENT ON COLUMN public.ir_sureties.relation_to_accused IS 'Relationship to acc
 
 
 --
+-- TOC entry 4446 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.occupation; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2260,6 +2788,8 @@ COMMENT ON COLUMN public.ir_sureties.occupation IS 'Occupation of surety';
 
 
 --
+-- TOC entry 4447 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.surety_amount_in_inr; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2267,6 +2797,8 @@ COMMENT ON COLUMN public.ir_sureties.surety_amount_in_inr IS 'Amount of surety i
 
 
 --
+-- TOC entry 4448 (class 0 OID 0)
+-- Dependencies: 268
 -- Name: COLUMN ir_sureties.date_of_surety; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2274,6 +2806,7 @@ COMMENT ON COLUMN public.ir_sureties.date_of_surety IS 'Date surety was provided
 
 
 --
+-- TOC entry 269 (class 1259 OID 34749)
 -- Name: ir_types_of_drugs; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2293,6 +2826,7 @@ CREATE TABLE public.ir_types_of_drugs (
 ALTER TABLE public.ir_types_of_drugs OWNER TO cctns_prod;
 
 --
+-- TOC entry 270 (class 1259 OID 34754)
 -- Name: ir_child_table_coverage; Type: VIEW; Schema: public; Owner: cctns_prod
 --
 
@@ -2422,6 +2956,8 @@ UNION ALL
 ALTER VIEW public.ir_child_table_coverage OWNER TO cctns_prod;
 
 --
+-- TOC entry 4449 (class 0 OID 0)
+-- Dependencies: 270
 -- Name: VIEW ir_child_table_coverage; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2429,6 +2965,7 @@ COMMENT ON VIEW public.ir_child_table_coverage IS 'Shows data coverage for all I
 
 
 --
+-- TOC entry 271 (class 1259 OID 34759)
 -- Name: ir_consumer_details_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2443,6 +2980,8 @@ CREATE SEQUENCE public.ir_consumer_details_id_seq
 ALTER SEQUENCE public.ir_consumer_details_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4450 (class 0 OID 0)
+-- Dependencies: 271
 -- Name: ir_consumer_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2450,6 +2989,7 @@ ALTER SEQUENCE public.ir_consumer_details_id_seq OWNED BY public.ir_consumer_det
 
 
 --
+-- TOC entry 272 (class 1259 OID 34760)
 -- Name: ir_conviction_acquittal_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2464,6 +3004,8 @@ CREATE SEQUENCE public.ir_conviction_acquittal_id_seq
 ALTER SEQUENCE public.ir_conviction_acquittal_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4451 (class 0 OID 0)
+-- Dependencies: 272
 -- Name: ir_conviction_acquittal_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2471,6 +3013,7 @@ ALTER SEQUENCE public.ir_conviction_acquittal_id_seq OWNED BY public.ir_convicti
 
 
 --
+-- TOC entry 273 (class 1259 OID 34761)
 -- Name: ir_defence_counsel_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2485,6 +3028,8 @@ CREATE SEQUENCE public.ir_defence_counsel_id_seq
 ALTER SEQUENCE public.ir_defence_counsel_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4452 (class 0 OID 0)
+-- Dependencies: 273
 -- Name: ir_defence_counsel_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2492,6 +3037,7 @@ ALTER SEQUENCE public.ir_defence_counsel_id_seq OWNED BY public.ir_defence_couns
 
 
 --
+-- TOC entry 274 (class 1259 OID 34762)
 -- Name: ir_dopams_links_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2506,6 +3052,8 @@ CREATE SEQUENCE public.ir_dopams_links_id_seq
 ALTER SEQUENCE public.ir_dopams_links_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4453 (class 0 OID 0)
+-- Dependencies: 274
 -- Name: ir_dopams_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2513,6 +3061,7 @@ ALTER SEQUENCE public.ir_dopams_links_id_seq OWNED BY public.ir_dopams_links.id;
 
 
 --
+-- TOC entry 275 (class 1259 OID 34763)
 -- Name: ir_execution_of_nbw_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2527,6 +3076,8 @@ CREATE SEQUENCE public.ir_execution_of_nbw_id_seq
 ALTER SEQUENCE public.ir_execution_of_nbw_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4454 (class 0 OID 0)
+-- Dependencies: 275
 -- Name: ir_execution_of_nbw_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2534,6 +3085,7 @@ ALTER SEQUENCE public.ir_execution_of_nbw_id_seq OWNED BY public.ir_execution_of
 
 
 --
+-- TOC entry 276 (class 1259 OID 34764)
 -- Name: ir_family_history_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2548,6 +3100,8 @@ CREATE SEQUENCE public.ir_family_history_id_seq
 ALTER SEQUENCE public.ir_family_history_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4455 (class 0 OID 0)
+-- Dependencies: 276
 -- Name: ir_family_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2555,6 +3109,7 @@ ALTER SEQUENCE public.ir_family_history_id_seq OWNED BY public.ir_family_history
 
 
 --
+-- TOC entry 277 (class 1259 OID 34765)
 -- Name: ir_field_persistence_check; Type: VIEW; Schema: public; Owner: cctns_prod
 --
 
@@ -2635,6 +3190,8 @@ UNION ALL
 ALTER VIEW public.ir_field_persistence_check OWNER TO cctns_prod;
 
 --
+-- TOC entry 4456 (class 0 OID 0)
+-- Dependencies: 277
 -- Name: VIEW ir_field_persistence_check; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -2642,6 +3199,7 @@ COMMENT ON VIEW public.ir_field_persistence_check IS 'Validates API field to DB 
 
 
 --
+-- TOC entry 278 (class 1259 OID 34770)
 -- Name: ir_financial_history_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2656,6 +3214,8 @@ CREATE SEQUENCE public.ir_financial_history_id_seq
 ALTER SEQUENCE public.ir_financial_history_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4457 (class 0 OID 0)
+-- Dependencies: 278
 -- Name: ir_financial_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2663,6 +3223,7 @@ ALTER SEQUENCE public.ir_financial_history_id_seq OWNED BY public.ir_financial_h
 
 
 --
+-- TOC entry 279 (class 1259 OID 34771)
 -- Name: ir_indulgance_before_offence_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2677,6 +3238,8 @@ CREATE SEQUENCE public.ir_indulgance_before_offence_id_seq
 ALTER SEQUENCE public.ir_indulgance_before_offence_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4458 (class 0 OID 0)
+-- Dependencies: 279
 -- Name: ir_indulgance_before_offence_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2684,6 +3247,7 @@ ALTER SEQUENCE public.ir_indulgance_before_offence_id_seq OWNED BY public.ir_ind
 
 
 --
+-- TOC entry 280 (class 1259 OID 34772)
 -- Name: ir_interrogation_report_refs_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2698,6 +3262,8 @@ CREATE SEQUENCE public.ir_interrogation_report_refs_id_seq
 ALTER SEQUENCE public.ir_interrogation_report_refs_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4459 (class 0 OID 0)
+-- Dependencies: 280
 -- Name: ir_interrogation_report_refs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2705,6 +3271,7 @@ ALTER SEQUENCE public.ir_interrogation_report_refs_id_seq OWNED BY public.ir_int
 
 
 --
+-- TOC entry 281 (class 1259 OID 34773)
 -- Name: ir_jail_sentence_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2719,6 +3286,8 @@ CREATE SEQUENCE public.ir_jail_sentence_id_seq
 ALTER SEQUENCE public.ir_jail_sentence_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4460 (class 0 OID 0)
+-- Dependencies: 281
 -- Name: ir_jail_sentence_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2726,6 +3295,7 @@ ALTER SEQUENCE public.ir_jail_sentence_id_seq OWNED BY public.ir_jail_sentence.i
 
 
 --
+-- TOC entry 282 (class 1259 OID 34774)
 -- Name: ir_local_contacts_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2740,6 +3310,8 @@ CREATE SEQUENCE public.ir_local_contacts_id_seq
 ALTER SEQUENCE public.ir_local_contacts_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4461 (class 0 OID 0)
+-- Dependencies: 282
 -- Name: ir_local_contacts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2747,6 +3319,7 @@ ALTER SEQUENCE public.ir_local_contacts_id_seq OWNED BY public.ir_local_contacts
 
 
 --
+-- TOC entry 283 (class 1259 OID 34775)
 -- Name: ir_media_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2761,6 +3334,8 @@ CREATE SEQUENCE public.ir_media_id_seq
 ALTER SEQUENCE public.ir_media_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4462 (class 0 OID 0)
+-- Dependencies: 283
 -- Name: ir_media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2768,6 +3343,7 @@ ALTER SEQUENCE public.ir_media_id_seq OWNED BY public.ir_media.id;
 
 
 --
+-- TOC entry 284 (class 1259 OID 34776)
 -- Name: ir_modus_operandi_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2782,6 +3358,8 @@ CREATE SEQUENCE public.ir_modus_operandi_id_seq
 ALTER SEQUENCE public.ir_modus_operandi_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4463 (class 0 OID 0)
+-- Dependencies: 284
 -- Name: ir_modus_operandi_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2789,6 +3367,7 @@ ALTER SEQUENCE public.ir_modus_operandi_id_seq OWNED BY public.ir_modus_operandi
 
 
 --
+-- TOC entry 285 (class 1259 OID 34777)
 -- Name: ir_new_gang_formation_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2803,6 +3382,8 @@ CREATE SEQUENCE public.ir_new_gang_formation_id_seq
 ALTER SEQUENCE public.ir_new_gang_formation_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4464 (class 0 OID 0)
+-- Dependencies: 285
 -- Name: ir_new_gang_formation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2810,6 +3391,7 @@ ALTER SEQUENCE public.ir_new_gang_formation_id_seq OWNED BY public.ir_new_gang_f
 
 
 --
+-- TOC entry 286 (class 1259 OID 34778)
 -- Name: ir_pending_fk; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -2829,6 +3411,7 @@ CREATE TABLE public.ir_pending_fk (
 ALTER TABLE public.ir_pending_fk OWNER TO cctns_prod;
 
 --
+-- TOC entry 287 (class 1259 OID 34786)
 -- Name: ir_pending_fk_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2844,6 +3427,8 @@ CREATE SEQUENCE public.ir_pending_fk_id_seq
 ALTER SEQUENCE public.ir_pending_fk_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4465 (class 0 OID 0)
+-- Dependencies: 287
 -- Name: ir_pending_fk_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2851,6 +3436,7 @@ ALTER SEQUENCE public.ir_pending_fk_id_seq OWNED BY public.ir_pending_fk.id;
 
 
 --
+-- TOC entry 288 (class 1259 OID 34787)
 -- Name: ir_pending_nbw_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2865,6 +3451,8 @@ CREATE SEQUENCE public.ir_pending_nbw_id_seq
 ALTER SEQUENCE public.ir_pending_nbw_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4466 (class 0 OID 0)
+-- Dependencies: 288
 -- Name: ir_pending_nbw_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2872,6 +3460,7 @@ ALTER SEQUENCE public.ir_pending_nbw_id_seq OWNED BY public.ir_pending_nbw.id;
 
 
 --
+-- TOC entry 289 (class 1259 OID 34788)
 -- Name: ir_previous_offences_confessed_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2886,6 +3475,8 @@ CREATE SEQUENCE public.ir_previous_offences_confessed_id_seq
 ALTER SEQUENCE public.ir_previous_offences_confessed_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4467 (class 0 OID 0)
+-- Dependencies: 289
 -- Name: ir_previous_offences_confessed_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2893,6 +3484,7 @@ ALTER SEQUENCE public.ir_previous_offences_confessed_id_seq OWNED BY public.ir_p
 
 
 --
+-- TOC entry 290 (class 1259 OID 34789)
 -- Name: ir_property_disposal_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2907,6 +3499,8 @@ CREATE SEQUENCE public.ir_property_disposal_id_seq
 ALTER SEQUENCE public.ir_property_disposal_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4468 (class 0 OID 0)
+-- Dependencies: 290
 -- Name: ir_property_disposal_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2914,6 +3508,7 @@ ALTER SEQUENCE public.ir_property_disposal_id_seq OWNED BY public.ir_property_di
 
 
 --
+-- TOC entry 291 (class 1259 OID 34790)
 -- Name: ir_regular_habits_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2928,6 +3523,8 @@ CREATE SEQUENCE public.ir_regular_habits_id_seq
 ALTER SEQUENCE public.ir_regular_habits_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4469 (class 0 OID 0)
+-- Dependencies: 291
 -- Name: ir_regular_habits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2935,6 +3532,7 @@ ALTER SEQUENCE public.ir_regular_habits_id_seq OWNED BY public.ir_regular_habits
 
 
 --
+-- TOC entry 292 (class 1259 OID 34791)
 -- Name: ir_regularization_transit_warrants_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2949,6 +3547,8 @@ CREATE SEQUENCE public.ir_regularization_transit_warrants_id_seq
 ALTER SEQUENCE public.ir_regularization_transit_warrants_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4470 (class 0 OID 0)
+-- Dependencies: 292
 -- Name: ir_regularization_transit_warrants_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2956,6 +3556,7 @@ ALTER SEQUENCE public.ir_regularization_transit_warrants_id_seq OWNED BY public.
 
 
 --
+-- TOC entry 293 (class 1259 OID 34792)
 -- Name: ir_shelter_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2970,6 +3571,8 @@ CREATE SEQUENCE public.ir_shelter_id_seq
 ALTER SEQUENCE public.ir_shelter_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4471 (class 0 OID 0)
+-- Dependencies: 293
 -- Name: ir_shelter_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2977,6 +3580,7 @@ ALTER SEQUENCE public.ir_shelter_id_seq OWNED BY public.ir_shelter.id;
 
 
 --
+-- TOC entry 294 (class 1259 OID 34793)
 -- Name: ir_sim_details_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -2991,6 +3595,8 @@ CREATE SEQUENCE public.ir_sim_details_id_seq
 ALTER SEQUENCE public.ir_sim_details_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4472 (class 0 OID 0)
+-- Dependencies: 294
 -- Name: ir_sim_details_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -2998,6 +3604,7 @@ ALTER SEQUENCE public.ir_sim_details_id_seq OWNED BY public.ir_sim_details.id;
 
 
 --
+-- TOC entry 295 (class 1259 OID 34794)
 -- Name: ir_sureties_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3012,6 +3619,8 @@ CREATE SEQUENCE public.ir_sureties_id_seq
 ALTER SEQUENCE public.ir_sureties_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4473 (class 0 OID 0)
+-- Dependencies: 295
 -- Name: ir_sureties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3019,6 +3628,7 @@ ALTER SEQUENCE public.ir_sureties_id_seq OWNED BY public.ir_sureties.id;
 
 
 --
+-- TOC entry 296 (class 1259 OID 34795)
 -- Name: ir_types_of_drugs_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3033,6 +3643,8 @@ CREATE SEQUENCE public.ir_types_of_drugs_id_seq
 ALTER SEQUENCE public.ir_types_of_drugs_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4474 (class 0 OID 0)
+-- Dependencies: 296
 -- Name: ir_types_of_drugs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3040,6 +3652,7 @@ ALTER SEQUENCE public.ir_types_of_drugs_id_seq OWNED BY public.ir_types_of_drugs
 
 
 --
+-- TOC entry 297 (class 1259 OID 34796)
 -- Name: mo_seizure_media; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3060,6 +3673,7 @@ CREATE TABLE public.mo_seizure_media (
 ALTER TABLE public.mo_seizure_media OWNER TO cctns_prod;
 
 --
+-- TOC entry 298 (class 1259 OID 34804)
 -- Name: mo_seizure_media_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3074,6 +3688,8 @@ CREATE SEQUENCE public.mo_seizure_media_id_seq
 ALTER SEQUENCE public.mo_seizure_media_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4475 (class 0 OID 0)
+-- Dependencies: 298
 -- Name: mo_seizure_media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3081,6 +3697,7 @@ ALTER SEQUENCE public.mo_seizure_media_id_seq OWNED BY public.mo_seizure_media.i
 
 
 --
+-- TOC entry 299 (class 1259 OID 34805)
 -- Name: mo_seizures; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3118,6 +3735,7 @@ CREATE TABLE public.mo_seizures (
 ALTER TABLE public.mo_seizures OWNER TO cctns_prod;
 
 --
+-- TOC entry 300 (class 1259 OID 34810)
 -- Name: persons; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3168,6 +3786,8 @@ CREATE TABLE public.persons (
 ALTER TABLE public.persons OWNER TO cctns_prod;
 
 --
+-- TOC entry 4476 (class 0 OID 0)
+-- Dependencies: 300
 -- Name: TABLE persons; Type: COMMENT; Schema: public; Owner: cctns_prod
 --
 
@@ -3175,6 +3795,113 @@ COMMENT ON TABLE public.persons IS 'Personal details of individuals (accused, vi
 
 
 --
+-- TOC entry 301 (class 1259 OID 34816)
+-- Name: ssor_kb; Type: TABLE; Schema: public; Owner: cctns_prod
+--
+
+CREATE TABLE public.ssor_kb (
+    id integer NOT NULL,
+    act_name text NOT NULL,
+    section_code text NOT NULL,
+    tier text NOT NULL,
+    severity_rank integer NOT NULL,
+    description text
+);
+
+
+ALTER TABLE public.ssor_kb OWNER TO cctns_prod;
+
+--
+-- TOC entry 302 (class 1259 OID 34821)
+-- Name: mv_offender_details; Type: MATERIALIZED VIEW; Schema: public; Owner: cctns_prod
+--
+
+CREATE MATERIALIZED VIEW public.mv_offender_details AS
+ SELECT person_id AS offender_id,
+    to_jsonb(p.*) AS person_details,
+    ( SELECT to_jsonb(a_inner.*) AS to_jsonb
+           FROM public.accused a_inner
+          WHERE ((a_inner.person_id)::text = (p.person_id)::text)
+          ORDER BY a_inner.seq_num DESC
+         LIMIT 1) AS latest_physical_features,
+    ( SELECT kb.tier
+           FROM ((public.accused a_inner
+             JOIN public.crimes c_inner ON (((a_inner.crime_id)::text = (c_inner.crime_id)::text)))
+             JOIN public.ssor_kb kb ON ((c_inner.acts_sections ~~* (('%'::text || kb.section_code) || '%'::text))))
+          WHERE ((a_inner.person_id)::text = (p.person_id)::text)
+          ORDER BY kb.severity_rank DESC
+         LIMIT 1) AS highest_risk_tier,
+    ( SELECT jsonb_agg(to_jsonb(c.*)) AS jsonb_agg
+           FROM (public.crimes c
+             JOIN public.accused a2 ON (((c.crime_id)::text = (a2.crime_id)::text)))
+          WHERE ((a2.person_id)::text = (p.person_id)::text)) AS crimes,
+    ( SELECT jsonb_agg(to_jsonb(ar.*)) AS jsonb_agg
+           FROM public.arrests ar
+          WHERE ((ar.person_id)::text = (p.person_id)::text)) AS arrests,
+    ( SELECT jsonb_agg(to_jsonb(cs.*)) AS jsonb_agg
+           FROM (public.chargesheets cs
+             JOIN public.chargesheet_accused csa ON (((cs.charge_sheet_id)::text = (csa.chargesheet_id)::text)))
+          WHERE ((csa.accused_person_id)::text = (p.person_id)::text)) AS chargesheets,
+    ( SELECT jsonb_agg(to_jsonb(fpb.*)) AS jsonb_agg
+           FROM (public.fpb_accused fpb
+             JOIN public.accused a3 ON (((fpb.crime_id)::text = (a3.crime_id)::text)))
+          WHERE ((a3.person_id)::text = (p.person_id)::text)) AS fingerprint_bureau_records,
+    ( SELECT jsonb_agg(to_jsonb(ir.*)) AS jsonb_agg
+           FROM public.interrogation_reports ir
+          WHERE ((ir.person_id)::text = (p.person_id)::text)) AS interrogation_reports,
+    ( SELECT jsonb_agg(to_jsonb(fh.*)) AS jsonb_agg
+           FROM public.ir_family_history fh
+          WHERE ((fh.person_id)::text = (p.person_id)::text)) AS family_history,
+    ( SELECT jsonb_agg(to_jsonb(lc.*)) AS jsonb_agg
+           FROM public.ir_local_contacts lc
+          WHERE ((lc.person_id)::text = (p.person_id)::text)) AS local_contacts,
+    ( SELECT jsonb_agg(to_jsonb(mo.*)) AS jsonb_agg
+           FROM (public.ir_modus_operandi mo
+             JOIN public.interrogation_reports ir_inner ON (((mo.interrogation_report_id)::text = (ir_inner.interrogation_report_id)::text)))
+          WHERE ((ir_inner.person_id)::text = (p.person_id)::text)) AS modus_operandi,
+    ( SELECT jsonb_agg(to_jsonb(rh.*)) AS jsonb_agg
+           FROM (public.ir_regular_habits rh
+             JOIN public.interrogation_reports ir_inner ON (((rh.interrogation_report_id)::text = (ir_inner.interrogation_report_id)::text)))
+          WHERE ((ir_inner.person_id)::text = (p.person_id)::text)) AS regular_habits
+   FROM public.persons p
+  WHERE (EXISTS ( SELECT 1
+           FROM public.accused a
+          WHERE ((a.person_id)::text = (p.person_id)::text)))
+  WITH NO DATA;
+
+
+ALTER MATERIALIZED VIEW public.mv_offender_details OWNER TO cctns_prod;
+
+--
+-- TOC entry 303 (class 1259 OID 34828)
+-- Name: mv_offenders_list; Type: MATERIALIZED VIEW; Schema: public; Owner: cctns_prod
+--
+
+CREATE MATERIALIZED VIEW public.mv_offenders_list AS
+ SELECT p.person_id AS offender_id,
+    p.full_name AS offender_name,
+    p.alias AS offender_alias,
+    a.accused_status AS current_status,
+    c.fir_date AS offence_date,
+    c.crime_type AS primary_offence,
+    h.ps_name AS police_station,
+    risk.tier AS risk_tier
+   FROM ((((public.accused a
+     JOIN public.persons p ON (((a.person_id)::text = (p.person_id)::text)))
+     JOIN public.crimes c ON (((a.crime_id)::text = (c.crime_id)::text)))
+     LEFT JOIN public.hierarchy h ON (((c.ps_code)::text = (h.ps_code)::text)))
+     LEFT JOIN LATERAL ( SELECT kb.tier
+           FROM public.ssor_kb kb
+          WHERE (c.acts_sections ~~* (('%'::text || kb.section_code) || '%'::text))
+          ORDER BY kb.severity_rank DESC
+         LIMIT 1) risk ON (true))
+  WITH NO DATA;
+
+
+ALTER MATERIALIZED VIEW public.mv_offenders_list OWNER TO cctns_prod;
+
+--
+-- TOC entry 304 (class 1259 OID 34835)
 -- Name: properties; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3202,6 +3929,7 @@ CREATE TABLE public.properties (
 ALTER TABLE public.properties OWNER TO cctns_prod;
 
 --
+-- TOC entry 305 (class 1259 OID 34841)
 -- Name: properties_pending_fk; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3221,6 +3949,7 @@ CREATE TABLE public.properties_pending_fk (
 ALTER TABLE public.properties_pending_fk OWNER TO cctns_prod;
 
 --
+-- TOC entry 306 (class 1259 OID 34849)
 -- Name: properties_pending_fk_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3236,6 +3965,8 @@ CREATE SEQUENCE public.properties_pending_fk_id_seq
 ALTER SEQUENCE public.properties_pending_fk_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4477 (class 0 OID 0)
+-- Dependencies: 306
 -- Name: properties_pending_fk_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3243,6 +3974,7 @@ ALTER SEQUENCE public.properties_pending_fk_id_seq OWNED BY public.properties_pe
 
 
 --
+-- TOC entry 307 (class 1259 OID 34850)
 -- Name: property_additional_details; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3258,6 +3990,7 @@ CREATE TABLE public.property_additional_details (
 ALTER TABLE public.property_additional_details OWNER TO cctns_prod;
 
 --
+-- TOC entry 308 (class 1259 OID 34856)
 -- Name: property_media; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3276,22 +4009,7 @@ CREATE TABLE public.property_media (
 ALTER TABLE public.property_media OWNER TO cctns_prod;
 
 --
--- Name: ssor_kb; Type: TABLE; Schema: public; Owner: cctns_prod
---
-
-CREATE TABLE public.ssor_kb (
-    id integer NOT NULL,
-    act_name text NOT NULL,
-    section_code text NOT NULL,
-    tier text NOT NULL,
-    severity_rank integer NOT NULL,
-    description text
-);
-
-
-ALTER TABLE public.ssor_kb OWNER TO cctns_prod;
-
---
+-- TOC entry 309 (class 1259 OID 34861)
 -- Name: ssor_kb_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3307,6 +4025,8 @@ CREATE SEQUENCE public.ssor_kb_id_seq
 ALTER SEQUENCE public.ssor_kb_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4478 (class 0 OID 0)
+-- Dependencies: 309
 -- Name: ssor_kb_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3314,6 +4034,7 @@ ALTER SEQUENCE public.ssor_kb_id_seq OWNED BY public.ssor_kb.id;
 
 
 --
+-- TOC entry 310 (class 1259 OID 34862)
 -- Name: stolen_automobile_media; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3327,6 +4048,7 @@ CREATE TABLE public.stolen_automobile_media (
 ALTER TABLE public.stolen_automobile_media OWNER TO cctns_prod;
 
 --
+-- TOC entry 311 (class 1259 OID 34867)
 -- Name: stolen_automobile_media_id_seq; Type: SEQUENCE; Schema: public; Owner: cctns_prod
 --
 
@@ -3342,6 +4064,8 @@ CREATE SEQUENCE public.stolen_automobile_media_id_seq
 ALTER SEQUENCE public.stolen_automobile_media_id_seq OWNER TO cctns_prod;
 
 --
+-- TOC entry 4479 (class 0 OID 0)
+-- Dependencies: 311
 -- Name: stolen_automobile_media_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: cctns_prod
 --
 
@@ -3349,6 +4073,7 @@ ALTER SEQUENCE public.stolen_automobile_media_id_seq OWNED BY public.stolen_auto
 
 
 --
+-- TOC entry 312 (class 1259 OID 34868)
 -- Name: stolen_automobiles; Type: TABLE; Schema: public; Owner: cctns_prod
 --
 
@@ -3426,6 +4151,115 @@ CREATE TABLE public.stolen_automobiles (
 ALTER TABLE public.stolen_automobiles OWNER TO cctns_prod;
 
 --
+-- TOC entry 313 (class 1259 OID 34873)
+-- Name: v_offender_details; Type: VIEW; Schema: public; Owner: cctns_prod
+--
+
+CREATE VIEW public.v_offender_details AS
+ SELECT person_id AS offender_id,
+    to_jsonb(p.*) AS person_details,
+    ( SELECT to_jsonb(a_inner.*) AS to_jsonb
+           FROM public.accused a_inner
+          WHERE ((a_inner.person_id)::text = (p.person_id)::text)
+          ORDER BY a_inner.seq_num DESC
+         LIMIT 1) AS latest_physical_features,
+    ( SELECT kb.tier
+           FROM ((public.accused a_inner
+             JOIN public.crimes c_inner ON (((a_inner.crime_id)::text = (c_inner.crime_id)::text)))
+             JOIN public.ssor_kb kb ON ((c_inner.acts_sections ~~* (('%'::text || kb.section_code) || '%'::text))))
+          WHERE ((a_inner.person_id)::text = (p.person_id)::text)
+          ORDER BY kb.severity_rank DESC
+         LIMIT 1) AS highest_risk_tier,
+    ( SELECT jsonb_agg(to_jsonb(c.*)) AS jsonb_agg
+           FROM (public.crimes c
+             JOIN public.accused a2 ON (((c.crime_id)::text = (a2.crime_id)::text)))
+          WHERE ((a2.person_id)::text = (p.person_id)::text)) AS crimes,
+    ( SELECT jsonb_agg(to_jsonb(ar.*)) AS jsonb_agg
+           FROM public.arrests ar
+          WHERE ((ar.person_id)::text = (p.person_id)::text)) AS arrests,
+    ( SELECT jsonb_agg(to_jsonb(cs.*)) AS jsonb_agg
+           FROM (public.chargesheets cs
+             JOIN public.chargesheet_accused csa ON (((cs.charge_sheet_id)::text = (csa.chargesheet_id)::text)))
+          WHERE ((csa.accused_person_id)::text = (p.person_id)::text)) AS chargesheets,
+    ( SELECT jsonb_agg(to_jsonb(fpb.*)) AS jsonb_agg
+           FROM (public.fpb_accused fpb
+             JOIN public.accused a3 ON (((fpb.crime_id)::text = (a3.crime_id)::text)))
+          WHERE ((a3.person_id)::text = (p.person_id)::text)) AS fingerprint_bureau_records,
+    ( SELECT jsonb_agg(to_jsonb(ir.*)) AS jsonb_agg
+           FROM public.interrogation_reports ir
+          WHERE ((ir.person_id)::text = (p.person_id)::text)) AS interrogation_reports,
+    ( SELECT jsonb_agg(to_jsonb(fh.*)) AS jsonb_agg
+           FROM public.ir_family_history fh
+          WHERE ((fh.person_id)::text = (p.person_id)::text)) AS family_history,
+    ( SELECT jsonb_agg(to_jsonb(lc.*)) AS jsonb_agg
+           FROM public.ir_local_contacts lc
+          WHERE ((lc.person_id)::text = (p.person_id)::text)) AS local_contacts,
+    ( SELECT jsonb_agg(to_jsonb(mo.*)) AS jsonb_agg
+           FROM (public.ir_modus_operandi mo
+             JOIN public.interrogation_reports ir_inner ON (((mo.interrogation_report_id)::text = (ir_inner.interrogation_report_id)::text)))
+          WHERE ((ir_inner.person_id)::text = (p.person_id)::text)) AS modus_operandi,
+    ( SELECT jsonb_agg(to_jsonb(rh.*)) AS jsonb_agg
+           FROM (public.ir_regular_habits rh
+             JOIN public.interrogation_reports ir_inner ON (((rh.interrogation_report_id)::text = (ir_inner.interrogation_report_id)::text)))
+          WHERE ((ir_inner.person_id)::text = (p.person_id)::text)) AS regular_habits
+   FROM public.persons p
+  WHERE (EXISTS ( SELECT 1
+           FROM public.accused a
+          WHERE ((a.person_id)::text = (p.person_id)::text)));
+
+
+ALTER VIEW public.v_offender_details OWNER TO cctns_prod;
+
+--
+-- TOC entry 314 (class 1259 OID 34878)
+-- Name: v_offenders_list; Type: VIEW; Schema: public; Owner: cctns_prod
+--
+
+CREATE VIEW public.v_offenders_list AS
+ WITH latestoffences AS (
+         SELECT DISTINCT ON (p.person_id) p.person_id AS offender_id,
+            p.full_name AS offender_name,
+            p.alias AS offender_alias,
+            a.accused_status AS current_status,
+            c.fir_date AS offence_date,
+            c.crime_type AS primary_offence,
+            h.ps_name AS police_station,
+            risk.tier AS risk_tier
+           FROM ((((public.accused a
+             JOIN public.persons p ON (((a.person_id)::text = (p.person_id)::text)))
+             JOIN public.crimes c ON (((a.crime_id)::text = (c.crime_id)::text)))
+             LEFT JOIN public.hierarchy h ON (((c.ps_code)::text = (h.ps_code)::text)))
+             LEFT JOIN LATERAL ( SELECT kb.tier
+                   FROM public.ssor_kb kb
+                  WHERE (c.acts_sections ~~* (('%'::text || kb.section_code) || '%'::text))
+                  ORDER BY kb.severity_rank DESC
+                 LIMIT 1) risk ON (true))
+          ORDER BY p.person_id, c.fir_date DESC
+        )
+ SELECT offender_id,
+    offender_name,
+    offender_alias,
+    current_status,
+    offence_date,
+    primary_offence,
+    police_station,
+    risk_tier
+   FROM latestoffences
+  ORDER BY offence_date DESC;
+
+
+ALTER VIEW public.v_offenders_list OWNER TO cctns_prod;
+
+--
+-- TOC entry 4011 (class 2604 OID 37418)
+-- Name: SystemAuditLog id; Type: DEFAULT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."SystemAuditLog" ALTER COLUMN id SET DEFAULT nextval('public."SystemAuditLog_id_seq"'::regclass);
+
+
+--
+-- TOC entry 3920 (class 2604 OID 34883)
 -- Name: charge_sheet_updates id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3433,6 +4267,7 @@ ALTER TABLE ONLY public.charge_sheet_updates ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- TOC entry 3944 (class 2604 OID 34884)
 -- Name: fpb_accused fpb_accused_id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3440,6 +4275,7 @@ ALTER TABLE ONLY public.fpb_accused ALTER COLUMN fpb_accused_id SET DEFAULT next
 
 
 --
+-- TOC entry 3946 (class 2604 OID 34885)
 -- Name: fpb_additional_crimes id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3447,6 +4283,7 @@ ALTER TABLE ONLY public.fpb_additional_crimes ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- TOC entry 3947 (class 2604 OID 34886)
 -- Name: ir_associate_details id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3454,6 +4291,7 @@ ALTER TABLE ONLY public.ir_associate_details ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- TOC entry 3948 (class 2604 OID 34887)
 -- Name: ir_consumer_details id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3461,6 +4299,7 @@ ALTER TABLE ONLY public.ir_consumer_details ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- TOC entry 3949 (class 2604 OID 34888)
 -- Name: ir_conviction_acquittal id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3468,6 +4307,7 @@ ALTER TABLE ONLY public.ir_conviction_acquittal ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- TOC entry 3952 (class 2604 OID 34889)
 -- Name: ir_defence_counsel id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3475,6 +4315,7 @@ ALTER TABLE ONLY public.ir_defence_counsel ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- TOC entry 3955 (class 2604 OID 34890)
 -- Name: ir_dopams_links id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3482,6 +4323,7 @@ ALTER TABLE ONLY public.ir_dopams_links ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- TOC entry 3956 (class 2604 OID 34891)
 -- Name: ir_execution_of_nbw id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3489,6 +4331,7 @@ ALTER TABLE ONLY public.ir_execution_of_nbw ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- TOC entry 3959 (class 2604 OID 34892)
 -- Name: ir_family_history id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3496,6 +4339,7 @@ ALTER TABLE ONLY public.ir_family_history ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 3963 (class 2604 OID 34893)
 -- Name: ir_financial_history id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3503,6 +4347,7 @@ ALTER TABLE ONLY public.ir_financial_history ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- TOC entry 3964 (class 2604 OID 34894)
 -- Name: ir_indulgance_before_offence id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3510,6 +4355,7 @@ ALTER TABLE ONLY public.ir_indulgance_before_offence ALTER COLUMN id SET DEFAULT
 
 
 --
+-- TOC entry 3966 (class 2604 OID 34895)
 -- Name: ir_interrogation_report_refs id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3517,6 +4363,7 @@ ALTER TABLE ONLY public.ir_interrogation_report_refs ALTER COLUMN id SET DEFAULT
 
 
 --
+-- TOC entry 3967 (class 2604 OID 34896)
 -- Name: ir_jail_sentence id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3524,6 +4371,7 @@ ALTER TABLE ONLY public.ir_jail_sentence ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- TOC entry 3970 (class 2604 OID 34897)
 -- Name: ir_local_contacts id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3531,6 +4379,7 @@ ALTER TABLE ONLY public.ir_local_contacts ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 3971 (class 2604 OID 34898)
 -- Name: ir_media id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3538,6 +4387,7 @@ ALTER TABLE ONLY public.ir_media ALTER COLUMN id SET DEFAULT nextval('public.ir_
 
 
 --
+-- TOC entry 3972 (class 2604 OID 34899)
 -- Name: ir_modus_operandi id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3545,6 +4395,7 @@ ALTER TABLE ONLY public.ir_modus_operandi ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 3973 (class 2604 OID 34900)
 -- Name: ir_new_gang_formation id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3552,6 +4403,7 @@ ALTER TABLE ONLY public.ir_new_gang_formation ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- TOC entry 3993 (class 2604 OID 34901)
 -- Name: ir_pending_fk id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3559,6 +4411,7 @@ ALTER TABLE ONLY public.ir_pending_fk ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- TOC entry 3976 (class 2604 OID 34902)
 -- Name: ir_pending_nbw id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3566,6 +4419,7 @@ ALTER TABLE ONLY public.ir_pending_nbw ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- TOC entry 3979 (class 2604 OID 34903)
 -- Name: ir_previous_offences_confessed id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3573,6 +4427,7 @@ ALTER TABLE ONLY public.ir_previous_offences_confessed ALTER COLUMN id SET DEFAU
 
 
 --
+-- TOC entry 3980 (class 2604 OID 34904)
 -- Name: ir_property_disposal id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3580,6 +4435,7 @@ ALTER TABLE ONLY public.ir_property_disposal ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- TOC entry 3983 (class 2604 OID 34905)
 -- Name: ir_regular_habits id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3587,6 +4443,7 @@ ALTER TABLE ONLY public.ir_regular_habits ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 3984 (class 2604 OID 34906)
 -- Name: ir_regularization_transit_warrants id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3594,6 +4451,7 @@ ALTER TABLE ONLY public.ir_regularization_transit_warrants ALTER COLUMN id SET D
 
 
 --
+-- TOC entry 3987 (class 2604 OID 34907)
 -- Name: ir_shelter id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3601,6 +4459,7 @@ ALTER TABLE ONLY public.ir_shelter ALTER COLUMN id SET DEFAULT nextval('public.i
 
 
 --
+-- TOC entry 3988 (class 2604 OID 34908)
 -- Name: ir_sim_details id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3608,6 +4467,7 @@ ALTER TABLE ONLY public.ir_sim_details ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
+-- TOC entry 3989 (class 2604 OID 34909)
 -- Name: ir_sureties id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3615,6 +4475,7 @@ ALTER TABLE ONLY public.ir_sureties ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- TOC entry 3992 (class 2604 OID 34910)
 -- Name: ir_types_of_drugs id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3622,6 +4483,7 @@ ALTER TABLE ONLY public.ir_types_of_drugs ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- TOC entry 3997 (class 2604 OID 34911)
 -- Name: mo_seizure_media id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3629,6 +4491,7 @@ ALTER TABLE ONLY public.mo_seizure_media ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- TOC entry 4004 (class 2604 OID 34912)
 -- Name: properties_pending_fk id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3636,6 +4499,7 @@ ALTER TABLE ONLY public.properties_pending_fk ALTER COLUMN id SET DEFAULT nextva
 
 
 --
+-- TOC entry 4002 (class 2604 OID 34913)
 -- Name: ssor_kb id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3643,6 +4507,7 @@ ALTER TABLE ONLY public.ssor_kb ALTER COLUMN id SET DEFAULT nextval('public.ssor
 
 
 --
+-- TOC entry 4008 (class 2604 OID 34914)
 -- Name: stolen_automobile_media id; Type: DEFAULT; Schema: public; Owner: cctns_prod
 --
 
@@ -3650,6 +4515,79 @@ ALTER TABLE ONLY public.stolen_automobile_media ALTER COLUMN id SET DEFAULT next
 
 
 --
+-- TOC entry 4147 (class 2606 OID 37451)
+-- Name: CandidateVerification CandidateVerification_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."CandidateVerification"
+    ADD CONSTRAINT "CandidateVerification_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4155 (class 2606 OID 37483)
+-- Name: EPettyCase EPettyCase_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."EPettyCase"
+    ADD CONSTRAINT "EPettyCase_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4144 (class 2606 OID 37440)
+-- Name: OrganizationProfile OrganizationProfile_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."OrganizationProfile"
+    ADD CONSTRAINT "OrganizationProfile_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4141 (class 2606 OID 37431)
+-- Name: PoliceProfile PoliceProfile_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."PoliceProfile"
+    ADD CONSTRAINT "PoliceProfile_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4149 (class 2606 OID 37463)
+-- Name: SupportTicket SupportTicket_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."SupportTicket"
+    ADD CONSTRAINT "SupportTicket_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4139 (class 2606 OID 37423)
+-- Name: SystemAuditLog SystemAuditLog_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."SystemAuditLog"
+    ADD CONSTRAINT "SystemAuditLog_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4152 (class 2606 OID 37472)
+-- Name: TicketMessage TicketMessage_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."TicketMessage"
+    ADD CONSTRAINT "TicketMessage_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4137 (class 2606 OID 37412)
+-- Name: User User_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."User"
+    ADD CONSTRAINT "User_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4032 (class 2606 OID 35466)
 -- Name: charge_sheet_updates charge_sheet_updates_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3658,6 +4596,7 @@ ALTER TABLE ONLY public.charge_sheet_updates
 
 
 --
+-- TOC entry 4034 (class 2606 OID 35468)
 -- Name: charge_sheet_updates charge_sheet_updates_update_charge_sheet_id_key; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3666,6 +4605,7 @@ ALTER TABLE ONLY public.charge_sheet_updates
 
 
 --
+-- TOC entry 4043 (class 2606 OID 35470)
 -- Name: etl_run_state etl_run_state_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3674,6 +4614,7 @@ ALTER TABLE ONLY public.etl_run_state
 
 
 --
+-- TOC entry 4045 (class 2606 OID 35472)
 -- Name: fpb_accused fpb_accused_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3682,6 +4623,7 @@ ALTER TABLE ONLY public.fpb_accused
 
 
 --
+-- TOC entry 4051 (class 2606 OID 35474)
 -- Name: fpb_additional_crimes fpb_additional_crimes_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3690,6 +4632,7 @@ ALTER TABLE ONLY public.fpb_additional_crimes
 
 
 --
+-- TOC entry 4065 (class 2606 OID 35476)
 -- Name: ir_conviction_acquittal ir_conviction_acquittal_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3698,6 +4641,7 @@ ALTER TABLE ONLY public.ir_conviction_acquittal
 
 
 --
+-- TOC entry 4069 (class 2606 OID 35478)
 -- Name: ir_defence_counsel ir_defence_counsel_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3706,6 +4650,7 @@ ALTER TABLE ONLY public.ir_defence_counsel
 
 
 --
+-- TOC entry 4073 (class 2606 OID 35480)
 -- Name: ir_execution_of_nbw ir_execution_of_nbw_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3714,6 +4659,7 @@ ALTER TABLE ONLY public.ir_execution_of_nbw
 
 
 --
+-- TOC entry 4080 (class 2606 OID 35482)
 -- Name: ir_jail_sentence ir_jail_sentence_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3722,6 +4668,7 @@ ALTER TABLE ONLY public.ir_jail_sentence
 
 
 --
+-- TOC entry 4087 (class 2606 OID 35484)
 -- Name: ir_new_gang_formation ir_new_gang_formation_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3730,6 +4677,7 @@ ALTER TABLE ONLY public.ir_new_gang_formation
 
 
 --
+-- TOC entry 4108 (class 2606 OID 35486)
 -- Name: ir_pending_fk ir_pending_fk_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3738,6 +4686,7 @@ ALTER TABLE ONLY public.ir_pending_fk
 
 
 --
+-- TOC entry 4090 (class 2606 OID 35488)
 -- Name: ir_pending_nbw ir_pending_nbw_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3746,6 +4695,7 @@ ALTER TABLE ONLY public.ir_pending_nbw
 
 
 --
+-- TOC entry 4094 (class 2606 OID 35490)
 -- Name: ir_property_disposal ir_property_disposal_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3754,6 +4704,7 @@ ALTER TABLE ONLY public.ir_property_disposal
 
 
 --
+-- TOC entry 4098 (class 2606 OID 35492)
 -- Name: ir_regularization_transit_warrants ir_regularization_transit_warrants_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3762,6 +4713,7 @@ ALTER TABLE ONLY public.ir_regularization_transit_warrants
 
 
 --
+-- TOC entry 4104 (class 2606 OID 35494)
 -- Name: ir_sureties ir_sureties_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3770,6 +4722,7 @@ ALTER TABLE ONLY public.ir_sureties
 
 
 --
+-- TOC entry 4110 (class 2606 OID 35496)
 -- Name: mo_seizure_media mo_seizure_media_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3778,6 +4731,7 @@ ALTER TABLE ONLY public.mo_seizure_media
 
 
 --
+-- TOC entry 4030 (class 2606 OID 35498)
 -- Name: accused pk_accused_id; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3786,6 +4740,7 @@ ALTER TABLE ONLY public.accused
 
 
 --
+-- TOC entry 4039 (class 2606 OID 35500)
 -- Name: crimes pk_crimes_id; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3794,6 +4749,7 @@ ALTER TABLE ONLY public.crimes
 
 
 --
+-- TOC entry 4060 (class 2606 OID 35502)
 -- Name: interrogation_reports pk_ir_id; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3802,6 +4758,7 @@ ALTER TABLE ONLY public.interrogation_reports
 
 
 --
+-- TOC entry 4112 (class 2606 OID 35504)
 -- Name: persons pk_persons_id; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3810,6 +4767,7 @@ ALTER TABLE ONLY public.persons
 
 
 --
+-- TOC entry 4120 (class 2606 OID 35506)
 -- Name: properties pk_properties_id; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3818,6 +4776,7 @@ ALTER TABLE ONLY public.properties
 
 
 --
+-- TOC entry 4123 (class 2606 OID 35508)
 -- Name: properties_pending_fk properties_pending_fk_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3826,6 +4785,7 @@ ALTER TABLE ONLY public.properties_pending_fk
 
 
 --
+-- TOC entry 4125 (class 2606 OID 35510)
 -- Name: property_additional_details property_additional_details_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3834,6 +4794,7 @@ ALTER TABLE ONLY public.property_additional_details
 
 
 --
+-- TOC entry 4127 (class 2606 OID 35512)
 -- Name: property_media property_media_unique_entry; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3842,6 +4803,7 @@ ALTER TABLE ONLY public.property_media
 
 
 --
+-- TOC entry 4114 (class 2606 OID 35514)
 -- Name: ssor_kb ssor_kb_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3850,6 +4812,7 @@ ALTER TABLE ONLY public.ssor_kb
 
 
 --
+-- TOC entry 4130 (class 2606 OID 35516)
 -- Name: stolen_automobile_media stolen_automobile_media_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3858,6 +4821,7 @@ ALTER TABLE ONLY public.stolen_automobile_media
 
 
 --
+-- TOC entry 4134 (class 2606 OID 35518)
 -- Name: stolen_automobiles stolen_automobiles_pkey; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3866,6 +4830,7 @@ ALTER TABLE ONLY public.stolen_automobiles
 
 
 --
+-- TOC entry 4041 (class 2606 OID 35520)
 -- Name: disposal uk_disposal_composite; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3874,6 +4839,7 @@ ALTER TABLE ONLY public.disposal
 
 
 --
+-- TOC entry 4049 (class 2606 OID 35522)
 -- Name: fpb_accused uq_fpb_accused_fir_ps_name; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3882,6 +4848,7 @@ ALTER TABLE ONLY public.fpb_accused
 
 
 --
+-- TOC entry 4116 (class 2606 OID 35524)
 -- Name: ssor_kb uq_ssor_kb_section; Type: CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
@@ -3890,6 +4857,47 @@ ALTER TABLE ONLY public.ssor_kb
 
 
 --
+-- TOC entry 4153 (class 1259 OID 37484)
+-- Name: EPettyCase_caseNumber_key; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX "EPettyCase_caseNumber_key" ON public."EPettyCase" USING btree ("caseNumber");
+
+
+--
+-- TOC entry 4145 (class 1259 OID 37441)
+-- Name: OrganizationProfile_userId_key; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX "OrganizationProfile_userId_key" ON public."OrganizationProfile" USING btree ("userId");
+
+
+--
+-- TOC entry 4142 (class 1259 OID 37432)
+-- Name: PoliceProfile_userId_key; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX "PoliceProfile_userId_key" ON public."PoliceProfile" USING btree ("userId");
+
+
+--
+-- TOC entry 4150 (class 1259 OID 37464)
+-- Name: SupportTicket_ticketNumber_key; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX "SupportTicket_ticketNumber_key" ON public."SupportTicket" USING btree ("ticketNumber");
+
+
+--
+-- TOC entry 4135 (class 1259 OID 37413)
+-- Name: User_loginId_key; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX "User_loginId_key" ON public."User" USING btree ("loginId");
+
+
+--
+-- TOC entry 4035 (class 1259 OID 35525)
 -- Name: idx_crimes_coalesce_date; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3897,6 +4905,7 @@ CREATE INDEX idx_crimes_coalesce_date ON public.crimes USING btree (COALESCE(dat
 
 
 --
+-- TOC entry 4036 (class 1259 OID 35526)
 -- Name: idx_crimes_date_created; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3904,6 +4913,7 @@ CREATE INDEX idx_crimes_date_created ON public.crimes USING btree (date_created 
 
 
 --
+-- TOC entry 4037 (class 1259 OID 35527)
 -- Name: idx_crimes_date_modified_created; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3911,6 +4921,7 @@ CREATE INDEX idx_crimes_date_modified_created ON public.crimes USING btree (date
 
 
 --
+-- TOC entry 4046 (class 1259 OID 35528)
 -- Name: idx_fpb_accused_crime_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3918,6 +4929,7 @@ CREATE INDEX idx_fpb_accused_crime_id ON public.fpb_accused USING btree (crime_i
 
 
 --
+-- TOC entry 4047 (class 1259 OID 35529)
 -- Name: idx_fpb_accused_fir_ps; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3925,6 +4937,7 @@ CREATE INDEX idx_fpb_accused_fir_ps ON public.fpb_accused USING btree (fir_num, 
 
 
 --
+-- TOC entry 4052 (class 1259 OID 35530)
 -- Name: idx_fpb_additional_crimes_parent; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3932,6 +4945,7 @@ CREATE INDEX idx_fpb_additional_crimes_parent ON public.fpb_additional_crimes US
 
 
 --
+-- TOC entry 4053 (class 1259 OID 35531)
 -- Name: idx_fsl_created; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3939,6 +4953,7 @@ CREATE INDEX idx_fsl_created ON public.fsl_case_property USING btree (date_creat
 
 
 --
+-- TOC entry 4054 (class 1259 OID 35532)
 -- Name: idx_fsl_crime_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3946,6 +4961,7 @@ CREATE INDEX idx_fsl_crime_id ON public.fsl_case_property USING btree (crime_id)
 
 
 --
+-- TOC entry 4055 (class 1259 OID 35533)
 -- Name: idx_fsl_mo_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3953,6 +4969,7 @@ CREATE INDEX idx_fsl_mo_id ON public.fsl_case_property USING btree (mo_id);
 
 
 --
+-- TOC entry 4056 (class 1259 OID 35534)
 -- Name: idx_fsl_status; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3960,6 +4977,7 @@ CREATE INDEX idx_fsl_status ON public.fsl_case_property USING btree (status);
 
 
 --
+-- TOC entry 4061 (class 1259 OID 35535)
 -- Name: idx_ir_associate_details_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3967,6 +4985,7 @@ CREATE INDEX idx_ir_associate_details_ir_id ON public.ir_associate_details USING
 
 
 --
+-- TOC entry 4062 (class 1259 OID 35536)
 -- Name: idx_ir_consumer_details_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3974,6 +4993,7 @@ CREATE INDEX idx_ir_consumer_details_ir_id ON public.ir_consumer_details USING b
 
 
 --
+-- TOC entry 4063 (class 1259 OID 35537)
 -- Name: idx_ir_conviction_acquittal_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3981,6 +5001,7 @@ CREATE INDEX idx_ir_conviction_acquittal_ir_id ON public.ir_conviction_acquittal
 
 
 --
+-- TOC entry 4066 (class 1259 OID 35538)
 -- Name: idx_ir_defence_counsel_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3988,6 +5009,7 @@ CREATE INDEX idx_ir_defence_counsel_ir_id ON public.ir_defence_counsel USING btr
 
 
 --
+-- TOC entry 4067 (class 1259 OID 35539)
 -- Name: idx_ir_defence_counsel_person_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -3995,6 +5017,7 @@ CREATE INDEX idx_ir_defence_counsel_person_id ON public.ir_defence_counsel USING
 
 
 --
+-- TOC entry 4070 (class 1259 OID 35540)
 -- Name: idx_ir_dopams_links_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4002,6 +5025,7 @@ CREATE INDEX idx_ir_dopams_links_ir_id ON public.ir_dopams_links USING btree (in
 
 
 --
+-- TOC entry 4071 (class 1259 OID 35541)
 -- Name: idx_ir_execution_of_nbw_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4009,6 +5033,7 @@ CREATE INDEX idx_ir_execution_of_nbw_ir_id ON public.ir_execution_of_nbw USING b
 
 
 --
+-- TOC entry 4074 (class 1259 OID 35542)
 -- Name: idx_ir_family_history_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4016,6 +5041,7 @@ CREATE INDEX idx_ir_family_history_ir_id ON public.ir_family_history USING btree
 
 
 --
+-- TOC entry 4075 (class 1259 OID 35543)
 -- Name: idx_ir_financial_history_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4023,6 +5049,7 @@ CREATE INDEX idx_ir_financial_history_ir_id ON public.ir_financial_history USING
 
 
 --
+-- TOC entry 4076 (class 1259 OID 35544)
 -- Name: idx_ir_indulgance_before_offence_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4030,6 +5057,7 @@ CREATE INDEX idx_ir_indulgance_before_offence_ir_id ON public.ir_indulgance_befo
 
 
 --
+-- TOC entry 4077 (class 1259 OID 35545)
 -- Name: idx_ir_interrogation_report_refs_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4037,6 +5065,7 @@ CREATE INDEX idx_ir_interrogation_report_refs_ir_id ON public.ir_interrogation_r
 
 
 --
+-- TOC entry 4078 (class 1259 OID 35546)
 -- Name: idx_ir_jail_sentence_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4044,6 +5073,7 @@ CREATE INDEX idx_ir_jail_sentence_ir_id ON public.ir_jail_sentence USING btree (
 
 
 --
+-- TOC entry 4081 (class 1259 OID 35547)
 -- Name: idx_ir_local_contacts_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4051,6 +5081,7 @@ CREATE INDEX idx_ir_local_contacts_ir_id ON public.ir_local_contacts USING btree
 
 
 --
+-- TOC entry 4082 (class 1259 OID 35548)
 -- Name: idx_ir_media_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4058,6 +5089,7 @@ CREATE INDEX idx_ir_media_ir_id ON public.ir_media USING btree (interrogation_re
 
 
 --
+-- TOC entry 4083 (class 1259 OID 35549)
 -- Name: idx_ir_modus_operandi_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4065,6 +5097,7 @@ CREATE INDEX idx_ir_modus_operandi_ir_id ON public.ir_modus_operandi USING btree
 
 
 --
+-- TOC entry 4084 (class 1259 OID 35550)
 -- Name: idx_ir_new_gang_formation_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4072,6 +5105,7 @@ CREATE INDEX idx_ir_new_gang_formation_ir_id ON public.ir_new_gang_formation USI
 
 
 --
+-- TOC entry 4085 (class 1259 OID 35551)
 -- Name: idx_ir_new_gang_formation_leader_person_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4079,6 +5113,7 @@ CREATE INDEX idx_ir_new_gang_formation_leader_person_id ON public.ir_new_gang_fo
 
 
 --
+-- TOC entry 4088 (class 1259 OID 35552)
 -- Name: idx_ir_pending_nbw_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4086,6 +5121,7 @@ CREATE INDEX idx_ir_pending_nbw_ir_id ON public.ir_pending_nbw USING btree (inte
 
 
 --
+-- TOC entry 4091 (class 1259 OID 35553)
 -- Name: idx_ir_previous_offences_confessed_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4093,6 +5129,7 @@ CREATE INDEX idx_ir_previous_offences_confessed_ir_id ON public.ir_previous_offe
 
 
 --
+-- TOC entry 4092 (class 1259 OID 35554)
 -- Name: idx_ir_property_disposal_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4100,6 +5137,7 @@ CREATE INDEX idx_ir_property_disposal_ir_id ON public.ir_property_disposal USING
 
 
 --
+-- TOC entry 4095 (class 1259 OID 35555)
 -- Name: idx_ir_regular_habits_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4107,6 +5145,7 @@ CREATE INDEX idx_ir_regular_habits_ir_id ON public.ir_regular_habits USING btree
 
 
 --
+-- TOC entry 4096 (class 1259 OID 35556)
 -- Name: idx_ir_regularization_transit_warrants_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4114,6 +5153,7 @@ CREATE INDEX idx_ir_regularization_transit_warrants_ir_id ON public.ir_regulariz
 
 
 --
+-- TOC entry 4057 (class 1259 OID 35557)
 -- Name: idx_ir_reports_created_modified; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4121,6 +5161,7 @@ CREATE INDEX idx_ir_reports_created_modified ON public.interrogation_reports USI
 
 
 --
+-- TOC entry 4058 (class 1259 OID 35558)
 -- Name: idx_ir_reports_crime_person; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4128,6 +5169,7 @@ CREATE INDEX idx_ir_reports_crime_person ON public.interrogation_reports USING b
 
 
 --
+-- TOC entry 4099 (class 1259 OID 35559)
 -- Name: idx_ir_shelter_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4135,6 +5177,7 @@ CREATE INDEX idx_ir_shelter_ir_id ON public.ir_shelter USING btree (interrogatio
 
 
 --
+-- TOC entry 4100 (class 1259 OID 35560)
 -- Name: idx_ir_sim_details_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4142,6 +5185,7 @@ CREATE INDEX idx_ir_sim_details_ir_id ON public.ir_sim_details USING btree (inte
 
 
 --
+-- TOC entry 4101 (class 1259 OID 35561)
 -- Name: idx_ir_sureties_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4149,6 +5193,7 @@ CREATE INDEX idx_ir_sureties_ir_id ON public.ir_sureties USING btree (interrogat
 
 
 --
+-- TOC entry 4102 (class 1259 OID 35562)
 -- Name: idx_ir_sureties_surety_person_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4156,6 +5201,7 @@ CREATE INDEX idx_ir_sureties_surety_person_id ON public.ir_sureties USING btree 
 
 
 --
+-- TOC entry 4105 (class 1259 OID 35563)
 -- Name: idx_ir_types_of_drugs_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4163,6 +5209,23 @@ CREATE INDEX idx_ir_types_of_drugs_ir_id ON public.ir_types_of_drugs USING btree
 
 
 --
+-- TOC entry 4117 (class 1259 OID 35564)
+-- Name: idx_mv_offender_details_id; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE UNIQUE INDEX idx_mv_offender_details_id ON public.mv_offender_details USING btree (offender_id);
+
+
+--
+-- TOC entry 4118 (class 1259 OID 35565)
+-- Name: idx_mv_offenders_list_id; Type: INDEX; Schema: public; Owner: cctns_prod
+--
+
+CREATE INDEX idx_mv_offenders_list_id ON public.mv_offenders_list USING btree (offender_id);
+
+
+--
+-- TOC entry 4106 (class 1259 OID 35566)
 -- Name: idx_pending_fk_ir_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4170,6 +5233,7 @@ CREATE UNIQUE INDEX idx_pending_fk_ir_id ON public.ir_pending_fk USING btree (ir
 
 
 --
+-- TOC entry 4121 (class 1259 OID 35567)
 -- Name: idx_pending_fk_property_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4177,6 +5241,7 @@ CREATE UNIQUE INDEX idx_pending_fk_property_id ON public.properties_pending_fk U
 
 
 --
+-- TOC entry 4128 (class 1259 OID 35568)
 -- Name: idx_stolen_automobile_media_parent; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4184,6 +5249,7 @@ CREATE INDEX idx_stolen_automobile_media_parent ON public.stolen_automobile_medi
 
 
 --
+-- TOC entry 4131 (class 1259 OID 35569)
 -- Name: idx_stolen_automobiles_crime_id; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4191,6 +5257,7 @@ CREATE INDEX idx_stolen_automobiles_crime_id ON public.stolen_automobiles USING 
 
 
 --
+-- TOC entry 4132 (class 1259 OID 35570)
 -- Name: idx_stolen_automobiles_date_modified; Type: INDEX; Schema: public; Owner: cctns_prod
 --
 
@@ -4198,48 +5265,64 @@ CREATE INDEX idx_stolen_automobiles_date_modified ON public.stolen_automobiles U
 
 
 --
--- Name: fpb_accused fk_fpb_accused_crime; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
+-- TOC entry 4159 (class 2606 OID 37500)
+-- Name: CandidateVerification CandidateVerification_organizationId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
-ALTER TABLE ONLY public.fpb_accused
-    ADD CONSTRAINT fk_fpb_accused_crime FOREIGN KEY (crime_id) REFERENCES public.crimes(crime_id);
-
-
---
--- Name: fpb_additional_crimes fk_fpb_additional_crimes_parent; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
---
-
-ALTER TABLE ONLY public.fpb_additional_crimes
-    ADD CONSTRAINT fk_fpb_additional_crimes_parent FOREIGN KEY (fpb_accused_id) REFERENCES public.fpb_accused(fpb_accused_id) ON DELETE CASCADE;
+ALTER TABLE ONLY public."CandidateVerification"
+    ADD CONSTRAINT "CandidateVerification_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
--- Name: stolen_automobile_media fk_stolen_automobile_media_parent; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
+-- TOC entry 4158 (class 2606 OID 37495)
+-- Name: OrganizationProfile OrganizationProfile_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
-ALTER TABLE ONLY public.stolen_automobile_media
-    ADD CONSTRAINT fk_stolen_automobile_media_parent FOREIGN KEY (stolen_property_id) REFERENCES public.stolen_automobiles(stolen_property_id) ON DELETE CASCADE;
-
-
---
--- Name: stolen_automobiles fk_stolen_automobiles_crime; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
---
-
-ALTER TABLE ONLY public.stolen_automobiles
-    ADD CONSTRAINT fk_stolen_automobiles_crime FOREIGN KEY (crime_id) REFERENCES public.crimes(crime_id);
+ALTER TABLE ONLY public."OrganizationProfile"
+    ADD CONSTRAINT "OrganizationProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: cctns_prod
+-- TOC entry 4157 (class 2606 OID 37490)
+-- Name: PoliceProfile PoliceProfile_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
 --
 
-REVOKE USAGE ON SCHEMA public FROM PUBLIC;
-GRANT ALL ON SCHEMA public TO PUBLIC;
+ALTER TABLE ONLY public."PoliceProfile"
+    ADD CONSTRAINT "PoliceProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
+
+--
+-- TOC entry 4160 (class 2606 OID 37505)
+-- Name: SupportTicket SupportTicket_organizationId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."SupportTicket"
+    ADD CONSTRAINT "SupportTicket_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4156 (class 2606 OID 37485)
+-- Name: SystemAuditLog SystemAuditLog_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."SystemAuditLog"
+    ADD CONSTRAINT "SystemAuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."User"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- TOC entry 4161 (class 2606 OID 37510)
+-- Name: TicketMessage TicketMessage_ticketId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: cctns_prod
+--
+
+ALTER TABLE ONLY public."TicketMessage"
+    ADD CONSTRAINT "TicketMessage_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES public."SupportTicket"(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+-- Completed on 2026-07-15 15:13:19 IST
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict vnTf0g8jnDHgP8NdFfK65s9pXER3chlwozJVahnaMcS33fecbokaOz1gGkqNyzt
+\unrestrict QXEkdQlNBoE1gCqJ8DcWl6mWhMYnfavxntRX7ba3p0JNXr5E0lVFqfLqKKcB0lf
 

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
+import { searchCctnsCandidate, shouldSkipEpettyAfterCctns } from '../services/cctns.service.js';
 import { generateClearanceReport } from '../services/gemini.service.js';
 
 export const getLogs = async (req, res) => {
@@ -103,78 +104,64 @@ export const scanVerificationById = async (req, res) => {
       data: { status: 'verifying' }
     });
 
-    const candidateName = (verification.candidateName || '').trim().toLowerCase();
     const requestDob = verification.dob ? new Date(verification.dob).toISOString().split('T')[0] : '—';
 
-    // CCTNS/state-register fuzzy search stays first so existing behavior has priority.
-    const nameParts = candidateName.split(' ').filter(p => p.length >= 3);
-    let rawMatches = [];
-    if (nameParts.length > 0) {
-      const searchConditions = Prisma.join(
-        nameParts.map(part => Prisma.sql`offender_name ILIKE ${`%${part}%`}`),
-        ' OR '
-      );
-      rawMatches = await prisma.$queryRaw`
-        SELECT * FROM public.mv_offenders_list
-        WHERE ${searchConditions}
-        LIMIT 10
-      `;
-    } else if (candidateName) {
-      rawMatches = await prisma.$queryRaw`
-        SELECT * FROM public.mv_offenders_list
-        WHERE offender_name ILIKE ${`%${candidateName}%`}
-        LIMIT 10
-      `;
+    const cctnsOutcome = await searchCctnsCandidate({
+      candidateName: verification.candidateName,
+      candidatePhone: verification.phone,
+      aadharNumber: verification.aadharNumber
+    });
+    const cctnsSuspects = cctnsOutcome.matches;
+
+    let epettyOutcome = { matches: [], lookupError: null, matchedSource: null, priorityLabel: null };
+    let epettySuspects = [];
+
+    const mapEpettyMatchMeta = (priorityLabel = '') => {
+      if (priorityLabel.includes('Name & Phone')) {
+        return { matchCategory: 'name_phone', matchCategoryLabel: 'Name + phone exact', matchParams: ['name', 'phone'], confidence: 94 };
+      }
+      if (priorityLabel.includes('Exact Name')) {
+        return { matchCategory: 'name', matchCategoryLabel: 'Name exact', matchParams: ['name'], confidence: 78 };
+      }
+      if (priorityLabel.includes('Exact Phone')) {
+        return { matchCategory: 'phone', matchCategoryLabel: 'Phone exact', matchParams: ['phone'], confidence: 62 };
+      }
+      return { matchCategory: 'custom', matchCategoryLabel: 'Custom filter match', matchParams: [], confidence: 50 };
+    };
+
+    if (!shouldSkipEpettyAfterCctns(cctnsOutcome)) {
+      epettyOutcome = await searchEpettyCandidate(verification.candidateName, verification.phone);
+      const epettyMeta = mapEpettyMatchMeta(epettyOutcome.priorityLabel || '');
+      epettySuspects = epettyOutcome.matches.map(m => ({
+        id: m.recordId || m.caseNumber || '—',
+        name: m.name || m.offenderName || '—',
+        alias: m.alias || '—',
+        age: m.age || '—',
+        fatherName: m.fatherName || '—',
+        dob: m.dob || requestDob,
+        phone: m.phone || '—',
+        address: m.address || '—',
+        offence: m.offence || m.offenceType || '—',
+        firNo: m.firNo || m.caseNumber || '—',
+        firDate: m.firDate || m.incidentDate || '—',
+        courtName: m.courtName || (m.disposalStatus ? `Status: ${m.disposalStatus}` : '—'),
+        convDate: m.convDate || m.incidentDate || '—',
+        riskTier: m.riskTier || 'Orange',
+        source: epettyOutcome.matchedSource || 'ePetty Case',
+        priority: epettyOutcome.priorityLabel || 'ePetty Match',
+        ...epettyMeta
+      }));
     }
 
-    const stateRegisterSuspects = rawMatches.map(m => ({
-      id: m.offender_id,
-      name: m.offender_name,
-      alias: m.offender_alias || '—',
-      age: 'N/A', // Not in MV
-      fatherName: 'N/A', // Not in MV
-      dob: 'N/A', // Not in MV
-      phone: 'N/A', // Not in MV
-      address: 'N/A', // Not in MV
-      offence: m.primary_offence || '—',
-      firNo: 'N/A',
-      firDate: m.offence_date ? new Date(m.offence_date).toLocaleDateString('en-GB') : '—',
-      courtName: 'N/A',
-      convDate: 'N/A',
-      riskTier: m.risk_tier || 'Orange',
-      source: 'State Register',
-      priority: 'Fuzzy Name Match'
-    }));
-
-    const epettyOutcome = await searchEpettyCandidate(verification.candidateName, verification.phone);
-    const epettySuspects = epettyOutcome.matches.map(m => ({
-      id: m.recordId || m.caseNumber || '—',
-      name: m.name || m.offenderName || '—',
-      alias: m.alias || '—',
-      age: m.age || '—',
-      fatherName: m.fatherName || '—',
-      dob: m.dob || requestDob,
-      phone: m.phone || '—',
-      address: m.address || '—',
-      offence: m.offence || m.offenceType || '—',
-      firNo: m.firNo || m.caseNumber || '—',
-      firDate: m.firDate || m.incidentDate || '—',
-      courtName: m.courtName || (m.disposalStatus ? `Status: ${m.disposalStatus}` : '—'),
-      convDate: m.convDate || m.incidentDate || '—',
-      riskTier: m.riskTier || 'Orange',
-      source: epettyOutcome.matchedSource || 'ePetty Case',
-      priority: epettyOutcome.priorityLabel || 'ePetty Match'
-    }));
-
-    const suspects = [...stateRegisterSuspects, ...epettySuspects];
+    const suspects = [...cctnsSuspects, ...epettySuspects];
     const matchedSources = [
-      stateRegisterSuspects.length > 0 ? 'State Register' : null,
+      cctnsSuspects.length > 0 ? 'CCTNS' : null,
       epettySuspects.length > 0 ? 'ePetty Case' : null
     ].filter(Boolean);
     const matchedSource = matchedSources.length > 0 ? matchedSources.join(' + ') : 'None';
     const priorityLabel = matchedSources.length > 1
       ? 'Multi-Source Match'
-      : (suspects[0]?.priority || 'No Match');
+      : (cctnsOutcome.priorityLabel || epettyOutcome.priorityLabel || suspects[0]?.priority || 'No Match');
 
     await prisma.systemAuditLog.create({
       data: {
@@ -189,10 +176,14 @@ export const scanVerificationById = async (req, res) => {
       matchedSource,
       priorityLabel,
       sourceCounts: {
-        stateRegister: stateRegisterSuspects.length,
+        cctns: cctnsSuspects.length,
         epetty: epettySuspects.length
       },
-      epettyStatus: epettyOutcome.lookupError ? 'unavailable' : 'checked',
+      cctnsStatus: cctnsOutcome.lookupError ? 'unavailable' : 'checked',
+      cctnsError: cctnsOutcome.lookupError || null,
+      epettyStatus: shouldSkipEpettyAfterCctns(cctnsOutcome)
+        ? 'skipped'
+        : (epettyOutcome.lookupError ? 'unavailable' : 'checked'),
       epettyError: epettyOutcome.lookupError || null,
       suspects
     });

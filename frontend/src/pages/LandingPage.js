@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import Footer from '../components/common/Footer';
+import HeroWaves from '../components/common/HeroWaves';
 import {
   Shield,
   ShieldCheck,
@@ -22,94 +23,129 @@ import { legalFramework, accessLevels, tiers, capabilities } from '../utils/data
 function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* ───────── HERO SECTION ───────── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary"></div>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-accent rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-10 right-20 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl"></div>
+      {/* ───────── HERO: exact first viewport (below sticky nav h-16) ───────── */}
+      <section
+        className="relative flex min-h-[calc(100svh-4rem)] overflow-x-hidden overflow-y-auto lg:overflow-hidden lg:h-[calc(100dvh-4rem)]"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary" />
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-[8%] left-[4%] w-[min(40vw,18rem)] h-[min(40vw,18rem)] bg-accent rounded-full filter blur-3xl" />
+          <div className="absolute bottom-[6%] right-[6%] w-[min(50vw,22rem)] h-[min(50vw,22rem)] bg-blue-400 rounded-full filter blur-3xl" />
         </div>
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
+        <div
+          className="absolute inset-0 opacity-5 pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left: copy */}
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
-                <ShieldCheck className="h-4 w-4 text-accent" />
+        <div className="relative z-10 flex w-full flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12 pb-12 sm:pb-14 lg:pb-16 min-h-0 flex-1">
+          <div className="grid min-h-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-4 sm:gap-6 lg:gap-10 items-center">
+            {/* Copy */}
+            <div className="text-center lg:text-left flex flex-col justify-center min-h-0">
+              <div className="inline-flex self-center lg:self-start items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4">
+                <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent shrink-0" />
                 Government of Telangana · State Police
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading leading-tight">
+              <h1
+                className="font-bold text-white font-heading leading-[1.1] tracking-tight"
+                style={{ fontSize: 'clamp(1.65rem, 2.2vw + 1rem, 3.25rem)' }}
+              >
                 One register.
                 <br />
-                Three doorways.
+                Two doorways.
                 <br />
                 <span className="text-accent">Strict access.</span>
               </h1>
-              <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-xl lg:mx-0 mx-auto leading-relaxed">
+
+              <p
+                className="mt-3 sm:mt-4 text-gray-300 max-w-xl lg:mx-0 mx-auto leading-relaxed"
+                style={{ fontSize: 'clamp(0.875rem, 0.4vw + 0.75rem, 1.125rem)' }}
+              >
                 A conviction-based, colour-coded Sexual Offender Register built to protect women and
-                children — enabling verified background checks for organizations, limited disclosure
-                for parents and guardians, and structured monitoring for the police.
+                children — verified clearance for organizations, structured monitoring for police.
               </p>
 
-              <div className="mt-10 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
-                <Link to="/services" className="btn-accent text-base px-8 py-4">
-                  <Building2 className="h-5 w-5" />
+              <div className="mt-4 sm:mt-6 flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center lg:justify-start justify-center gap-2.5 sm:gap-3">
+                <Link
+                  to="/services"
+                  className="btn-accent justify-center text-sm sm:text-base px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl"
+                >
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
                   Organization Services
                 </Link>
-                <Link to="/login" className="btn-primary text-base px-8 py-4 bg-white/10 border border-white/20 hover:bg-white/20">
-                  <LogIn className="h-5 w-5" />
+                <Link
+                  to="/login"
+                  className="btn-primary justify-center text-sm sm:text-base px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20"
+                >
+                  <LogIn className="h-4 w-4 sm:h-5 sm:w-5" />
                   Login
                 </Link>
               </div>
 
-              <div className="mt-12 flex flex-wrap items-center lg:justify-start justify-center gap-x-8 gap-y-4 text-gray-400 text-base">
-                <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-green-400" />
+              <div className="mt-4 sm:mt-6 hidden min-[480px]:flex flex-wrap items-center lg:justify-start justify-center gap-x-5 gap-y-2 text-gray-400 text-xs sm:text-sm">
+                <div className="flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-green-400 shrink-0" />
                   <span>Controlled disclosure</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-green-400" />
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-green-400 shrink-0" />
                   <span>Conviction-based only</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-green-400" />
+                <div className="flex items-center gap-1.5">
+                  <Activity className="h-3.5 w-3.5 text-green-400 shrink-0" />
                   <span>100% access logged</span>
                 </div>
               </div>
             </div>
 
-            {/* Right: hero media */}
-            <div className="relative">
-              <div className="absolute -inset-4 bg-accent/20 rounded-3xl blur-2xl"></div>
+            {/* Media — scales within remaining column height */}
+            <div className="relative hidden sm:flex items-center justify-center min-h-0 h-full max-h-full py-1">
+              <div className="absolute inset-[8%] bg-accent/15 rounded-3xl blur-2xl pointer-events-none" />
               <img
                 src="/images/hero-shield.png"
                 alt="Shield protecting women and children, with scales of justice and secure database"
-                className="relative rounded-2xl shadow-2xl border border-white/10 w-full"
+                className="relative z-[1] rounded-2xl shadow-2xl border border-white/10 w-full h-auto max-h-[min(52dvh,28rem)] lg:max-h-[min(62dvh,34rem)] object-contain"
               />
             </div>
           </div>
         </div>
 
-        {/* Bottom animated waves */}
-        <div className="absolute bottom-0 left-0 right-0 w-full overflow-hidden leading-[0] z-10 pointer-events-none h-[80px] md:h-[120px] lg:h-[150px]">
-          {/* Layer 1 (Back) */}
-          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-slow" viewBox="0 0 2400 120" preserveAspectRatio="none">
-            <path fill="#f8fafc" fillOpacity="0.3" d="M0,60 C300,100 300,20 600,60 C900,100 900,20 1200,60 C1500,100 1500,20 1800,60 C2100,100 2100,20 2400,60 L2400,120 L0,120 Z" />
-          </svg>
-          
-          {/* Layer 2 (Middle) */}
-          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-medium" viewBox="0 0 2400 120" preserveAspectRatio="none">
-            <path fill="#f8fafc" fillOpacity="0.5" d="M0,80 C200,110 400,50 600,80 C800,110 1000,50 1200,80 C1400,110 1600,50 1800,80 C2000,110 2200,50 2400,80 L2400,120 L0,120 Z" />
-          </svg>
-          
-          {/* Layer 3 (Front) */}
-          <svg className="absolute bottom-0 left-0 w-[200%] h-full animate-wave-fast" viewBox="0 0 2400 120" preserveAspectRatio="none">
-            <path fill="#f8fafc" fillOpacity="1" d="M0,90 C600,120 600,60 1200,90 C1800,120 1800,60 2400,90 L2400,120 L0,120 Z" />
-          </svg>
+        {/* Animated wave transition */}
+        <HeroWaves />
+      </section>
+
+      {/* ───────── DOORWAY ACCESS (below hero) ───────── */}
+      <section className="relative z-20 bg-background -mt-1 pt-6 sm:pt-8 pb-4 sm:pb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 max-w-5xl mx-auto">
+            {accessLevels.map((level) => (
+              <Link
+                key={level.title}
+                to={level.cta.to}
+                className="group flex items-center gap-3 sm:gap-4 rounded-2xl bg-white border border-slate-200 px-4 py-4 sm:px-5 sm:py-5 shadow-panel hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <div className={`${level.iconBg} h-11 w-11 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0`}>
+                  <level.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${level.iconColor}`} />
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-primary text-sm sm:text-base font-heading leading-tight">
+                      {level.title}
+                    </span>
+                    <span className={`${level.tagClass} text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full`}>
+                      {level.tag}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-snug">
+                    {level.points[0]}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-hover:text-secondary shrink-0 transition-colors" />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -173,35 +209,37 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ───────── ACCESS MODEL (3 TIERS) ───────── */}
-      <section className="py-20 bg-background">
+      {/* ───────── ACCESS MODEL ───────── */}
+      <section className="py-14 sm:py-16 lg:py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="section-title">Three levels of controlled access</h2>
-            <p className="section-subtitle">Access is granted strictly by authorisation — from full police access to a single, protocol-bound disclosure.</p>
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="section-title">Two levels of controlled access</h2>
+            <p className="section-subtitle">Access is granted strictly by authorisation — police manage the register; organizations request clearance.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 gap-5 sm:gap-6 lg:gap-8 max-w-5xl mx-auto">
             {accessLevels.map((level) => (
-              <div key={level.title} className="card p-8 relative group hover:-translate-y-1 flex flex-col">
-                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${level.accent} rounded-t-xl`}></div>
-                <div className="absolute -top-3 right-6">
-                  <span className={`${level.tagClass} text-sm font-bold px-3 py-1 rounded-full shadow-md`}>{level.tag}</span>
+              <div key={level.title} className="card p-6 sm:p-8 relative group hover:-translate-y-1 flex flex-col h-full">
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${level.accent} rounded-t-xl`} />
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div className={`${level.iconBg} w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shrink-0`}>
+                    <level.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${level.iconColor}`} />
+                  </div>
+                  <span className={`${level.tagClass} text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-full shadow-sm shrink-0`}>
+                    {level.tag}
+                  </span>
                 </div>
-                <div className={`${level.iconBg} w-16 h-16 rounded-xl flex items-center justify-center mb-6`}>
-                  <level.icon className={`h-8 w-8 ${level.iconColor}`} />
-                </div>
-                <h3 className="text-xl font-bold text-primary font-heading mb-3">{level.title}</h3>
-                <p className="text-muted leading-relaxed mb-6 text-base">{level.description}</p>
-                <ul className="space-y-3 mb-8">
+                <h3 className="text-lg sm:text-xl font-bold text-primary font-heading mb-2 sm:mb-3">{level.title}</h3>
+                <p className="text-muted leading-relaxed mb-5 text-sm sm:text-base flex-1">{level.description}</p>
+                <ul className="space-y-2.5 mb-6">
                   {level.points.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-base text-gray-600">
+                    <li key={item} className="flex items-center gap-2 text-sm sm:text-base text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link to={level.cta.to} className={`${level.ctaClass} w-full justify-center text-base mt-auto`}>
+                <Link to={level.cta.to} className={`${level.ctaClass} w-full justify-center text-sm sm:text-base mt-auto`}>
                   {level.cta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
