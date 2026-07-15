@@ -21,12 +21,18 @@ const buildDatabaseUrl = () => {
   return `postgresql://${userPart}${passwordPart}@${host}${portPart}/${database}`;
 };
 
+const databaseUrl = buildDatabaseUrl();
+
+if (databaseUrl) {
+  process.env["DATABASE_URL"] = databaseUrl;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: buildDatabaseUrl(),
+    url: databaseUrl,
   },
 });
