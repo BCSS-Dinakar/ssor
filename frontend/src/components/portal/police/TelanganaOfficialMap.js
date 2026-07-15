@@ -141,17 +141,17 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
   return (
     <Card className="overflow-hidden border-slate-200 shadow-md bg-white">
-      <CardHeader className="bg-slate-900 border-b border-slate-800 py-3.5 px-4 text-white">
+      <CardHeader className="bg-gradient-to-r from-slate-50 via-indigo-50/20 to-slate-50 border-b border-slate-200 py-3.5 px-5">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-mono text-[11px] font-bold tracking-wider text-indigo-600 uppercase">
                 Statutory GIS Engine v3.8 — Puttaswamy Compliant
               </span>
             </div>
-            <CardTitle className="mt-0.5 flex items-center gap-2 text-lg font-bold text-white">
-              <MapPin className="h-4.5 w-4.5 text-indigo-400 shrink-0" />
+            <CardTitle className="mt-0.5 flex items-center gap-2 text-lg font-extrabold text-slate-900">
+              <MapPin className="h-4.5 w-4.5 text-indigo-600 shrink-0" />
               Telangana Official State Geographical & Mandal Console
             </CardTitle>
           </div>
@@ -162,7 +162,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 variant="secondary"
                 size="sm"
                 onClick={handleResetZoom}
-                className="bg-indigo-600 font-semibold text-white hover:bg-indigo-500 border-0 shadow-sm text-xs py-1 h-8 cursor-pointer transition-all animate-fadeIn"
+                className="bg-indigo-600 font-semibold text-white hover:bg-indigo-700 border-0 shadow-xs text-xs py-1 h-8 cursor-pointer transition-all animate-fadeIn"
               >
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                 Reset View
@@ -175,13 +175,13 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 placeholder="Search district or mandal..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full rounded-lg border border-slate-700 bg-slate-800/80 py-1 pl-8 ${searchQuery ? 'pr-8' : 'pr-3'} text-xs text-white placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+                className={`w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 ${searchQuery ? 'pr-8' : 'pr-3'} text-xs font-medium text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs transition-colors`}
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                   title="Clear search"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -370,59 +370,59 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                   if (selectedDistrict && selectedMandal) return null;
 
-                  return (
-                    <path
-                      key={d.id}
-                      d={d.path}
-                      fill={
-                        isSelected
-                          ? tierStyle.fill
-                          : isNeighborBlackout
-                          ? '#F8FAFC' // Clean subtle background for unselected neighbor districts
-                          : isHovered
-                          ? '#F1F5F9'
-                          : tierStyle.fill // Colored pastel district map
-                      }
-                      stroke={
-                        isSelected
-                          ? tierStyle.stroke
-                          : isNeighborBlackout
-                          ? '#E2E8F0'
-                          : isHovered
-                          ? '#64748B'
-                          : '#94A3B8' // Clean neutral stroke
-                      }
-                      strokeWidth={isSelected ? 1.5 : isHovered ? 1.2 : 0.8}
-                      opacity={isNeighborBlackout ? 0.45 : 1}
-                      className="transition-all duration-300 cursor-pointer"
-                      onClick={() => handleDistrictClick(d)}
-                      onMouseMove={(e) => handleMouseMove(e, d, 'DISTRICT')}
-                      onMouseLeave={handleMouseLeave}
-                    />
-                  );
-                })}
+                      return (
+                        <path
+                          key={d.id}
+                          d={d.path}
+                          fill={
+                            isSelected
+                              ? tierStyle.fill
+                              : isNeighborBlackout
+                              ? '#F8FAFC'
+                              : isHovered
+                              ? '#BFDBFE' // Clean hover highlight
+                              : tierFilter !== 'ALL'
+                              ? tierStyle.fill
+                              : '#DBEAFE' // Light blue (#DBEAFE) for full Telangana map
+                          }
+                          stroke={
+                            isSelected
+                              ? '#1E334D'
+                              : isNeighborBlackout
+                              ? '#CBD5E1'
+                              : '#1E334D' // Swatch color (#1E334D) applied to boundaries
+                          }
+                          strokeWidth={isSelected ? 1.8 : isHovered ? 1.4 : 1.0}
+                          opacity={isNeighborBlackout ? 0.45 : 1}
+                          className="transition-all duration-300 cursor-pointer"
+                          onClick={() => handleDistrictClick(d)}
+                          onMouseMove={(e) => handleMouseMove(e, d, 'DISTRICT')}
+                          onMouseLeave={handleMouseLeave}
+                        />
+                      );
+                    })}
 
-                {/* Zoomed Mandals view inside selected district */}
-                {selectedDistrict &&
-                  selectedDistrict.mandals.map((m) => {
-                    const isMandalSelected = selectedMandal && selectedMandal.id === m.id;
-                    const isMandalHovered = hoveredEntity && hoveredEntity.id === m.id && hoveredEntity.type === 'MANDAL';
-                    const colors = getTierColor(m.riskTier);
+                    {/* Zoomed Mandals view inside selected district */}
+                    {selectedDistrict &&
+                      selectedDistrict.mandals.map((m) => {
+                        const isMandalSelected = selectedMandal && selectedMandal.id === m.id;
+                        const isMandalHovered = hoveredEntity && hoveredEntity.id === m.id && hoveredEntity.type === 'MANDAL';
+                        const colors = getTierColor(m.riskTier);
 
-                    return (
-                      <path
-                        key={m.id}
-                        d={m.path}
-                        fill={
-                          isMandalSelected
-                            ? colors.fill
-                            : isMandalHovered
-                            ? '#F1F5F9'
-                            : colors.fill // Color all mandals distinctively by their risk tier
-                        }
-                        stroke={isMandalSelected ? '#475569' : '#94A3B8'}
-                        strokeWidth={isMandalSelected ? 1.5 : 0.7}
-                        className="transition-all duration-200 cursor-pointer"
+                        return (
+                          <path
+                            key={m.id}
+                            d={m.path}
+                            fill={
+                              isMandalSelected
+                                ? colors.fill
+                                : isMandalHovered
+                                ? '#E2E8F0' // Clean light color when moving cursor on mandal
+                                : colors.fill
+                            }
+                            stroke="#1E334D" // Swatch color (#1E334D) applied to mandal boundaries
+                            strokeWidth={isMandalSelected ? 1.6 : 0.8}
+                            className="transition-all duration-200 cursor-pointer"
                         onClick={(e) => handleMandalClick(e, m, selectedDistrict)}
                         onMouseMove={(e) => handleMouseMove(e, m, 'MANDAL')}
                         onMouseLeave={handleMouseLeave}
