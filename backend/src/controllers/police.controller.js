@@ -2,6 +2,8 @@ import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
 import path from 'path';
 import fs from 'fs';
+import { searchEpettyCandidate } from '../services/epetty.service.js';
+import { generateClearanceReport } from '../services/gemini.service.js';
 
 export const getLogs = async (req, res) => {
   try {
@@ -102,23 +104,30 @@ export const scanVerificationById = async (req, res) => {
     });
 
     const candidateName = (verification.candidateName || '').trim().toLowerCase();
-    
-    // Fuzzy search: Split candidate name into words and search for any word match > 3 chars
+    const requestDob = verification.dob ? new Date(verification.dob).toISOString().split('T')[0] : '—';
+
+    // CCTNS/state-register fuzzy search stays first so existing behavior has priority.
     const nameParts = candidateName.split(' ').filter(p => p.length >= 3);
-    let searchConditions = '';
+    let rawMatches = [];
     if (nameParts.length > 0) {
-      searchConditions = nameParts.map(part => `offender_name ILIKE '%${part}%'`).join(' OR ');
-    } else {
-      searchConditions = `offender_name ILIKE '%${candidateName}%'`;
+      const searchConditions = Prisma.join(
+        nameParts.map(part => Prisma.sql`offender_name ILIKE ${`%${part}%`}`),
+        ' OR '
+      );
+      rawMatches = await prisma.$queryRaw`
+        SELECT * FROM public.mv_offenders_list
+        WHERE ${searchConditions}
+        LIMIT 10
+      `;
+    } else if (candidateName) {
+      rawMatches = await prisma.$queryRaw`
+        SELECT * FROM public.mv_offenders_list
+        WHERE offender_name ILIKE ${`%${candidateName}%`}
+        LIMIT 10
+      `;
     }
 
-    const rawMatches = await prisma.$queryRawUnsafe(`
-      SELECT * FROM public.mv_offenders_list
-      WHERE ${searchConditions}
-      LIMIT 10
-    `);
-
-    const suspects = rawMatches.map(m => ({
+    const stateRegisterSuspects = rawMatches.map(m => ({
       id: m.offender_id,
       name: m.offender_name,
       alias: m.offender_alias || '—',
@@ -136,27 +145,82 @@ export const scanVerificationById = async (req, res) => {
       source: 'State Register',
       priority: 'Fuzzy Name Match'
     }));
-    
-    const matchedSource = suspects.length > 0 ? 'State Register' : 'None';
-    const priorityLabel = suspects.length > 0 ? 'Fuzzy Name Match' : 'No Match';
+
+    const epettyOutcome = await searchEpettyCandidate(verification.candidateName, verification.phone);
+    const epettySuspects = epettyOutcome.matches.map(m => ({
+      id: m.recordId || m.caseNumber || '—',
+      name: m.name || m.offenderName || '—',
+      alias: m.alias || '—',
+      age: m.age || '—',
+      fatherName: m.fatherName || '—',
+      dob: m.dob || requestDob,
+      phone: m.phone || '—',
+      address: m.address || '—',
+      offence: m.offence || m.offenceType || '—',
+      firNo: m.firNo || m.caseNumber || '—',
+      firDate: m.firDate || m.incidentDate || '—',
+      courtName: m.courtName || (m.disposalStatus ? `Status: ${m.disposalStatus}` : '—'),
+      convDate: m.convDate || m.incidentDate || '—',
+      riskTier: m.riskTier || 'Orange',
+      source: epettyOutcome.matchedSource || 'ePetty Case',
+      priority: epettyOutcome.priorityLabel || 'ePetty Match'
+    }));
+
+    const suspects = [...stateRegisterSuspects, ...epettySuspects];
+    const matchedSources = [
+      stateRegisterSuspects.length > 0 ? 'State Register' : null,
+      epettySuspects.length > 0 ? 'ePetty Case' : null
+    ].filter(Boolean);
+    const matchedSource = matchedSources.length > 0 ? matchedSources.join(' + ') : 'None';
+    const priorityLabel = matchedSources.length > 1
+      ? 'Multi-Source Match'
+      : (suspects[0]?.priority || 'No Match');
 
     await prisma.systemAuditLog.create({
       data: {
         userId: req.user.id,
-        action: `Ran 3-Step Database Scan on ${verification.candidateName} (${id}) -> Outcome: ${suspects.length} matches across ${matchedSource || 'None'}`,
+        action: `Ran CCTNS/ePetty Database Scan on ${verification.candidateName} (${id}) -> Outcome: ${suspects.length} matches across ${matchedSource}`,
         ipAddress: req.ip
       }
     });
 
     res.status(200).json({
       success: true,
-      matchedSource: matchedSource || 'None',
-      priorityLabel: priorityLabel || 'No Match',
+      matchedSource,
+      priorityLabel,
+      sourceCounts: {
+        stateRegister: stateRegisterSuspects.length,
+        epetty: epettySuspects.length
+      },
+      epettyStatus: epettyOutcome.lookupError ? 'unavailable' : 'checked',
+      epettyError: epettyOutcome.lookupError || null,
       suspects
     });
   } catch (error) {
     console.error('[scanVerificationById Error]', error);
     res.status(500).json({ success: false, message: 'Server error during scan.', error: error.message });
+  }
+};
+
+export const generateVerificationReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, matchedSuspect } = req.body;
+
+    if (!['cleared', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status for report generation' });
+    }
+
+    const verification = await prisma.candidateVerification.findUnique({ where: { id } });
+    if (!verification) {
+      return res.status(404).json({ success: false, message: 'Verification record not found' });
+    }
+
+    const report = await generateClearanceReport(verification, status, matchedSuspect);
+    res.status(200).json({ success: true, report });
+  } catch (error) {
+    console.error('[generateVerificationReport Error]', error);
+    res.status(500).json({ success: false, message: 'Server error generating report.', error: error.message });
   }
 };
 

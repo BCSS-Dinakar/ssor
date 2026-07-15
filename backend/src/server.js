@@ -3,18 +3,43 @@ import app from './app.js';
 import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
 
+const listenWithPortFallback = (preferredPort, retryLimit) => new Promise((resolve, reject) => {
+  let port = preferredPort;
+  const maxPort = preferredPort + retryLimit;
+
+  const tryListen = () => {
+    const server = app.listen(port);
+
+    server.once('listening', () => {
+      resolve({ server, port });
+    });
+
+    server.once('error', (error) => {
+      if (error.code === 'EADDRINUSE' && port < maxPort) {
+        console.warn(`⚠️  Port ${port} is in use. Trying ${port + 1}...`);
+        port += 1;
+        tryListen();
+        return;
+      }
+
+      reject(error);
+    });
+  };
+
+  tryListen();
+});
+
 const startServer = async () => {
-  // 1. Auto-create DB and sync tables if missing
+  // 1. Ensure DB exists. Schema push is opt-in via AUTO_DB_PUSH.
   await autoSetup();
 
   // 2. Connect Prisma
   await connectDB();
 
   // 3. Start Express Server
-  const port = env.PORT || 8000;
+  const { server, port } = await listenWithPortFallback(env.PORT, env.PORT_RETRY_LIMIT);
 
-  app.listen(port, () => {
-    console.log(`
+  console.log(`
 ────────────────────────────────────
 🚀 SSOR Backend Started
 🌍 Environment : ${env.NODE_ENV}
@@ -23,7 +48,14 @@ const startServer = async () => {
 ⚡ Prisma Client Ready
 ────────────────────────────────────
     `);
+
+  server.on('error', (error) => {
+    console.error('\n❌ HTTP Server Failed');
+    console.error(error.message || error);
+    process.exit(1);
   });
+
+  global._ssorServer = server;
 };
 
 // Handle Uncaught Exceptions

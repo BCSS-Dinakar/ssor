@@ -1,4 +1,4 @@
-import prisma from './src/config/db.js';
+import prisma from '../src/config/db.js';
 import bcrypt from 'bcryptjs';
 
 async function main() {
