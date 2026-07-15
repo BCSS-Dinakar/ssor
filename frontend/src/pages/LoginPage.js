@@ -200,7 +200,7 @@ function StepIndicator({ steps, currentStep }) {
               {step}
             </div>
             <span
-              className={`text-sm font-bold uppercase tracking-wider absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
+              className={`text-sm font-bold tracking-wide absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
                 }`}
             >
               {label}
@@ -490,7 +490,7 @@ function LoginPage() {
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-blue-200/50 uppercase tracking-widest font-semibold">
+          <div className="flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold">
             <Lock className="h-4 w-4" />
             Three roles · Strict access control
           </div>

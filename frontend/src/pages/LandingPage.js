@@ -116,7 +116,7 @@ function LandingPage() {
       {/* ───────── LEGAL FRAMEWORK STRIP ───────── */}
       <section className="bg-background border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <p className="text-center text-sm uppercase tracking-widest text-muted font-semibold mb-5">
+          <p className="text-center text-sm tracking-wide text-muted font-semibold mb-5">
             Built on the Constitution & Statutory Framework
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -138,7 +138,7 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
                 <Lock className="h-3.5 w-3.5" />
                 Privacy by Design
               </div>
@@ -267,7 +267,7 @@ function LandingPage() {
               />
             </div>
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
                 <FileCheck className="h-3.5 w-3.5" />
                 Safe Recruitment
               </div>
@@ -345,7 +345,7 @@ function LandingPage() {
                 <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-8 hover:bg-white/15 transition-all duration-300 group-hover:-translate-y-1 h-full">
                   <stat.icon className={`h-8 w-8 ${stat.color} mx-auto mb-4`} />
                   <div className="text-3xl md:text-4xl font-bold text-white font-heading">{stat.value}</div>
-                  <div className="text-gray-400 text-sm mt-2 font-medium uppercase tracking-wider">{stat.label}</div>
+                  <div className="text-gray-400 text-sm mt-2 font-medium tracking-wide">{stat.label}</div>
                 </div>
               </div>
             ))}

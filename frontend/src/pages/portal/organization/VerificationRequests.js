@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileCheck, Eye, Clock, CheckCircle2, AlertTriangle, Loader2, HelpCircle } from 'lucide-react';
+import { FileCheck, Eye, Clock, CheckCircle2, AlertTriangle, Loader2, HelpCircle } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import DataTable from '../../../components/common/DataTable';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
+import { useToast } from '../../../components/ui/Toast';
+import { Button } from '../../../components/ui/Button';
 
 function VerificationRequests() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [baseList, setBaseList] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,12 +78,16 @@ function VerificationRequests() {
           </button>
 
           {row.status === 'cleared' && (
-            <button
-              onClick={() => alert(`Downloading clearance certificate for ${row.candidate} (${row.id})`)}
-              className="inline-flex items-center gap-1 text-sm font-bold text-secondary bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled
+              title="Certificate download will be available when the backend endpoint is enabled"
+              onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet. Contact the police support desk if you need a copy.')}
             >
-              <Download className="h-3.5 w-3.5" /> PDF
-            </button>
+              PDF (soon)
+            </Button>
           )}
 
           {row.status !== 'cleared' && (
@@ -111,9 +118,12 @@ function VerificationRequests() {
   return (
     <div className="space-y-6 w-full">
       <PageHeader
-        crumb="Applications List"
-        title="Applications List"
-        subtitle="Search and inspect submitted checks for your organization."
+        crumbs={[
+          { label: 'Organization', to: '/portal' },
+          { label: 'Clearance Requests' },
+        ]}
+        title="Clearance Requests"
+        subtitle="Search and track clearance requests submitted by your organization."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

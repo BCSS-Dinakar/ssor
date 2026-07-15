@@ -65,7 +65,7 @@ function ContactPage() {
                     <li key={item.label} className="flex items-start gap-3">
                       <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
                       <div>
-                        <div className="text-sm text-muted font-semibold uppercase tracking-wider">{item.label}</div>
+                        <div className="text-sm text-muted font-semibold tracking-wide">{item.label}</div>
                         <div className="text-base text-primary font-medium mt-0.5">{item.value}</div>
                       </div>
                     </li>
@@ -82,7 +82,7 @@ function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
                 <MessageSquare className="h-3.5 w-3.5" />
                 Send a Message
               </div>

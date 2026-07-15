@@ -43,7 +43,7 @@ function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold uppercase tracking-wider mb-5">
+              <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
                 <Target className="h-3.5 w-3.5" />
                 Our Mission
               </div>
@@ -167,7 +167,7 @@ function AboutPage() {
                 </div>
                 <div className="card p-5 flex-1 group hover:-translate-y-0.5">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm font-bold uppercase tracking-wider text-accent">{phase.year}</span>
+                    <span className="text-sm font-bold tracking-wide text-accent">{phase.year}</span>
                     <span className="text-sm font-bold text-primary">·</span>
                     <h3 className="text-base font-bold text-primary font-heading">{phase.title}</h3>
                   </div>

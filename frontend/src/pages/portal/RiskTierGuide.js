@@ -68,7 +68,7 @@ function RiskTierGuide() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-slate-800 text-base">{tier.name} Tier</h3>
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{tier.category}</p>
+                    <p className="text-sm font-bold text-slate-500 tracking-wide">{tier.category}</p>
                   </div>
                 </div>
               </div>
@@ -78,13 +78,13 @@ function RiskTierGuide() {
                 
                 {/* Description */}
                 <div>
-                  <h4 className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-1">Defining Criteria</h4>
+                  <h4 className="text-sm tracking-wide font-bold text-slate-400 mb-1">Defining Criteria</h4>
                   <p className="text-base text-slate-700 font-medium leading-relaxed">{details.description}</p>
                 </div>
                 
                 {/* Nature */}
                 <div>
-                  <h4 className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-1 flex items-center gap-1">
+                  <h4 className="text-sm tracking-wide font-bold text-slate-400 mb-1 flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" /> Nature of Offence
                   </h4>
                   <p className="text-base text-slate-700 font-medium leading-relaxed">{details.nature}</p>
@@ -95,7 +95,7 @@ function RiskTierGuide() {
                 {/* Footer Data */}
                 <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-2 flex items-center gap-1">
+                    <h4 className="text-sm tracking-wide font-bold text-slate-400 mb-2 flex items-center gap-1">
                       <Scale className="h-3 w-3" /> Statutory Provisions
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
@@ -108,7 +108,7 @@ function RiskTierGuide() {
                   </div>
                   
                   <div>
-                    <h4 className="text-sm uppercase tracking-wider font-bold text-slate-400 mb-2 flex items-center gap-1">
+                    <h4 className="text-sm tracking-wide font-bold text-slate-400 mb-2 flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Retention Limit
                     </h4>
                     <span className={`inline-block px-2.5 py-1 rounded-md text-sm font-bold ${tier.color.replace('bg-', 'bg-opacity-10 text-')} bg-opacity-10 border border-current`}>

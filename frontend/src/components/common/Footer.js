@@ -27,7 +27,7 @@ function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-base uppercase tracking-wider">Quick Links</h4>
+            <h4 className="text-white font-semibold mb-4 text-base tracking-wide">Quick Links</h4>
             <ul className="space-y-2">
               {[
                 { name: 'Home', path: '/' },
@@ -47,7 +47,7 @@ function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="text-white font-semibold mb-4 text-base uppercase tracking-wider">Helplines</h4>
+            <h4 className="text-white font-semibold mb-4 text-base tracking-wide">Helplines</h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-gray-400 text-base">
                 <Phone className="h-4 w-4 text-accent flex-shrink-0" />

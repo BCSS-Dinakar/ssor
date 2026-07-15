@@ -10,8 +10,8 @@ function DetailRow({ label, value, mono, span2 }) {
   const displayValue = (value === 'N/A' || !value) ? '-' : value;
 
   return (
-    <div className={`p-3 bg-slate-50 border border-slate-150 rounded-xl ${span2 ? 'sm:col-span-2 lg:col-span-2' : ''}`}>
-      <div className="text-xs uppercase tracking-widest text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
+    <div className={`p-3 bg-slate-50 border border-slate-200 rounded-xl ${span2 ? 'sm:col-span-2 lg:col-span-2' : ''}`}>
+      <div className="text-xs tracking-wide text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
         {label}
       </div>
       <div className={`text-sm text-slate-700 font-bold break-words ${mono ? 'font-mono text-sm' : ''}`}>{displayValue}</div>
@@ -23,8 +23,8 @@ function SectionHeading({ title, icon: Icon, badge }) {
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4 mt-8 pb-3 border-b border-slate-100">
       <Icon className="w-4 h-4 text-secondary" />
-      <h3 className="font-heading font-black text-primary text-base uppercase tracking-wider">{title}</h3>
-      {badge && <span className="ml-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-xs font-black uppercase tracking-wider rounded-md border border-slate-200">{badge}</span>}
+      <h3 className="font-heading font-black text-primary text-base tracking-wide">{title}</h3>
+      {badge && <span className="ml-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-sm font-bold tracking-wide rounded-md border border-slate-200">{badge}</span>}
     </div>
   );
 }
@@ -68,7 +68,7 @@ function DynamicArrayList({ items, title, icon }) {
       <div className="space-y-4">
         {items.map((item, index) => (
           <div key={index} className="p-4 bg-white border border-slate-200 rounded-xl relative shadow-sm">
-            <div className="absolute top-4 right-4 px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md text-xs font-black border border-slate-200">
+            <div className="absolute top-4 right-4 px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md text-sm font-bold border border-slate-200">
               SEQ {index + 1}
             </div>
             <DynamicDataGrid data={item} />
@@ -163,10 +163,10 @@ function OffenderDetail() {
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 font-bold shrink-0 shadow-inner relative">
               <span className="text-2xl text-slate-600">{(fName || 'O').charAt(0).toUpperCase()}</span>
-              <span className="absolute -bottom-2 -right-2 px-2.5 py-0.5 rounded-lg bg-slate-800 text-[8px] font-mono text-white shadow-md border border-slate-600">MUGSHOT</span>
+              <span className="absolute -bottom-2 -right-2 px-2.5 py-0.5 rounded-lg bg-slate-800 text-xs font-mono text-white shadow-md border border-slate-600">MUGSHOT</span>
             </div>
             <div>
-              <h4 className="font-black text-primary font-heading text-lg uppercase tracking-wider">{fName}</h4>
+              <h4 className="font-black text-primary font-heading text-lg tracking-wide">{fName}</h4>
               <div className="flex flex-wrap items-center gap-3 mt-1">
                 <p className="text-sm text-slate-400 font-bold tracking-wide flex items-center gap-1.5">ID: <span className="font-mono text-secondary">{record.offender_id}</span></p>
                 <span className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block"></span>
@@ -178,7 +178,7 @@ function OffenderDetail() {
             <TierChip tier={record.highest_risk_tier?.toLowerCase()} />
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span className="text-xs font-black uppercase tracking-wider">Verified DB Sync</span>
+              <span className="text-sm font-bold tracking-wide">Verified DB Sync</span>
             </div>
           </div>
         </div>
@@ -192,7 +192,7 @@ function OffenderDetail() {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-heading font-black text-sm uppercase tracking-wider transition-all whitespace-nowrap ${active
+                className={`flex items-center gap-2 px-5 py-3.5 border-b-2 font-heading font-black text-sm tracking-wide transition-all whitespace-nowrap ${active
                     ? 'border-secondary text-secondary font-black bg-slate-50/50 rounded-t-xl'
                     : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200 hover:bg-slate-50/30 rounded-t-xl'
                   }`}

@@ -1,13 +1,26 @@
-function PageHeader({ crumb, title, subtitle, actions }) {
+import { Breadcrumb } from '../ui/Breadcrumb';
+
+/**
+ * @param {{ crumb?: string, crumbs?: Array<{label: string, to?: string}>, title: string, subtitle?: string, actions?: React.ReactNode }} props
+ */
+function PageHeader({ crumb, crumbs, title, subtitle, actions }) {
+  const items = crumbs || (crumb
+    ? crumb.split('/').map((part) => ({ label: part.trim() })).filter((p) => p.label)
+    : []);
+
   return (
-    <div className="mb-6">
-      {crumb && <div className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-1 font-heading">{crumb}</div>}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl font-black text-primary font-heading tracking-tight leading-tight">{title}</h1>
-          {subtitle && <p className="text-sm text-slate-500 mt-1 max-w-2xl font-medium leading-relaxed">{subtitle}</p>}
+    <div className="mb-5">
+      {items.length > 0 && <Breadcrumb items={items} />}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="page-title">{title}</h1>
+          {subtitle && (
+            <p className="mt-1.5 max-w-3xl text-sm text-muted leading-relaxed">{subtitle}</p>
+          )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        )}
       </div>
     </div>
   );

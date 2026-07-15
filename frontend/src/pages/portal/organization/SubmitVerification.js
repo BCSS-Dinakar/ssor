@@ -5,11 +5,13 @@ import { Field, inputClass, FeedbackBanner } from '../../../components/portal/Fo
 import { organizationApi } from '../../../api/organization.api';
 import { ORG_TYPES } from '../../../utils/data/authData';
 import SearchableSelect from '../../../components/SearchableSelect';
+import { useToast } from '../../../components/ui/Toast';
 
 const empty = { candidate: '', fatherName: '', dob: '', phone: '', role: '', type: 'School', consent: false, aadharNumber: '', candidateImage: null, consentFile: null };
 
 function SubmitVerification() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [form, setForm] = useState(empty);
   const [alert, setAlert] = useState(null);
   const [submittedRecord, setSubmittedRecord] = useState(null);
@@ -76,7 +78,7 @@ function SubmitVerification() {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert('Failed to generate template. Please ensure the form is filled.');
+      toast.error('Template generation failed', 'Please ensure the form is filled and try again.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +115,7 @@ function SubmitVerification() {
               ['Estimated Vetting Window', 'Within 24-48 Hours', 'text-slate-600 font-medium'],
             ].map(([label, value, cls]) => (
               <div key={label} className="flex justify-between p-4 items-center">
-                <span className="text-slate-400 font-bold uppercase tracking-wider text-sm">{label}</span>
+                <span className="text-slate-400 font-bold tracking-wide text-sm">{label}</span>
                 <strong className={`text-right ${cls}`}>{value}</strong>
               </div>
             ))}

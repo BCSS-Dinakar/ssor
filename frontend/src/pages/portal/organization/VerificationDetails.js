@@ -13,12 +13,15 @@ import {
 } from 'lucide-react';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
+import { useToast } from '../../../components/ui/Toast';
+import { Button } from '../../../components/ui/Button';
+import { Alert } from '../../../components/ui/Alert';
 
 function DetailField({ label, value, mono = false }) {
   return (
     <div className="space-y-1">
-      <span className="text-sm text-slate-400 font-bold uppercase tracking-wider">{label}</span>
-      <div className={`font-semibold text-slate-800 bg-slate-50 border border-slate-100 rounded-xl p-3 text-base ${mono ? 'font-mono' : ''}`}>
+      <span className="text-body-sm text-muted font-semibold">{label}</span>
+      <div className={`font-semibold text-slate-800 bg-slate-50 border border-slate-100 rounded-lg p-3 text-base ${mono ? 'font-mono' : ''}`}>
         {value || '—'}
       </div>
     </div>
@@ -27,6 +30,7 @@ function DetailField({ label, value, mono = false }) {
 
 function VerificationDetails() {
   const { id } = useParams();
+  const toast = useToast();
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -108,7 +112,7 @@ function VerificationDetails() {
         <Link to="/portal/requests" className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
           <ArrowLeft className="h-4 w-4" /> Back to Applications
         </Link>
-        <div className="flex items-center gap-2.5 text-sm text-slate-500 font-bold uppercase tracking-wider">
+        <div className="flex items-center gap-2.5 text-sm text-slate-500 font-bold tracking-wide">
           <span>Current Status:</span>
           <StatusPill status={selectedRequest.status} />
         </div>
@@ -120,7 +124,7 @@ function VerificationDetails() {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
           <div className="border-b border-slate-100 pb-3 flex items-center gap-2">
             <User className="h-5 w-5 text-secondary" />
-            <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Submitted Audit File</h4>
+            <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Submitted Audit File</h4>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -156,7 +160,7 @@ function VerificationDetails() {
           <div className="pt-4 border-t border-slate-100 grid sm:grid-cols-2 gap-4">
             {selectedRequest.candidateImage && (
               <div className="space-y-2">
-                <span className="text-sm text-slate-400 font-bold uppercase tracking-wider">Candidate Image</span>
+                <span className="text-sm text-slate-400 font-bold tracking-wide">Candidate Image</span>
                 <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                   <img 
                     src={organizationApi.getDocumentUrl(selectedRequest.candidateImage)} 
@@ -169,7 +173,7 @@ function VerificationDetails() {
             )}
             {selectedRequest.consentFile && (
               <div className="space-y-2">
-                <span className="text-sm text-slate-400 font-bold uppercase tracking-wider">Consent Declaration</span>
+                <span className="text-sm text-slate-400 font-bold tracking-wide">Consent Declaration</span>
                 <a 
                   href={organizationApi.getDocumentUrl(selectedRequest.consentFile)}
                   target="_blank"
@@ -182,7 +186,7 @@ function VerificationDetails() {
             )}
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl text-sm text-slate-500 leading-relaxed flex items-start gap-2.5 font-medium">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-500 leading-relaxed flex items-start gap-2.5 font-medium">
             <Lock className="h-4.5 w-4.5 text-slate-400 shrink-0 mt-0.5" />
             <span>Attributes verified under DPDP Act 2023 guidelines. Data matching process is securely logged on police servers and is fully auditable.</span>
           </div>
@@ -193,7 +197,7 @@ function VerificationDetails() {
           {/* Verification Pipeline */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
             <div className="border-b border-slate-100 pb-2">
-              <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Verification Pipeline</h4>
+              <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Verification Pipeline</h4>
             </div>
 
             <div className="relative pl-7 space-y-5">
@@ -205,8 +209,8 @@ function VerificationDetails() {
                     {step.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                   </div>
                   <div>
-                    <span className={`font-bold text-[13px] ${step.done ? 'text-slate-800' : step.current ? 'text-amber-700 font-extrabold' : 'text-slate-400'}`}>{step.label}</span>
-                    <p className="text-sm text-slate-455 font-medium mt-0.5">{step.detail}</p>
+                    <span className={`font-bold text-sm ${step.done ? 'text-slate-800' : step.current ? 'text-amber-700 font-extrabold' : 'text-slate-400'}`}>{step.label}</span>
+                    <p className="text-sm text-slate-500 font-medium mt-0.5">{step.detail}</p>
                   </div>
                 </div>
               ))}
@@ -216,7 +220,7 @@ function VerificationDetails() {
           {/* Vetting Result Card */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-4">
             <div className="border-b border-slate-100 pb-2">
-              <h4 className="font-extrabold text-primary font-heading text-base uppercase tracking-wider">Verification Result</h4>
+              <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Verification Result</h4>
             </div>
 
             {selectedRequest.status === 'cleared' && (
@@ -232,10 +236,10 @@ function VerificationDetails() {
                     <Award className="w-28 h-28 text-primary" />
                   </div>
 
-                  <div className="text-xs uppercase tracking-widest text-slate-455 font-black">Telangana State Police Department</div>
+                  <div className="text-xs tracking-wide text-slate-500 font-black">Telangana State Police Department</div>
 
                   <div className="space-y-1">
-                    <h5 className="text-sm font-black text-slate-800 uppercase tracking-widest">Clearance Certificate</h5>
+                    <h5 className="text-sm font-black text-slate-800 tracking-wide">Clearance Certificate</h5>
                     <span className="text-sm font-mono text-secondary font-bold block">{selectedRequest.id}</span>
                   </div>
 
@@ -243,18 +247,25 @@ function VerificationDetails() {
                     This document certifies that candidate <strong>{selectedRequest.candidate}</strong> was vetted against the state conviction records with matching details.
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 max-w-xs mx-auto border-t border-slate-200 border-dashed text-[8px] font-bold text-slate-400">
+                  <div className="flex items-center justify-between pt-2 max-w-xs mx-auto border-t border-slate-200 border-dashed text-xs font-bold text-slate-400">
                     <span>SEAL SECURED</span>
                     <span className="font-mono text-emerald-600">VALID: 365 DAYS</span>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => alert(`Downloading clearance certificate PDF for ${selectedRequest.candidate}`)}
-                  className="btn-primary py-2.5 px-5 text-sm w-full justify-center shadow-lg"
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  disabled
+                  title="Certificate download will be available when the backend endpoint is enabled"
+                  onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet.')}
                 >
-                  <Download className="h-4.5 w-4.5" /> Download Clearance Certificate (PDF)
-                </button>
+                  Certificate PDF (coming soon)
+                </Button>
+                <Alert variant="info" className="mt-3">
+                  Official PDF certificates will appear here once the download service is enabled.
+                </Alert>
               </div>
             )}
 
@@ -266,9 +277,9 @@ function VerificationDetails() {
                 </div>
 
                 {selectedRequest.policeFeedback && (
-                  <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-1">
-                    <span className="text-xs uppercase tracking-widest text-slate-455 font-black block">Police Decision Log Reason</span>
-                    <p className="text-sm font-semibold text-slate-655 leading-normal whitespace-pre-wrap">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                    <span className="text-xs tracking-wide text-slate-500 font-black block">Police Decision Log Reason</span>
+                    <p className="text-sm font-semibold text-slate-600 leading-normal whitespace-pre-wrap">
                       {selectedRequest.policeFeedback.split('\n\nOfficer Notes: ')[0]}
                     </p>
                   </div>
@@ -277,7 +288,7 @@ function VerificationDetails() {
                 {selectedRequest.matchedSuspect && (
                   <div className="border border-red-200 bg-red-50/30 rounded-2xl overflow-hidden mt-4">
                     <div className="bg-red-100/50 px-4 py-2 border-b border-red-200">
-                      <span className="text-sm font-black text-red-800 uppercase tracking-wider">Confirmed Registry Match</span>
+                      <span className="text-sm font-black text-red-800 tracking-wide">Confirmed Registry Match</span>
                     </div>
                     <div className="p-4 grid grid-cols-2 gap-3 text-sm">
                       <div>
@@ -306,7 +317,7 @@ function VerificationDetails() {
 
                 {selectedRequest.reason && selectedRequest.reason.includes('\n\nOfficer Notes: ') && (
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1 mt-3 shadow-inner">
-                    <span className="text-xs uppercase tracking-widest text-amber-600 font-black block">Officer Verification Notes</span>
+                    <span className="text-xs tracking-wide text-amber-600 font-black block">Officer Verification Notes</span>
                     <p className="text-sm font-semibold text-amber-900 leading-normal whitespace-pre-wrap">
                       {selectedRequest.reason.split('\n\nOfficer Notes: ')[1]}
                     </p>
@@ -326,7 +337,7 @@ function VerificationDetails() {
             {selectedRequest.status === 'pending' && (
               <div className="p-8 bg-amber-50/50 border border-amber-200/50 rounded-2xl text-center space-y-3 shadow-inner">
                 <Clock className="h-8 w-8 text-amber-500 mx-auto animate-spin-slow" />
-                <h5 className="text-sm font-black text-slate-700 uppercase tracking-wider">Police verification in progress</h5>
+                <h5 className="text-sm font-black text-slate-700 tracking-wide">Police verification in progress</h5>
                 <p className="text-sm text-slate-500 font-medium">Vetting queries are actively syncing. The certificate preview will generate upon case resolution.</p>
               </div>
             )}

@@ -59,14 +59,15 @@ function DataTable({
       {/* Top Toolbar */}
       <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap sm:flex-nowrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3 flex-1">
-          <div className="relative w-full max-w-sm">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative w-full max-w-md">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" aria-hidden="true" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={searchPlaceholder}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-base focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-shadow"
+              className="input-base w-full pl-11"
+              aria-label={searchPlaceholder}
             />
           </div>
           
@@ -75,8 +76,8 @@ function DataTable({
               key={filter.key}
               value={activeFilters[filter.key] || ''}
               onChange={(e) => setActiveFilters(prev => ({ ...prev, [filter.key]: e.target.value }))}
-              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-base text-slate-700 focus:outline-none focus:border-secondary appearance-none pr-8 cursor-pointer shadow-sm hover:border-slate-300 transition-colors"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+              className="input-base w-auto min-w-[10rem] cursor-pointer pr-10 shadow-sm"
+              aria-label={filter.label}
             >
               <option value="">{filter.label} (All)</option>
               {filter.options.map(opt => (
@@ -112,11 +113,15 @@ function DataTable({
 
       {/* Table Container with fixed minHeight */}
       <div className={`overflow-x-auto ${minHeight} flex flex-col`}>
-        <table className="w-full text-left text-sm whitespace-nowrap h-full">
-          <thead className="sticky top-0 bg-slate-50 border-b border-slate-100 z-10">
-            <tr className="text-sm uppercase font-bold tracking-widest text-slate-500">
+        <table className="w-full h-full whitespace-nowrap text-left text-base">
+          <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50">
+            <tr className="text-body-sm font-bold tracking-wide text-muted">
               {columns.map((col, idx) => (
-                <th key={col.key || idx} className={`px-6 py-4 font-semibold ${col.align === 'right' ? 'text-right' : ''}`}>
+                <th
+                  key={col.key || idx}
+                  scope="col"
+                  className={`px-5 py-3.5 font-semibold sm:px-6 ${col.align === 'right' ? 'text-right' : ''}`}
+                >
                   {col.label}
                 </th>
               ))}
@@ -125,28 +130,27 @@ function DataTable({
           <tbody className="divide-y divide-slate-100">
             {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
-                  <EmptyIcon className="h-12 w-12 mx-auto text-slate-300 mb-3" />
-                  <p className="text-base font-medium text-slate-700">{emptyTitle}</p>
-                  <p className="text-base mt-1">{emptyMessage}</p>
+                <td colSpan={columns.length} className="px-6 py-12 text-center text-muted">
+                  <EmptyIcon className="mx-auto mb-3 h-12 w-12 text-slate-300" aria-hidden="true" />
+                  <p className="text-base font-semibold text-slate-700">{emptyTitle}</p>
+                  <p className="mt-1 text-base">{emptyMessage}</p>
                 </td>
               </tr>
             ) : (
               paginatedData.map((row, rowIndex) => (
-                <tr key={row.id || rowIndex} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={row.id || rowIndex} className="group transition-colors hover:bg-slate-50/80">
                   {columns.map((col, colIndex) => (
-                    <td key={col.key || colIndex} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+                    <td key={col.key || colIndex} className={`px-5 py-4 sm:px-6 ${col.align === 'right' ? 'text-right' : ''}`}>
                       {col.render ? col.render(row) : row[col.key]}
                     </td>
                   ))}
                 </tr>
               ))
             )}
-            
-            {/* Filler row to ensure table height doesn't collapse if there are few rows */}
+
             {paginatedData.length > 0 && paginatedData.length < pageSize && (
               <tr className="flex-1">
-                <td colSpan={columns.length} className="p-0 border-0"></td>
+                <td colSpan={columns.length} className="border-0 p-0"></td>
               </tr>
             )}
           </tbody>

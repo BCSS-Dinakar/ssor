@@ -6,10 +6,14 @@ import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { StatusPill } from '../../../components/portal/Badges';
 import DataTable from '../../../components/common/DataTable';
 import { policeApi } from '../../../api/police.api';
+import { PageSkeleton } from '../../../components/ui/Skeleton';
+import { Alert } from '../../../components/ui/Alert';
+import { Button } from '../../../components/ui/Button';
 
 function VerificationHistory() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchVerifications = async () => {
@@ -17,9 +21,12 @@ function VerificationHistory() {
         const res = await policeApi.getVerifications();
         if (res.success) {
           setData(res.data.filter((c) => c.status === 'cleared' || c.status === 'rejected'));
+        } else {
+          setError('Unable to load clearance history.');
         }
       } catch (err) {
         console.error('Failed to load verifications', err);
+        setError('Unable to load clearance history. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -29,76 +36,88 @@ function VerificationHistory() {
 
   const columns = [
     {
-      label: 'Reference ID',
+      label: 'Reference',
       key: 'id',
-      className: 'font-mono text-secondary text-sm font-bold',
-      render: (row) => row.id.split('-')[0]
+      render: (row) => (
+        <span className="font-mono text-body-sm font-bold text-secondary">{String(row.id).split('-')[0]}</span>
+      ),
     },
     {
-      label: 'Organization / Requester',
+      label: 'Organization / Candidate',
       key: 'org',
       render: (row) => (
         <div>
-          <div className="font-extrabold text-slate-800 text-base leading-tight">{row.orgName}</div>
-          <div className="text-sm text-slate-400 font-bold mt-0.5">{row.orgType || 'Candidate Vetting'} · Candidate: {row.candidateName}</div>
+          <div className="text-base font-bold leading-tight text-slate-800">{row.orgName}</div>
+          <div className="mt-1 text-body-sm font-medium text-muted">
+            {row.orgType || 'Clearance request'} · {row.candidateName}
+          </div>
         </div>
       ),
     },
     {
-      label: 'Vetted Role',
+      label: 'Role',
       key: 'role',
-      className: 'text-slate-655 font-bold',
+      render: (row) => <span className="font-semibold text-slate-700">{row.role}</span>,
     },
     {
-      label: 'Decision Date',
+      label: 'Decision date',
       key: 'decisionDate',
       render: (row) => (
-        <span className="font-mono text-slate-500 font-bold">
-          {new Date(row.updatedAt || row.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+        <span className="font-mono text-body-sm text-muted">
+          {new Date(row.updatedAt || row.createdAt).toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })}
         </span>
       ),
     },
     {
-      label: 'Outcome Decision',
+      label: 'Outcome',
       key: 'status',
       render: (row) => <StatusPill status={row.status} />,
     },
     {
       label: 'Action',
       key: 'action',
-      className: 'text-right',
+      align: 'right',
       render: (row) => (
-        <Link
-          to={`/portal/clearance-history/${row.id}`}
-          className="inline-flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors text-xs font-black text-secondary uppercase tracking-widest"
-        >
-          <ExternalLink className="h-3.5 w-3.5" /> View Vetting File
-        </Link>
+        <Button asChild variant="secondary" size="sm">
+          <Link to={`/portal/clearance-history/${row.id}`}>
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            View clearance file
+          </Link>
+        </Button>
       ),
     },
   ];
 
+  if (loading) return <PageSkeleton rows={6} />;
+
   return (
-    <div className="space-y-6 animate-fadeIn pb-10">
+    <div className="space-y-6 pb-10 animate-fadeIn">
       <PageHeader
-        crumb="Administration / Vetting History"
-        title="Vetting Decision History"
-        subtitle="Review historic vetting clearances, matching sus identification records, and police logs."
+        crumbs={[
+          { label: 'Police', to: '/portal' },
+          { label: 'Clearance History' },
+        ]}
+        title="Clearance History"
+        subtitle="Review issued and denied clearance decisions and supporting officer notes."
       />
 
       <SecurityBanner>
-        Audit records of all issued certificates and match confirmation decisions.
+        Audit records of all clearance decisions. Offender identities are never disclosed to requesting organizations.
       </SecurityBanner>
 
-      <div className="card p-6 bg-white shadow-md border border-slate-200/80 rounded-2xl">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : (
-          <DataTable data={data} columns={columns} />
-        )}
-      </div>
+      {error && <Alert variant="danger" title="Load error">{error}</Alert>}
+
+      <DataTable
+        data={data}
+        columns={columns}
+        searchPlaceholder="Search by organization, candidate, or role…"
+        emptyTitle="No clearance history"
+        emptyMessage="Completed clearance decisions will appear here."
+      />
     </div>
   );
 }

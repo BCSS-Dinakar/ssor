@@ -1,18 +1,18 @@
 import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 export const inputClass =
-  'w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-base text-slate-800 outline-none transition-all duration-300 focus:bg-white focus:border-secondary focus:ring-4 focus:ring-secondary/10 placeholder-slate-400';
+  'input-base';
 
-export function Field({ label, required, children, hint, className = '' }) {
+export function Field({ label, required, children, hint, className = '', htmlFor }) {
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
+    <div className={`flex flex-col gap-2 ${className}`}>
       {label && (
-        <label className="text-base font-semibold text-slate-700">
-          {label} {required && <span className="text-red-500">*</span>}
+        <label htmlFor={htmlFor} className="field-label">
+          {label} {required && <span className="text-danger" aria-hidden="true">*</span>}
         </label>
       )}
       {children}
-      {hint && <span className="text-sm text-slate-500">{hint}</span>}
+      {hint && <span className="text-body-sm text-muted">{hint}</span>}
     </div>
   );
 }
