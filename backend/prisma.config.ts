@@ -3,12 +3,30 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const buildDatabaseUrl = () => {
+  if (process.env["DATABASE_URL"]) return process.env["DATABASE_URL"];
+
+  const host = process.env["POSTGRES_HOST"];
+  const port = process.env["POSTGRES_PORT"];
+  const database = process.env["POSTGRES_DB"];
+  const username = process.env["POSTGRES_USER"];
+  const password = process.env["POSTGRES_PASSWORD"];
+
+  if (!host || !database || !username) return undefined;
+
+  const userPart = encodeURIComponent(username);
+  const passwordPart = password ? `:${encodeURIComponent(password)}` : "";
+  const portPart = port ? `:${port}` : "";
+
+  return `postgresql://${userPart}${passwordPart}@${host}${portPart}/${database}`;
+};
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: buildDatabaseUrl(),
   },
 });

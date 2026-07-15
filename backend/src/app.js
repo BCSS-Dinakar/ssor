@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.route.js';
 import otpRoutes from './routes/otp.route.js';
 import policeRoutes from './routes/police.route.js';
 import organizationRoutes from './routes/organization.route.js';
+import epettyRoutes from './routes/epetty.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/police', policeRoutes);
 app.use('/api/organization', organizationRoutes);
+app.use('/api/e-petty', epettyRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });

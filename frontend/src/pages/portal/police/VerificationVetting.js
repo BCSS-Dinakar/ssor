@@ -174,8 +174,8 @@ function VerificationVetting() {
       { text: "Connecting to criminal databases...", delay: 0 },
       { text: "Verifying records...", delay: 700 },
       { text: "Processing identity parameters...", delay: 1400 },
-      { text: "Connecting to active FIR cases...", delay: 2100 },
-      { text: "Verifying and processing data...", delay: 2800 },
+      { text: "Checking State Register and CCTNS views...", delay: 2100 },
+      { text: "Checking ePetty case records...", delay: 2800 },
       { text: "Analysis completing, expecting results in 30 seconds...", delay: 3500 },
     ];
 
@@ -388,6 +388,11 @@ function VerificationVetting() {
                                       <ShieldAlert className="w-3 h-3" /> {sus.priority}
                                     </span>
                                   )}
+                                  {sus.source && (
+                                    <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-widest bg-slate-50 text-slate-600 border border-slate-200 shadow-sm">
+                                      {sus.source}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               
@@ -447,7 +452,7 @@ function VerificationVetting() {
                   <Check className="h-5 w-5 text-emerald-700 bg-emerald-100 p-0.5 rounded-full border border-emerald-300 shrink-0" />
                   <div>
                     <h4 className="text-base font-extrabold text-emerald-800 font-heading tracking-wide uppercase">Vetting Clearance Vouched</h4>
-                    <p className="mt-1 font-semibold">The automated scan checked all police register parameters. Candidate has no police records, criminal files, or disclosable history. Ready for approval.</p>
+                    <p className="mt-1 font-semibold">The automated scan checked State Register/CCTNS and ePetty case records. Candidate has no police records, criminal files, or disclosable history. Ready for approval.</p>
                   </div>
                 </div>
               )}

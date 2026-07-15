@@ -1,9 +1,9 @@
-import prisma from './src/config/db.js';
+import prisma from '../src/config/db.js';
 import bcrypt from 'bcryptjs';
 
 async function main() {
-  const loginId = 'bcss.test01';
-  const password = 'Test@123';
+  const loginId = 'bcss.officer';
+  const password = 'bcss@123';
   
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
@@ -15,7 +15,7 @@ async function main() {
       status: 'approved',
       policeProfile: {
         update: {
-          name: 'BCSS Test Officer',
+          name: 'Officer',
           badgeId: 'TEST-ISP-0001',
           rank: 'Inspector of Police (Test)',
           empId: 'TEST-POL-0001',

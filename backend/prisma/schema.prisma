@@ -127,3 +127,23 @@ model TicketMessage {
   createdAt  DateTime      @default(now())
   ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }
+
+model EPettyCase {
+  id             String   @id @default(uuid())
+  caseNumber     String   @unique
+  offenderName   String
+  alias          String?
+  age            Int?
+  fatherName     String?
+  phone          String
+  email          String?
+  address        String?
+  policeStation  String?
+  district       String?
+  incidentDate   String?
+  offenceType    String?
+  penaltyAmount  Float?   @default(500.0)
+  disposalStatus String?  @default("Fine Paid")
+  riskTier       String   @default("Orange")
+  createdAt      DateTime @default(now())
+}

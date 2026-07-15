@@ -1,6 +1,6 @@
-import { execSync } from 'child_process';
 import pg from 'pg';
 import { env } from '../config/env.js';
+import { initAppSchema } from './appSchema.js';
 
 const { Client } = pg;
 
@@ -57,29 +57,16 @@ const ensureDatabaseExists = async () => {
 };
 
 /**
- * Pushes the Prisma schema to the database.
- * Uses `prisma db push` which creates/syncs tables without migration files.
- * Safe to run on every startup — it's idempotent.
- */
-const pushSchema = () => {
-  console.log('⚙️  Syncing database schema with Prisma...');
-  try {
-    execSync('npx prisma db push --accept-data-loss', {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-    console.log('✅ Schema sync complete. All tables are ready.');
-  } catch (err) {
-    console.error('❌ Schema push failed:', err.message);
-    throw err;
-  }
-};
-
-/**
  * Main auto-setup function.
  * Call this before starting the HTTP server.
  */
 export const autoSetup = async () => {
   await ensureDatabaseExists();
-  pushSchema();
+
+  if (env.AUTO_DB_PUSH) {
+    console.log('⚙️  Ensuring SSOR app-owned tables exist...');
+    await initAppSchema();
+  } else {
+    console.log('⏭️  Skipping app table initialization. Set AUTO_DB_PUSH=true to create missing SSOR app tables.');
+  }
 };

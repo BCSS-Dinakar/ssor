@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requirePolice } from '../middleware/auth.middleware.js';
-import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById } from '../controllers/police.controller.js';
+import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, generateVerificationReport } from '../controllers/police.controller.js';
 
 const router = Router();
 
@@ -20,6 +20,7 @@ router.get('/verifications', getVerifications);
 router.get('/verifications/:id', getVerificationById);
 router.put('/verifications/:id/status', updateVerificationStatus);
 router.post('/verifications/:id/scan', scanVerificationById);
+router.post('/verifications/:id/report', generateVerificationReport);
 
 router.get('/tickets', getTickets);
 router.put('/tickets/:id/status', updateTicketStatus);
