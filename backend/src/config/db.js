@@ -1,18 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { env } from './env.js';
 
 /**
- * Prisma Client Singleton using PrismaPg adapter.
- * In Prisma 7, driver adapters are required for direct DB connections.
+ * Prisma Client Singleton.
  * We avoid creating multiple instances during dev hot-reloads.
  */
 const createPrismaClient = () => {
-  const adapter = new PrismaPg({
-    connectionString: env.DATABASE_URL,
-  });
-
-  return new PrismaClient({ adapter });
+  return new PrismaClient();
 };
 
 let prisma;
