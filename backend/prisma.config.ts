@@ -4,8 +4,6 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 const buildDatabaseUrl = () => {
-  if (process.env["DATABASE_URL"]) return process.env["DATABASE_URL"];
-
   const host = process.env["POSTGRES_HOST"];
   const port = process.env["POSTGRES_PORT"];
   const database = process.env["POSTGRES_DB"];
