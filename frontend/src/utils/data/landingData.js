@@ -22,7 +22,7 @@ export const accessLevels = [
     description:
       'Authorised officers with recorded clearance manage the register, run searches and process requests. Every action is written to an immutable audit log.',
     points: ['Register portal & risk-tier analytics', 'Search, manage & review records', 'Access audit & retention control'],
-    cta: { label: 'Login', to: '/login' },
+    cta: { label: 'Login', to: '/login?role=police' },
     ctaClass: 'btn-primary',
   },
   {

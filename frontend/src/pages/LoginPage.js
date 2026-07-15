@@ -492,7 +492,7 @@ function LoginPage() {
           </div>
           <div className="flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold">
             <Lock className="h-4 w-4" />
-            Three roles · Strict access control
+            Two roles · Strict access control
           </div>
         </div>
       </div>
@@ -514,7 +514,7 @@ function LoginPage() {
 
         <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 py-8 lg:py-12 flex-1">
           {/* Role toggle */}
-          <div className="bg-slate-100 rounded-2xl p-2 grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
+          <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-2 gap-1.5 mb-6">
             {ROLES.map((r) => {
               const active = role === r.id;
               return (
@@ -522,13 +522,18 @@ function LoginPage() {
                   key={r.id}
                   type="button"
                   onClick={() => setRole(r.id)}
-                  className={`flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-all duration-300 ${active ? 'bg-white shadow-md' : 'hover:bg-slate-200'
-                    }`}
+                  className={`flex items-start gap-2.5 rounded-xl px-3 sm:px-4 py-3 text-left transition-all duration-300 min-w-0 ${
+                    active ? 'bg-white shadow-md ring-1 ring-slate-200/80' : 'hover:bg-slate-200/70'
+                  }`}
                 >
-                  <r.Icon className={`h-5 w-5 shrink-0 ${active ? 'text-accent' : 'text-slate-400'}`} />
-                  <div className="min-w-0">
-                    <div className={`font-bold text-base truncate ${active ? 'text-primary' : 'text-slate-700'}`}>{r.label}</div>
-                    <div className="text-sm text-slate-500 truncate">{r.sub}</div>
+                  <r.Icon className={`h-5 w-5 shrink-0 mt-0.5 ${active ? 'text-accent' : 'text-slate-400'}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className={`font-bold text-sm sm:text-base leading-snug ${active ? 'text-primary' : 'text-slate-700'}`}>
+                      {r.label}
+                    </div>
+                    <div className="text-xs sm:text-sm text-slate-500 leading-snug mt-0.5 break-words">
+                      {r.sub}
+                    </div>
                   </div>
                 </button>
               );
@@ -536,27 +541,6 @@ function LoginPage() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-            {canRegister && (
-              <div className="flex border-b border-slate-100 bg-slate-50/50">
-                {[
-                  { id: 'login', label: 'Sign In', Icon: LogIn },
-                  { id: 'register', label: 'Create Account', Icon: UserPlus },
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setMode(t.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-4 text-base font-semibold transition-all duration-300 relative ${mode === t.id ? 'text-primary' : 'text-slate-500 hover:text-primary hover:bg-slate-100/50'
-                      }`}
-                  >
-                    <t.Icon className="h-4 w-4" />
-                    {t.label}
-                    {mode === t.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent rounded-t-full" />}
-                  </button>
-                ))}
-              </div>
-            )}
-
             <div className="p-6 sm:p-8">
               {/* Login */}
               {mode === 'login' && (

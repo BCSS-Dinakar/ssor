@@ -23,14 +23,20 @@ function AboutPage() {
       {/* ───────── HERO ───────── */}
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
-            <ShieldCheck className="h-4 w-4 text-accent" />
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-5 sm:mb-6">
+            <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent shrink-0" />
             Government of Telangana · State Police
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading leading-tight">
+          <h1
+            className="font-bold text-white font-heading leading-tight tracking-tight"
+            style={{ fontSize: 'clamp(1.75rem, 2.5vw + 1rem, 3.25rem)' }}
+          >
             About <span className="text-accent">SSOR</span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+          <p
+            className="mt-4 sm:mt-5 text-gray-300 max-w-2xl mx-auto leading-relaxed"
+            style={{ fontSize: 'clamp(0.9rem, 0.35vw + 0.8rem, 1.125rem)' }}
+          >
             The State Sexual Offender Register is a conviction-based, controlled-access database designed to protect
             women and children — enabling verified background checks and structured monitoring without becoming
             an open public list.

@@ -22,23 +22,28 @@ function OrganizationServicesPage() {
     <div className="min-h-screen bg-background">
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-full text-base font-medium mb-8">
-            <Building2 className="h-4 w-4 text-accent" />
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-5 sm:mb-6">
+            <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent shrink-0" />
             Clearance, Disclosure & Registration
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-heading leading-tight">
+          <h1
+            className="font-bold text-white font-heading leading-tight tracking-tight"
+            style={{ fontSize: 'clamp(1.75rem, 2.5vw + 1rem, 3.25rem)' }}
+          >
             Organization <span className="text-accent">Services</span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Secure, controlled-access services for organizations and parents to ensure safety while upholding data privacy standards.
+          <p
+            className="mt-4 sm:mt-5 text-gray-300 max-w-2xl mx-auto leading-relaxed"
+            style={{ fontSize: 'clamp(0.9rem, 0.35vw + 0.8rem, 1.125rem)' }}
+          >
+            Secure, controlled-access services for organizations to ensure safety while upholding data privacy standards.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/login?role=organization" className="btn-accent px-8 py-4">
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+            <Link to="/login?role=organization" className="btn-accent justify-center px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base">
               Login as Organization
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ml-1" />
             </Link>
-            
-            <a href="#services" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
+            <a href="#services" className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base bg-white/5 hover:bg-white/10 border border-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-md">
               View All Services
             </a>
           </div>
@@ -53,27 +58,29 @@ function OrganizationServicesPage() {
             <p className="section-subtitle">Choose the service that applies to your needs. All services are accessed through a secure, audited portal.</p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {services.map((service) => (
-              <div key={service.title} className="card p-8 relative group hover:-translate-y-1 flex flex-col">
-                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${service.accent} rounded-t-xl`}></div>
-                <div className="absolute -top-3 right-6">
-                  <span className={`${service.audienceColor} text-sm font-bold px-3 py-1 rounded-full shadow-md`}>{service.audience}</span>
+              <div key={service.title} className="card p-6 sm:p-8 relative group hover:-translate-y-1 flex flex-col h-full">
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${service.accent} rounded-t-xl`} />
+                <div className="flex items-start justify-between gap-3 mb-5">
+                  <div className={`${service.iconBg} w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shrink-0`}>
+                    <service.icon className={`h-6 w-6 sm:h-7 sm:w-7 ${service.iconColor}`} />
+                  </div>
+                  <span className={`${service.audienceColor} text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-full shadow-sm shrink-0`}>
+                    {service.audience}
+                  </span>
                 </div>
-                <div className={`${service.iconBg} w-16 h-16 rounded-xl flex items-center justify-center mb-6`}>
-                  <service.icon className={`h-8 w-8 ${service.iconColor}`} />
-                </div>
-                <h3 className="text-xl font-bold text-primary font-heading mb-3">{service.title}</h3>
-                <p className="text-muted leading-relaxed mb-6 text-base">{service.description}</p>
-                <ul className="space-y-3 mb-8">
+                <h3 className="text-lg sm:text-xl font-bold text-primary font-heading mb-3">{service.title}</h3>
+                <p className="text-muted leading-relaxed mb-6 text-sm sm:text-base flex-1">{service.description}</p>
+                <ul className="space-y-2.5 mb-6">
                   {service.points.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-base text-gray-600">
+                    <li key={item} className="flex items-center gap-2 text-sm sm:text-base text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link to={service.cta.to} className="btn-primary w-full justify-center text-base mt-auto">
+                <Link to={service.cta.to} className="btn-primary w-full justify-center text-sm sm:text-base mt-auto">
                   {service.cta.label}
                   <ArrowRight className="h-4 w-4" />
                 </Link>

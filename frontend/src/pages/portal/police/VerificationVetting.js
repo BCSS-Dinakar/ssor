@@ -91,6 +91,26 @@ function DynamicArrayList({ items, title, icon }) {
   );
 }
 
+const CCTNS_CATEGORY_ORDER = [
+  { key: 'aadhaar', label: 'Aadhaar exact match' },
+  { key: 'name_phone', label: 'Name + phone exact' },
+  { key: 'name', label: 'Name exact' },
+  { key: 'phone', label: 'Phone exact' },
+  { key: 'fuzzy', label: 'Trigram fuzzy name fallback' }
+];
+
+const isCctnsSuspect = (sus) => {
+  const source = (sus?.source || '').toLowerCase();
+  return source.includes('cctns') || source.includes('state register');
+};
+
+const confidenceTone = (score) => {
+  if (score >= 90) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+  if (score >= 75) return 'bg-blue-50 text-blue-700 border-blue-200';
+  if (score >= 60) return 'bg-amber-50 text-amber-700 border-amber-200';
+  return 'bg-slate-100 text-slate-600 border-slate-200';
+};
+
 function VerificationVetting() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -119,25 +139,110 @@ function VerificationVetting() {
   const [checkState, setCheckState] = useState('idle'); // 'idle' | 'running' | 'done'
   const [activeLog, setActiveLog] = useState('');
   const [suspects, setSuspects] = useState([]);
+  const [scanMeta, setScanMeta] = useState(null);
+  const [matchSourceTab, setMatchSourceTab] = useState('cctns'); // 'cctns' | 'epetty'
+  const [cctnsCategoryTab, setCctnsCategoryTab] = useState('all');
   const [inspectSuspect, setInspectSuspect] = useState(null); // Selected suspect for detail modal
   const [confirmedSuspect, setConfirmedSuspect] = useState(null); // Suspect matched by officer
+  const [discardedMatchKeys, setDiscardedMatchKeys] = useState([]); // false-positive match keys
   const [activeSuspectTab, setActiveSuspectTab] = useState('profile');
   const [officerFeedback, setOfficerFeedback] = useState('');
   const [inspectLoading, setInspectLoading] = useState(false);
 
+  const getSuspectKey = (sus) => `${sus?.source || 'match'}::${sus?.id}`;
+
+  const buildListDossier = (sus) => ({
+    offender_id: sus.id,
+    person_details: {
+      full_name: sus.name || '—',
+      alias: sus.alias,
+      age: sus.age,
+      father_name: sus.fatherName,
+      date_of_birth: sus.dob,
+      phone_number: sus.phone,
+      address: sus.address
+    },
+    latest_physical_features: {},
+    crimes: [{
+      fir_no: sus.firNo,
+      fir_date: sus.firDate,
+      offence: sus.offence,
+      court_name: sus.courtName,
+      source: sus.source,
+      priority: sus.priority,
+      risk_tier: sus.riskTier
+    }],
+    arrests: [],
+    _listContext: sus,
+    _sourceType: 'list'
+  });
+
+  const isCctnsSource = (sus) => {
+    const source = (sus?.source || '').toLowerCase();
+    return source.includes('cctns') || source.includes('state register');
+  };
+
+  const handleConfirmMatch = (susOrInspect) => {
+    const list = susOrInspect?._listContext || susOrInspect;
+    const name =
+      (susOrInspect?.person_details?.full_name && susOrInspect.person_details.full_name !== 'N/A'
+        ? susOrInspect.person_details.full_name
+        : null) ||
+      list?.name ||
+      'Unknown';
+    const matchId = susOrInspect?.offender_id || list?.id;
+    const key = getSuspectKey(list || { id: matchId, source: susOrInspect?._listContext?.source || 'match' });
+
+    setDiscardedMatchKeys((prev) => prev.filter((k) => k !== key));
+    setConfirmedSuspect({
+      id: matchId,
+      name,
+      source: list?.source || 'match',
+      key,
+      confidence: list?.confidence,
+      matchCategoryLabel: list?.matchCategoryLabel
+    });
+    setInspectSuspect(null);
+    toast.success('Match confirmed', 'Reject clearance to finalize this decision.');
+  };
+
+  const handleDiscardMatch = (susOrInspect) => {
+    const list = susOrInspect?._listContext || susOrInspect;
+    const matchId = susOrInspect?.offender_id || list?.id;
+    const key = getSuspectKey(list || { id: matchId, source: list?.source || 'match' });
+
+    setDiscardedMatchKeys((prev) => (prev.includes(key) ? prev : [...prev, key]));
+    setConfirmedSuspect((prev) => (prev && (prev.key === key || prev.id === matchId) ? null : prev));
+    setInspectSuspect(null);
+    toast.success('Match discarded', 'Treated as a false positive. Continue reviewing other records or issue clearance when ready.');
+  };
+
+  const handleUndoDiscard = (sus) => {
+    const key = getSuspectKey(sus);
+    setDiscardedMatchKeys((prev) => prev.filter((k) => k !== key));
+  };
+
   const handleInspect = async (sus) => {
     setInspectLoading(true);
     try {
+      // ePetty / non-CCTNS IDs are not in mv_offender_details — show scan card dossier.
+      if (!isCctnsSource(sus)) {
+        setInspectSuspect(buildListDossier(sus));
+        return;
+      }
+
       const res = await policeApi.getOffenderById(sus.id);
       if (res.success && res.data) {
-        // Embed the sus list-level properties (priority, source) into the detail object for context
-        setInspectSuspect({ ...res.data, _listContext: sus });
+        setInspectSuspect({ ...res.data, _listContext: sus, _sourceType: 'cctns' });
       } else {
-        toast.error('Unable to load record', 'Full offender details could not be retrieved.');
+        // Fallback to scan-card fields if CCTNS detail view is unavailable
+        setInspectSuspect(buildListDossier(sus));
+        toast.error('Full CCTNS dossier unavailable', 'Showing match details from the clearance scan instead.');
       }
     } catch (err) {
       console.error(err);
-      toast.error('Unable to load record', 'An error occurred while fetching details.');
+      setInspectSuspect(buildListDossier(sus));
+      toast.error('Full dossier unavailable', 'Showing match details from the clearance scan instead.');
     } finally {
       setInspectLoading(false);
     }
@@ -161,6 +266,20 @@ function VerificationVetting() {
 
   // Check if we expect history based on status
   const hasHistory = suspects.length > 0;
+  const cctnsSuspects = suspects.filter(isCctnsSuspect);
+  const epettySuspects = suspects.filter((s) => !isCctnsSuspect(s));
+  const cctnsCategoryCounts = CCTNS_CATEGORY_ORDER.reduce((acc, cat) => {
+    acc[cat.key] = cctnsSuspects.filter((s) => (s.matchCategory || 'fuzzy') === cat.key).length;
+    return acc;
+  }, {});
+  const visibleCctnsSuspects = cctnsCategoryTab === 'all'
+    ? cctnsSuspects
+    : cctnsSuspects.filter((s) => (s.matchCategory || 'fuzzy') === cctnsCategoryTab);
+  const visibleSuspects = matchSourceTab === 'cctns' ? visibleCctnsSuspects : epettySuspects;
+  const openSuspects = suspects.filter((s) => !discardedMatchKeys.includes(getSuspectKey(s)));
+  const allMatchesDiscarded = hasHistory && openSuspects.length === 0 && !confirmedSuspect;
+  const canIssueClearance = !hasHistory || allMatchesDiscarded;
+  const canRejectClearance = Boolean(confirmedSuspect);
 
   const startCriminalCheck = async () => {
     setCheckState('running');
@@ -170,13 +289,17 @@ function VerificationVetting() {
     } catch(e) { console.error(e); }
     setActiveLog('');
     setSuspects([]);
+    setScanMeta(null);
+    setMatchSourceTab('cctns');
+    setCctnsCategoryTab('all');
     setConfirmedSuspect(null);
+    setDiscardedMatchKeys([]);
 
     const logSequence = [
       { text: "Connecting to criminal databases...", delay: 0 },
       { text: "Verifying records...", delay: 700 },
       { text: "Processing identity parameters...", delay: 1400 },
-      { text: "Checking State Register and CCTNS views...", delay: 2100 },
+      { text: "Checking CCTNS accused records...", delay: 2100 },
       { text: "Checking ePetty case records...", delay: 2800 },
       { text: "Analysis completing, expecting results in 30 seconds...", delay: 3500 },
     ];
@@ -191,11 +314,25 @@ function VerificationVetting() {
     setTimeout(async () => {
       try {
         const scanRes = await policeApi.scanVerificationById(id);
-        if (scanRes && scanRes.suspects) {
-          setSuspects(scanRes.suspects);
-        } else {
-          setSuspects([]);
+        if (scanRes?.cctnsError) {
+          toast.error('CCTNS lookup issue', scanRes.cctnsError);
         }
+        if (scanRes?.epettyError) {
+          toast.error('ePetty lookup issue', scanRes.epettyError);
+        }
+        const nextSuspects = scanRes?.suspects || [];
+        setSuspects(nextSuspects);
+        setScanMeta({
+          sourceCounts: scanRes?.sourceCounts || { cctns: 0, epetty: 0 },
+          cctnsStatus: scanRes?.cctnsStatus || null,
+          epettyStatus: scanRes?.epettyStatus || null,
+          priorityLabel: scanRes?.priorityLabel || null
+        });
+
+        const cctnsCount = nextSuspects.filter(isCctnsSuspect).length;
+        const epettyCount = nextSuspects.length - cctnsCount;
+        setMatchSourceTab(cctnsCount > 0 ? 'cctns' : (epettyCount > 0 ? 'epetty' : 'cctns'));
+        setCctnsCategoryTab('all');
       } catch (err) {
         console.error('Scan failed:', err);
       } finally {
@@ -205,7 +342,10 @@ function VerificationVetting() {
   };
 
   const handleClear = async () => {
-    const reasonText = 'Candidate verified against Central Sex Offender Registry and CCTNS crime logs. Zero matching records identified. Clearance certificate officially granted.' + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
+    const discardedNote = discardedMatchKeys.length > 0
+      ? ` Officer reviewed ${suspects.length} candidate match(es) and discarded ${discardedMatchKeys.length} as non-identity / false positive(s).`
+      : '';
+    const reasonText = 'Candidate verified against Central Sex Offender Registry and CCTNS crime logs. Zero confirming identity matches. Clearance certificate officially granted.' + discardedNote + (officerFeedback ? `\n\nOfficer Notes: ${officerFeedback}` : '');
     try {
       await policeApi.updateVerificationStatus(id, { status: 'cleared', policeFeedback: reasonText });
       toast.success('Clearance issued', 'The requesting organization has been notified of the decision.');
@@ -345,7 +485,7 @@ function VerificationVetting() {
                 </div>
               )}
 
-              {/* Matching suspect list */}
+              {/* Matching suspect list — CCTNS / ePetty tabs */}
               {checkState === 'done' && suspects.length > 0 && (
                 <div className="space-y-4">
                   <div className="p-3.5 bg-amber-50 border border-amber-250 text-amber-850 rounded-xl text-sm font-bold leading-normal flex items-start gap-2">
@@ -355,47 +495,201 @@ function VerificationVetting() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <span className="text-xs tracking-wide text-slate-400 font-black block">Database Matches for Review</span>
-                    {suspects.map((sus) => {
-                      const tierColors = {
-                        Red: 'bg-red-50 text-red-700 border-red-200',
-                        Orange: 'bg-orange-50 text-orange-700 border-orange-200',
-                        Blue: 'bg-blue-50 text-blue-700 border-blue-200',
-                        Black: 'bg-slate-800 text-white border-slate-700',
-                        Pink: 'bg-pink-50 text-pink-700 border-pink-200',
-                        Green: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      };
-                      const badgeClass = tierColors[sus.riskTier] || 'bg-amber-50 text-amber-700 border-amber-200';
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs tracking-wide text-slate-400 font-black block">Database Matches for Review</span>
+                      {scanMeta?.epettyStatus === 'skipped' && (
+                        <span className="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+                          ePetty skipped (strong CCTNS hit)
+                        </span>
+                      )}
+                    </div>
 
-                      return (
-                        <div key={sus.id} className="group relative overflow-hidden bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:border-primary/30 p-1">
-                          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-blue-500 to-indigo-600 rounded-l-2xl opacity-80" />
-                          <div className="pl-5 pr-4 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 relative z-10 bg-gradient-to-r from-transparent to-slate-50/50">
-                            
-                            <div className="space-y-3 flex-grow min-w-0 w-full">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 font-black shadow-inner shrink-0">
-                                    {(sus.name || 'O').charAt(0).toUpperCase()}
+                    <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+                      {[
+                        { id: 'cctns', label: 'CCTNS', count: cctnsSuspects.length },
+                        { id: 'epetty', label: 'E-Petty', count: epettySuspects.length }
+                      ].map((tab) => {
+                        const active = matchSourceTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => {
+                              setMatchSourceTab(tab.id);
+                              if (tab.id === 'cctns') setCctnsCategoryTab('all');
+                            }}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black tracking-wide border transition-all ${
+                              active
+                                ? 'bg-primary text-white border-primary shadow-sm'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            {tab.label}
+                            <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                              {tab.count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {matchSourceTab === 'cctns' && (
+                      <div className="space-y-2">
+                        <span className="text-xs tracking-wide text-slate-400 font-black block">Matched by (CCTNS search order)</span>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setCctnsCategoryTab('all')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                              cctnsCategoryTab === 'all'
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            All ({cctnsSuspects.length})
+                          </button>
+                          {CCTNS_CATEGORY_ORDER.map((cat) => {
+                            const count = cctnsCategoryCounts[cat.key] || 0;
+                            const active = cctnsCategoryTab === cat.key;
+                            return (
+                              <button
+                                key={cat.key}
+                                type="button"
+                                disabled={count === 0}
+                                onClick={() => setCctnsCategoryTab(cat.key)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                  active
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                                }`}
+                                title={cat.label}
+                              >
+                                {cat.label}
+                                <span className="ml-1.5 opacity-80">({count})</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {visibleSuspects.length === 0 ? (
+                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-500">
+                        {matchSourceTab === 'cctns'
+                          ? 'No CCTNS accused matches in this subcategory.'
+                          : 'No E-Petty matches for this clearance scan.'}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {visibleSuspects.map((sus) => {
+                          const tierColors = {
+                            Red: 'bg-red-50 text-red-700 border-red-200',
+                            Orange: 'bg-orange-50 text-orange-700 border-orange-200',
+                            Blue: 'bg-blue-50 text-blue-700 border-blue-200',
+                            Black: 'bg-slate-800 text-white border-slate-700',
+                            Pink: 'bg-pink-50 text-pink-700 border-pink-200',
+                            Green: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          };
+                          const badgeClass = tierColors[sus.riskTier] || 'bg-amber-50 text-amber-700 border-amber-200';
+                          const confidence = Number(sus.confidence);
+                          const hasConfidence = Number.isFinite(confidence);
+                          const suspectKey = getSuspectKey(sus);
+                          const isDiscarded = discardedMatchKeys.includes(suspectKey);
+                          const isConfirmed = confirmedSuspect?.key === suspectKey || confirmedSuspect?.id === sus.id;
+
+                          return (
+                            <div
+                              key={suspectKey}
+                              className={`group relative bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${
+                                isConfirmed
+                                  ? 'border-red-300 hover:border-red-400'
+                                  : isDiscarded
+                                    ? 'border-emerald-200 opacity-75'
+                                    : 'border-slate-200/80 hover:shadow-md hover:border-primary/30'
+                              }`}
+                            >
+                              <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl opacity-80 pointer-events-none ${
+                                isConfirmed
+                                  ? 'bg-red-500'
+                                  : isDiscarded
+                                    ? 'bg-emerald-500'
+                                    : 'bg-gradient-to-b from-primary via-blue-500 to-indigo-600'
+                              }`} />
+                              <div className="pl-5 pr-4 py-4 space-y-3 relative z-10">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 font-black shadow-inner shrink-0">
+                                      {(sus.name || 'O').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className="font-extrabold text-slate-800 text-base font-heading tracking-wide break-words">
+                                        {sus.name}
+                                      </h4>
+                                      <span className="text-sm text-slate-400 font-bold font-mono break-all block">ID: {sus.id}</span>
+                                    </div>
                                   </div>
-                                  <div className="min-w-0">
-                                    <h4 className="font-extrabold text-slate-800 text-base md:text-base font-heading tracking-wide truncate">
-                                      {sus.name}
-                                    </h4>
-                                    <span className="text-sm text-slate-400 font-bold font-mono truncate block">ID: {sus.id}</span>
+                                  <div className="flex flex-col sm:items-end gap-2 shrink-0 w-full sm:w-auto">
+                                    {hasConfidence && (
+                                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black border ${confidenceTone(confidence)}`}>
+                                        Confidence {confidence}%
+                                      </span>
+                                    )}
+                                    {isConfirmed && (
+                                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black border bg-red-50 text-red-700 border-red-200">
+                                        Confirmed identity
+                                      </span>
+                                    )}
+                                    {isDiscarded && (
+                                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-black border bg-emerald-50 text-emerald-700 border-emerald-200">
+                                        Discarded (false positive)
+                                      </span>
+                                    )}
+                                    {!isDiscarded ? (
+                                      <button
+                                        onClick={() => handleInspect(sus)}
+                                        disabled={inspectLoading}
+                                        className="group/btn relative inline-flex items-center justify-center gap-2 px-5 py-3 bg-white hover:bg-slate-900 border border-slate-200 hover:border-slate-800 rounded-xl text-sm font-black uppercase text-secondary hover:text-white tracking-widest transition-all duration-300 shadow-sm disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-secondary overflow-hidden w-full sm:w-auto"
+                                      >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                                        <div className="relative z-10 flex items-center gap-2 whitespace-nowrap">
+                                          {inspectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />} Inspect Dossier
+                                        </div>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleUndoDiscard(sus)}
+                                        className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-slate-200 hover:border-slate-400 rounded-xl text-sm font-black uppercase text-slate-600 tracking-widest transition-all shadow-sm w-full sm:w-auto"
+                                      >
+                                        Undo Discard
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="hidden sm:block w-px h-6 bg-slate-200 shrink-0"></div>
+
                                 <div className="flex flex-wrap items-center gap-2">
+                                  {sus.matchCategoryLabel && (
+                                    <span className="px-2.5 py-1 rounded-lg text-sm font-bold tracking-wide bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm break-words max-w-full">
+                                      {sus.matchCategoryLabel}
+                                    </span>
+                                  )}
+                                  {Array.isArray(sus.matchParams) && sus.matchParams.length > 0 && (
+                                    <span className="px-2.5 py-1 rounded-lg text-sm font-bold tracking-wide bg-slate-50 text-slate-600 border border-slate-200 shadow-sm">
+                                      Params: {sus.matchParams.join(' + ')}
+                                    </span>
+                                  )}
                                   {sus.riskTier && (
                                     <span className={`px-2.5 py-1 rounded-lg text-sm font-bold tracking-wide border shadow-sm ${badgeClass}`}>
                                       {sus.riskTier} TIER
                                     </span>
                                   )}
                                   {sus.priority && (
-                                    <span className="px-2.5 py-1 rounded-lg text-sm font-bold tracking-wide bg-amber-50 text-amber-700 border border-amber-200 shadow-sm flex items-center gap-1">
-                                      <ShieldAlert className="w-3 h-3" /> {sus.priority}
+                                    <span
+                                      title={sus.priority}
+                                      className="px-2.5 py-1 rounded-lg text-sm font-bold tracking-wide bg-amber-50 text-amber-700 border border-amber-200 shadow-sm inline-flex items-center gap-1 max-w-full whitespace-normal break-words"
+                                    >
+                                      <ShieldAlert className="w-3 h-3 shrink-0" /> {sus.priority}
                                     </span>
                                   )}
                                   {sus.source && (
@@ -404,45 +698,36 @@ function VerificationVetting() {
                                     </span>
                                   )}
                                 </div>
-                              </div>
-                              
-                              <div className="flex flex-wrap gap-2">
-                                {(sus.age && sus.age !== 'N/A' && sus.age !== '—') && (
-                                  <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm">
-                                    <span className="text-sm font-bold tracking-wide text-slate-400">AGE</span>
-                                    <span>{sus.age}</span>
-                                  </div>
-                                )}
-                                {(sus.alias && sus.alias !== 'N/A' && sus.alias !== '—') && (
-                                  <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm">
-                                    <span className="text-sm font-bold tracking-wide text-slate-400">ALIAS</span>
-                                    <span className="truncate max-w-[120px]">{sus.alias}</span>
-                                  </div>
-                                )}
-                                {(sus.offence && sus.offence !== 'N/A' && sus.offence !== '—') && (
-                                  <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm flex-grow sm:flex-grow-0">
-                                    <span className="text-sm font-bold tracking-wide text-slate-400 shrink-0">FIR / CRIME</span>
-                                    <span className="truncate" title={sus.offence}>{sus.offence} {sus.firDate && sus.firDate !== 'N/A' && sus.firDate !== '—' ? `(${sus.firDate})` : ''}</span>
-                                  </div>
-                                )}
+
+                                <div className="flex flex-wrap gap-2">
+                                  {(sus.age && sus.age !== 'N/A' && sus.age !== '—') && (
+                                    <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm">
+                                      <span className="text-sm font-bold tracking-wide text-slate-400">AGE</span>
+                                      <span>{sus.age}</span>
+                                    </div>
+                                  )}
+                                  {(sus.alias && sus.alias !== 'N/A' && sus.alias !== '—') && (
+                                    <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm min-w-0">
+                                      <span className="text-sm font-bold tracking-wide text-slate-400 shrink-0">ALIAS</span>
+                                      <span className="break-words">{sus.alias}</span>
+                                    </div>
+                                  )}
+                                  {(sus.offence && sus.offence !== 'N/A' && sus.offence !== '—') && (
+                                    <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 font-medium shadow-sm min-w-0 max-w-full">
+                                      <span className="text-sm font-bold tracking-wide text-slate-400 shrink-0">FIR / CRIME</span>
+                                      <span className="break-words" title={sus.offence}>
+                                        {sus.offence}
+                                        {sus.firDate && sus.firDate !== 'N/A' && sus.firDate !== '—' ? ` (${sus.firDate})` : ''}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            
-                            <button
-                              onClick={() => handleInspect(sus)}
-                              disabled={inspectLoading}
-                              className="group/btn relative inline-flex items-center gap-2 px-5 py-3 bg-white hover:bg-slate-900 border border-slate-200 hover:border-slate-800 rounded-xl text-sm font-black uppercase text-secondary hover:text-white tracking-widest transition-all duration-300 shrink-0 shadow-sm disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-secondary overflow-hidden w-full lg:w-auto justify-center"
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-                              <div className="relative z-10 flex items-center gap-2">
-                                {inspectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />} Inspect Dossier
-                              </div>
-                            </button>
-                            
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {confirmedSuspect && (
@@ -450,6 +735,24 @@ function VerificationVetting() {
                       <AlertOctagon className="h-4.5 w-4.5 text-red-700 shrink-0 mt-0.5" />
                       <div>
                         Identity Match Confirmed: Candidate matches record <strong>{confirmedSuspect.name} ({confirmedSuspect.id})</strong>. You must reject this vetting clearance.
+                      </div>
+                    </div>
+                  )}
+
+                  {!confirmedSuspect && hasHistory && openSuspects.length > 0 && (
+                    <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-bold flex items-start gap-2">
+                      <ShieldAlert className="h-4.5 w-4.5 text-amber-700 shrink-0 mt-0.5" />
+                      <div>
+                        {openSuspects.length} match record(s) still need a decision. Confirm an identity to reject clearance, or discard false positives to enable issuing clearance.
+                      </div>
+                    </div>
+                  )}
+
+                  {allMatchesDiscarded && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm font-bold flex items-start gap-2">
+                      <Check className="h-4.5 w-4.5 text-emerald-700 shrink-0 mt-0.5" />
+                      <div>
+                        All candidate matches were discarded as non-identity. You may issue clearance.
                       </div>
                     </div>
                   )}
@@ -462,7 +765,7 @@ function VerificationVetting() {
                   <Check className="h-5 w-5 text-emerald-700 bg-emerald-100 p-0.5 rounded-full border border-emerald-300 shrink-0" />
                   <div>
                     <h4 className="text-base font-extrabold text-emerald-800 font-heading tracking-wide uppercase">Vetting Clearance Vouched</h4>
-                    <p className="mt-1 font-semibold">The automated scan checked State Register/CCTNS and ePetty case records. Candidate has no police records, criminal files, or disclosable history. Ready for approval.</p>
+                    <p className="mt-1 font-semibold">The automated scan checked CCTNS accused records and ePetty case records. Candidate has no police records, criminal files, or disclosable history. Ready for approval.</p>
                   </div>
                 </div>
               )}
@@ -674,10 +977,10 @@ function VerificationVetting() {
                     {hasHistory ? (
                       <>
                         <button
-                          disabled={!confirmedSuspect}
+                          disabled={!canRejectClearance}
                           onClick={handleReject}
                           className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide text-white transition-all rounded-xl shadow-lg ${
-                            confirmedSuspect
+                            canRejectClearance
                               ? 'bg-red-600 hover:bg-red-700 shadow-red-100'
                               : 'bg-slate-300 cursor-not-allowed opacity-60 shadow-none'
                           }`}
@@ -685,14 +988,29 @@ function VerificationVetting() {
                           <XCircle className="h-4 w-4" /> Reject Clearance Request
                         </button>
                         <button
-                          disabled={true}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide bg-slate-100 text-slate-400 border border-slate-200 transition-all rounded-xl cursor-not-allowed opacity-50"
+                          disabled={!canIssueClearance}
+                          onClick={handleClear}
+                          className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide transition-all rounded-xl ${
+                            canIssueClearance
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100'
+                              : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50'
+                          }`}
                         >
-                          <CheckCircle2 className="h-4 w-4" /> Issue Clearance (Disabled)
+                          <CheckCircle2 className="h-4 w-4" /> Issue Clearance
                         </button>
-                        {!confirmedSuspect && (
+                        {canRejectClearance && (
+                          <p className="text-xs text-red-600 font-bold text-center mt-2 leading-relaxed">
+                            Identity confirmed. Reject clearance to finalize, or discard that match if it was selected in error.
+                          </p>
+                        )}
+                        {!canRejectClearance && !canIssueClearance && (
                           <p className="text-xs text-amber-600 font-bold text-center mt-2 leading-relaxed">
-                            Verify suspect details and confirm match identity to reject candidate.
+                            Confirm a true identity match to reject, or discard all remaining false positives to enable clearance.
+                          </p>
+                        )}
+                        {canIssueClearance && (
+                          <p className="text-xs text-emerald-700 font-bold text-center mt-2 leading-relaxed">
+                            No confirmed identity matches remain. You may issue clearance.
                           </p>
                         )}
                       </>
@@ -745,12 +1063,18 @@ function VerificationVetting() {
                     <span className="text-lg">{((inspectSuspect.person_details?.full_name && inspectSuspect.person_details.full_name !== 'N/A' ? inspectSuspect.person_details.full_name : inspectSuspect._listContext?.name) || 'O').charAt(0)}</span>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">{inspectSuspect.person_details?.full_name !== 'N/A' ? inspectSuspect.person_details?.full_name : inspectSuspect._listContext?.name || 'Unknown'}</h4>
-                    <span className="text-sm text-slate-400 font-mono block mt-0.5">SOR Record ID: {inspectSuspect.offender_id}</span>
+                    <h4 className="font-extrabold text-primary font-heading text-base tracking-wide break-words">
+                      {inspectSuspect.person_details?.full_name && inspectSuspect.person_details.full_name !== 'N/A'
+                        ? inspectSuspect.person_details.full_name
+                        : (inspectSuspect._listContext?.name || 'Unknown')}
+                    </h4>
+                    <span className="text-sm text-slate-400 font-mono block mt-0.5 break-all">
+                      Record ID: {inspectSuspect.offender_id || inspectSuspect._listContext?.id}
+                    </span>
                   </div>
                 </div>
-                <div className="bg-red-50 text-red-700 border border-red-200 font-black text-xs tracking-wide px-3 py-1 rounded-full">
-                  Convicted Offender
+                <div className="bg-red-50 text-red-700 border border-red-200 font-black text-xs tracking-wide px-3 py-1 rounded-full shrink-0">
+                  {inspectSuspect._listContext?.source || 'Match'}
                 </div>
               </div>
 
@@ -768,29 +1092,33 @@ function VerificationVetting() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-slate-100 border-t border-slate-200 text-right flex flex-col sm:flex-row justify-between items-center gap-3 shrink-0">
+            <div className="p-4 bg-slate-100 border-t border-slate-200 flex flex-col gap-3 shrink-0">
               <span className="text-sm font-black text-slate-400 tracking-wide flex items-center gap-1.5">
                 <ShieldAlert className="h-3.5 w-3.5" /> VERIFY CAREFULLY
               </span>
-              <div className="space-x-3 flex items-center">
-                <button 
-                  onClick={() => setInspectSuspect(null)} 
-                  className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors tracking-wide"
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-end gap-2">
+                <button
+                  onClick={() => setInspectSuspect(null)}
+                  className="px-4 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors tracking-wide order-3 sm:order-1"
                 >
-                  Close Match
+                  Close
                 </button>
                 <button
-                  onClick={() => {
-                    // Extract name from the original list context since we overwrote inspectSuspect
-                    const name = inspectSuspect.person_details?.full_name || inspectSuspect._listContext?.name || 'Unknown';
-                    setConfirmedSuspect({ id: inspectSuspect.offender_id, name: name });
-                    setInspectSuspect(null);
-                  }}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-black transition-colors tracking-wide shadow-lg shadow-red-200 flex items-center gap-2 inline-flex"
+                  onClick={() => handleDiscardMatch(inspectSuspect)}
+                  className="px-4 py-2.5 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-black transition-colors tracking-wide shadow-sm inline-flex items-center justify-center gap-2 order-2"
                 >
-                  <AlertOctagon className="h-4 w-4" /> Confirm Match -> Reject Clearance
+                  <CheckCircle2 className="h-4 w-4" /> Discard Match
+                </button>
+                <button
+                  onClick={() => handleConfirmMatch(inspectSuspect)}
+                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-black transition-colors tracking-wide shadow-lg shadow-red-200 inline-flex items-center justify-center gap-2 order-1 sm:order-3"
+                >
+                  <AlertOctagon className="h-4 w-4" /> Confirm Match → Reject Clearance
                 </button>
               </div>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+                Discard = false positive (can still issue clearance after all open matches are discarded). Confirm = true identity (must reject clearance).
+              </p>
             </div>
           </div>
         </div>
