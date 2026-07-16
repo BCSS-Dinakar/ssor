@@ -45,13 +45,15 @@ load_nvm() {
   fi
 }
 
-log "Pulling latest code from origin/${GIT_BRANCH}"
+log "Syncing to origin/${GIT_BRANCH}"
 if [[ "${SKIP_GIT_PULL:-0}" != "1" ]]; then
   git fetch origin "$GIT_BRANCH"
   git checkout "$GIT_BRANCH"
-  git pull --ff-only origin "$GIT_BRANCH"
+  # Deployment server: always match remote. Preserves gitignored .env files.
+  git clean -fd --exclude=backend/.env --exclude=frontend/.env --exclude=.deploy.local
+  git reset --hard "origin/${GIT_BRANCH}"
 else
-  log "Skipping git pull (SKIP_GIT_PULL=1)"
+  log "Skipping git sync (SKIP_GIT_PULL=1)"
 fi
 
 load_nvm
