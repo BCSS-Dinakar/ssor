@@ -16,8 +16,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Global Middlewares
+const corsOrigin = process.env.FRONTEND_URL || (
+  process.env.NODE_ENV === 'production' ? false : 'http://localhost:3000'
+);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true
 }));
 

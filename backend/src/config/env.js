@@ -39,4 +39,7 @@ export const env = {
   EPETTY_API_URL: process.env.EPETTY_API_URL || '',
   EPETTY_BASIC_AUTH: process.env.EPETTY_BASIC_AUTH || '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
+  COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || 'lax',
 };

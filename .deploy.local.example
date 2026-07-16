@@ -1,0 +1,11 @@
+# Copy to .deploy.local on the server and adjust if needed.
+# cp .deploy.local.example .deploy.local
+
+APP_HOST=10.121.9.177
+BACKEND_PORT=5000
+FRONTEND_PORT=3000
+GIT_BRANCH=main
+
+# Optional overrides (auto-derived from APP_HOST and ports when omitted)
+# FRONTEND_URL=http://10.121.9.177:3000
+# API_BASE_URL=http://10.121.9.177:5000/api
