@@ -29,12 +29,17 @@ const buildDatabaseUrl = () => {
   return `postgresql://${user}${password}@${POSTGRES_HOST}${port}/${POSTGRES_DB}`;
 };
 
+const databaseUrl = buildDatabaseUrl();
+if (databaseUrl) {
+  process.env.DATABASE_URL = databaseUrl;
+}
+
 export const env = {
   PORT: Number(process.env.PORT || 5000),
   PORT_RETRY_LIMIT: Number(process.env.PORT_RETRY_LIMIT || 20),
   NODE_ENV: process.env.NODE_ENV || 'development',
   AUTO_DB_PUSH: process.env.AUTO_DB_PUSH === 'true',
-  DATABASE_URL: buildDatabaseUrl(),
+  DATABASE_URL: databaseUrl,
   JWT_SECRET: process.env.JWT_SECRET || 'fallback_secret_key',
   EPETTY_API_URL: process.env.EPETTY_API_URL || '',
   EPETTY_BASIC_AUTH: process.env.EPETTY_BASIC_AUTH || '',
