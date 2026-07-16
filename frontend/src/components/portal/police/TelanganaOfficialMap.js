@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { MapPin, Search, ZoomIn, ZoomOut, RotateCcw, AlertTriangle, Layers, CheckCircle2, Scale, X } from 'lucide-react';
+import { MapPin, Search, ZoomOut, RotateCcw, Layers, X } from 'lucide-react';
 import { TELANGANA_DISTRICTS, TELANGANA_BOUNDS } from '../../../utils/data/telanganaDistrictsMandals';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
 import { Button } from '../../ui/Button';
-import { Badge } from '../../ui/Badge';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { Link } from 'react-router-dom';
 

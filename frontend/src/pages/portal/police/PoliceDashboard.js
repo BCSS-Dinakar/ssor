@@ -100,7 +100,34 @@ function PoliceDashboard() {
 
       {error && <Alert variant="danger" title="Dashboard error">{error}</Alert>}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary" aria-hidden="true">
+              <Scale className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-body-sm font-semibold text-muted">Offenders on register</h3>
+              <div className="mt-1 font-heading text-2xl font-bold text-primary">
+                {(activeJurisdiction && activeJurisdiction.data) ? selectedTotal : total}
+              </div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="mb-1.5 flex justify-between text-body-sm font-semibold">
+              <span className="text-secondary">Convictions: {convictedCount}</span>
+              <span className="text-warning">Under trial: {underTrialCount}</span>
+            </div>
+            <div className="flex h-2.5 overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`Convictions ${convictedCount}, under trial ${underTrialCount}`}>
+              <div className="bg-secondary" style={{ width: `${total ? (convictedCount / total) * 100 : 0}%` }} />
+              <div className="bg-warning" style={{ width: `${total ? (underTrialCount / total) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <Link to="/portal/register" className="mt-3 inline-block text-body-sm font-semibold text-secondary hover:underline">
+            Open registry →
+          </Link>
+        </Card>
+
         <StatCard
           label={(activeJurisdiction && activeJurisdiction.data) ? `Pending Clearances (${activeJurisdiction.data.name})` : "Pending Clearances"}
           value={pendingCount}
