@@ -78,5 +78,15 @@ export const policeApi = {
   getOffenderById: async (id) => {
     const response = await api.get(`/police/offenders/${id}`);
     return response.data;
+  },
+
+  getEprisonsJails: async () => {
+    const response = await api.get('/eprisons/jails');
+    return response.data;
+  },
+
+  getEprisonsReleases: async (payload) => {
+    const response = await api.post('/eprisons/releases', payload);
+    return response.data;
   }
 };

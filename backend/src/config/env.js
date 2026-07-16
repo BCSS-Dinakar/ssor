@@ -47,4 +47,9 @@ export const env = {
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
   COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || 'lax',
+  PRIVATE_KEY: process.env.PRIVATE_KEY || '',
+  EPRISONS_TOKEN_URL: process.env.EPRISONS_TOKEN_URL || '',
+  EPRISONS_RELEASES_URL: process.env.EPRISONS_RELEASES_URL || '',
+  EPRISONS_USER_ID: process.env.EPRISONS_USER_ID || '',
+  EPRISONS_PASSWORD: process.env.EPRISONS_PASSWORD || '',
 };
