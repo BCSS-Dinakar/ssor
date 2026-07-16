@@ -34,17 +34,16 @@ The frontend calls the backend API directly. Auth uses an HTTP-only cookie (`tok
 
 ### One-command deploy
 
-After pushing to GitHub:
-
-```bash
-ssh sodb-177
-cd ~/ssor && ./deploy.sh
-```
-
-Or from your local machine:
+**From your local machine** (where `sodb-177` is configured in `~/.ssh/config`):
 
 ```bash
 ssh sodb-177 'cd ~/ssor && ./deploy.sh'
+```
+
+**Already logged into the server?** Do not run `ssh sodb-177` again — that hostname only resolves from your laptop. Run directly:
+
+```bash
+cd ~/ssor && ./deploy.sh
 ```
 
 `deploy.sh` automatically:
@@ -294,10 +293,26 @@ In the browser:
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
+| `Could not resolve hostname sodb-177` | Running SSH alias from inside the server | Run `cd ~/ssor && ./deploy.sh` directly, or exit to your laptop first |
+| `git pull` / deploy fails with "local changes would be overwritten" | Server has leftover edits from manual deploys | Run the recovery commands below |
 | Dashboard 401 after login | Cookie not stored (Secure flag on HTTP) | Ensure `COOKIE_SECURE=false` for HTTP; log out and back in |
 | CORS errors | `FRONTEND_URL` mismatch | Match `FRONTEND_URL` in backend `.env` to the URL in the browser |
 | Blank page after domain switch | Stale frontend build | Run `./deploy.sh` to rebuild with new `REACT_APP_API_BASE_URL` |
 | PM2 not running after reboot | Startup script not configured | Run the PM2 startup command in the section above |
+
+### Recover from git conflicts on the server
+
+If `./deploy.sh` or `git pull` fails with *"local changes would be overwritten"* or *"untracked working tree files would be overwritten"*, reset the server checkout to match GitHub. This is safe on a deployment server — your `.env` files are preserved:
+
+```bash
+cd ~/ssor
+git fetch origin main
+git clean -fd --exclude=backend/.env --exclude=frontend/.env --exclude=.deploy.local
+git reset --hard origin/main
+./deploy.sh
+```
+
+After this, future deploys should work with a single `./deploy.sh`.
 | 502 from nginx | PM2 process down | `pm2 status` and `pm2 restart all` |
 
 ---
