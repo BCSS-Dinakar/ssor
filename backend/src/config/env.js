@@ -39,4 +39,9 @@ export const env = {
   EPETTY_API_URL: process.env.EPETTY_API_URL || '',
   EPETTY_BASIC_AUTH: process.env.EPETTY_BASIC_AUTH || '',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  PRIVATE_KEY: process.env.PRIVATE_KEY || '',
+  EPRISONS_TOKEN_URL: process.env.EPRISONS_TOKEN_URL || '',
+  EPRISONS_RELEASES_URL: process.env.EPRISONS_RELEASES_URL || '',
+  EPRISONS_USER_ID: process.env.EPRISONS_USER_ID || '',
+  EPRISONS_PASSWORD: process.env.EPRISONS_PASSWORD || '',
 };

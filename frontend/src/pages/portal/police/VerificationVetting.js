@@ -788,7 +788,7 @@ function VerificationVetting() {
                   }}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-black transition-colors tracking-wide shadow-lg shadow-red-200 flex items-center gap-2 inline-flex"
                 >
-                  <AlertOctagon className="h-4 w-4" /> Confirm Match -> Reject Clearance
+                  <AlertOctagon className="h-4 w-4" /> Confirm Match &rarr; Reject Clearance
                 </button>
               </div>
             </div>
