@@ -34,6 +34,8 @@ The frontend calls the backend API directly. Auth uses an HTTP-only cookie (`tok
 
 ### One-command deploy
 
+**Do not run `git pull` on the server.** Use `./deploy.sh` instead — it runs `git reset --hard origin/main` and avoids merge conflicts from leftover local edits.
+
 **From your local machine** (where `sodb-177` is configured in `~/.ssh/config`):
 
 ```bash

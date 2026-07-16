@@ -45,13 +45,17 @@ load_nvm() {
   fi
 }
 
-log "Syncing to origin/${GIT_BRANCH}"
-if [[ "${SKIP_GIT_PULL:-0}" != "1" ]]; then
+sync_repo() {
+  log "Fetching and hard-resetting to origin/${GIT_BRANCH} (replaces git pull)"
   git fetch origin "$GIT_BRANCH"
   git checkout "$GIT_BRANCH"
-  # Deployment server: always match remote. Preserves gitignored .env files.
-  git clean -fd --exclude=backend/.env --exclude=frontend/.env --exclude=.deploy.local
   git reset --hard "origin/${GIT_BRANCH}"
+  # Remove untracked files; keep server-only env and local deploy config.
+  git clean -fd --exclude=backend/.env --exclude=frontend/.env --exclude=.deploy.local
+}
+
+if [[ "${SKIP_GIT_PULL:-0}" != "1" ]]; then
+  sync_repo
 else
   log "Skipping git sync (SKIP_GIT_PULL=1)"
 fi
