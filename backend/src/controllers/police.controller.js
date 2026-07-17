@@ -119,15 +119,18 @@ export const scanVerificationById = async (req, res) => {
 
     const mapEpettyMatchMeta = (priorityLabel = '') => {
       if (priorityLabel.includes('Name & Phone')) {
-        return { matchCategory: 'name_phone', matchCategoryLabel: 'Name + phone exact', matchParams: ['name', 'phone'], confidence: 94 };
+        return { matchCategory: 'epetty_name_phone', matchCategoryLabel: 'Name + phone exact', matchParams: ['name', 'phone'], confidence: 94 };
+      }
+      if (priorityLabel.includes('Father')) {
+        return { matchCategory: 'epetty_name_father', matchCategoryLabel: 'Name + father exact', matchParams: ['name', 'father'], confidence: 85 };
       }
       if (priorityLabel.includes('Exact Name')) {
-        return { matchCategory: 'name', matchCategoryLabel: 'Name exact', matchParams: ['name'], confidence: 78 };
+        return { matchCategory: 'epetty_name', matchCategoryLabel: 'Name exact', matchParams: ['name'], confidence: 78 };
       }
       if (priorityLabel.includes('Exact Phone')) {
-        return { matchCategory: 'phone', matchCategoryLabel: 'Phone exact', matchParams: ['phone'], confidence: 62 };
+        return { matchCategory: 'epetty_phone', matchCategoryLabel: 'Phone exact', matchParams: ['phone'], confidence: 62 };
       }
-      return { matchCategory: 'custom', matchCategoryLabel: 'Custom filter match', matchParams: [], confidence: 50 };
+      return { matchCategory: 'epetty_custom', matchCategoryLabel: 'Custom filter match', matchParams: [], confidence: 50 };
     };
 
     if (!shouldSkipEpettyAfterCctns(cctnsOutcome)) {
@@ -153,7 +156,8 @@ export const scanVerificationById = async (req, res) => {
         courtName: m.courtName || (m.disposalStatus ? `Status: ${m.disposalStatus}` : '—'),
         convDate: m.convDate || m.incidentDate || '—',
         riskTier: m.riskTier || 'Orange',
-        source: epettyOutcome.matchedSource || 'ePetty Case',
+        source: 'ePetty Case',
+        sourceType: 'epetty',
         priority: epettyOutcome.priorityLabel || 'ePetty Match',
         ...epettyMeta
       }));
@@ -191,6 +195,8 @@ export const scanVerificationById = async (req, res) => {
         ? 'skipped'
         : (epettyOutcome.lookupError ? 'unavailable' : 'checked'),
       epettyError: epettyOutcome.lookupError || null,
+      cctnsMatches: cctnsSuspects,
+      epettyMatches: epettySuspects,
       suspects
     });
   } catch (error) {

@@ -100,9 +100,14 @@ const CCTNS_CATEGORY_ORDER = [
 ];
 
 const isCctnsSuspect = (sus) => {
+  if (sus?.sourceType === 'cctns') return true;
+  if (sus?.sourceType === 'epetty') return false;
   const source = (sus?.source || '').toLowerCase();
+  if (source.includes('epetty') || source.includes('e-petty')) return false;
   return source.includes('cctns') || source.includes('state register');
 };
+
+const isEpettySuspect = (sus) => !isCctnsSuspect(sus);
 
 const confidenceTone = (score) => {
   if (score >= 90) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -149,7 +154,7 @@ function VerificationVetting() {
   const [officerFeedback, setOfficerFeedback] = useState('');
   const [inspectLoading, setInspectLoading] = useState(false);
 
-  const getSuspectKey = (sus) => `${sus?.source || 'match'}::${sus?.id}`;
+  const getSuspectKey = (sus) => `${sus?.sourceType || sus?.source || 'match'}::${sus?.id}`;
 
   const buildListDossier = (sus) => ({
     offender_id: sus.id,
@@ -176,11 +181,6 @@ function VerificationVetting() {
     _listContext: sus,
     _sourceType: 'list'
   });
-
-  const isCctnsSource = (sus) => {
-    const source = (sus?.source || '').toLowerCase();
-    return source.includes('cctns') || source.includes('state register');
-  };
 
   const handleConfirmMatch = (susOrInspect) => {
     const list = susOrInspect?._listContext || susOrInspect;
@@ -226,7 +226,7 @@ function VerificationVetting() {
     setInspectLoading(true);
     try {
       // ePetty / non-CCTNS IDs are not in mv_offender_details — show scan card dossier.
-      if (!isCctnsSource(sus)) {
+      if (!isCctnsSuspect(sus)) {
         setInspectSuspect(buildListDossier(sus));
         return;
       }
@@ -267,7 +267,7 @@ function VerificationVetting() {
   // Check if we expect history based on status
   const hasHistory = suspects.length > 0;
   const cctnsSuspects = suspects.filter(isCctnsSuspect);
-  const epettySuspects = suspects.filter((s) => !isCctnsSuspect(s));
+  const epettySuspects = suspects.filter(isEpettySuspect);
   const cctnsCategoryCounts = CCTNS_CATEGORY_ORDER.reduce((acc, cat) => {
     acc[cat.key] = cctnsSuspects.filter((s) => (s.matchCategory || 'fuzzy') === cat.key).length;
     return acc;
@@ -323,7 +323,10 @@ function VerificationVetting() {
         const nextSuspects = scanRes?.suspects || [];
         setSuspects(nextSuspects);
         setScanMeta({
-          sourceCounts: scanRes?.sourceCounts || { cctns: 0, epetty: 0 },
+          sourceCounts: scanRes?.sourceCounts || {
+            cctns: (scanRes?.cctnsMatches || nextSuspects.filter(isCctnsSuspect)).length,
+            epetty: (scanRes?.epettyMatches || nextSuspects.filter(isEpettySuspect)).length,
+          },
           cctnsStatus: scanRes?.cctnsStatus || null,
           epettyStatus: scanRes?.epettyStatus || null,
           priorityLabel: scanRes?.priorityLabel || null
