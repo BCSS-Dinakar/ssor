@@ -68,10 +68,10 @@ export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
 
   const payload = {
     ecaseNo: filters.ecaseNo || '',
-    offdrName: filters.offdrName || '',
+    offdrName: (filters.offdrName || '').trim().toUpperCase(),
     offdrMobileNo: filters.offdrMobileNo || '',
     offrOccupation: filters.offrOccupation || '',
-    psName: filters.psName || ''
+    psName: (filters.psName || '').trim().toUpperCase()
   };
 
   const headers = { 'Content-Type': 'application/json' };
