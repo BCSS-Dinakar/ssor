@@ -117,6 +117,7 @@ export const mapCctnsRowToSuspect = (row, categoryKey, confidenceOverride = null
     convDate: '—',
     riskTier: 'Orange',
     source: 'CCTNS',
+    sourceType: 'cctns',
     priority: category.priorityLabel,
     matchCategory: category.key,
     matchCategoryLabel: category.label,
