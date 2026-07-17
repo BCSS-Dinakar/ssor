@@ -55,6 +55,14 @@ const describeLookupError = (error) => {
   return [...new Set(details)].join(' | ');
 };
 
+const normalizeEpettyText = (value = '') => (value || '').trim().toUpperCase();
+
+const normalizePhone = (value = '') => {
+  let digits = (value || '').replace(/\D/g, '');
+  if (digits.length > 10) digits = digits.slice(-10);
+  return digits;
+};
+
 export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
   if (!env.EPETTY_API_URL) {
     console.warn('[ePetty] EPETTY_API_URL is not configured. Skipping live ePetty lookup.');
@@ -68,10 +76,11 @@ export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
 
   const payload = {
     ecaseNo: filters.ecaseNo || '',
-    offdrName: (filters.offdrName || '').trim().toUpperCase(),
-    offdrMobileNo: filters.offdrMobileNo || '',
-    offrOccupation: filters.offrOccupation || '',
-    psName: (filters.psName || '').trim().toUpperCase()
+    offdrName: normalizeEpettyText(filters.offdrName),
+    offdrMobileNo: normalizePhone(filters.offdrMobileNo),
+    offrFName: normalizeEpettyText(filters.offrFName),
+    offrOccupation: normalizeEpettyText(filters.offrOccupation),
+    psName: normalizeEpettyText(filters.psName)
   };
 
   const headers = { 'Content-Type': 'application/json' };
@@ -102,23 +111,84 @@ export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
   }
 };
 
-export const searchEpettyCandidate = async (candidateName = '', candidatePhone = '', customFilters = {}) => {
-  const cleanName = (candidateName || '').trim();
-  let cleanPhone = (candidatePhone || '').replace(/\D/g, '');
+const buildSearchSteps = ({ name, phone, father, occupation, customFilters = {} }) => {
+  const steps = [];
+  const seen = new Set();
+  const add = (label, filters) => {
+    const key = JSON.stringify(filters);
+    if (seen.has(key)) return;
+    seen.add(key);
+    steps.push({ label, filters: { ...customFilters, ...filters } });
+  };
 
-  if (cleanPhone.length > 10) {
-    cleanPhone = cleanPhone.slice(-10);
+  if (name && phone && father && occupation) {
+    add('High Priority (Name, Phone, Father & Occupation Match)', {
+      offdrName: name, offdrMobileNo: phone, offrFName: father, offrOccupation: occupation
+    });
+  }
+  if (name && phone && father) {
+    add('High Priority (Name, Phone & Father Match)', {
+      offdrName: name, offdrMobileNo: phone, offrFName: father
+    });
+  }
+  if (name && phone) {
+    add('High Priority (Exact Name & Phone Match)', { offdrName: name, offdrMobileNo: phone });
+  }
+  if (name && father) {
+    add('Medium Priority (Name & Father Match)', { offdrName: name, offrFName: father });
+  }
+  if (name && occupation) {
+    add('Medium Priority (Name & Occupation Match)', { offdrName: name, offrOccupation: occupation });
+  }
+  if (name) {
+    add('Medium Priority (Exact Name Match)', { offdrName: name });
+  }
+  if (phone && phone.length >= 7 && father) {
+    add('Low Priority (Phone & Father Match)', { offdrMobileNo: phone, offrFName: father });
+  }
+  if (phone && phone.length >= 7) {
+    add('Low Priority (Exact Phone Match)', { offdrMobileNo: phone });
+  }
+  if (father && !name && !phone) {
+    add('Medium Priority (Father Name Match)', { offrFName: father });
+  }
+  if (occupation && !name && !phone && !father) {
+    add('Custom Filter Match', { offrOccupation: occupation });
   }
 
-  const buildPayload = (stepFilters = {}) => ({
-    ecaseNo: customFilters.ecaseNo || stepFilters.ecaseNo || '',
-    offdrName: stepFilters.offdrName || customFilters.offdrName || '',
-    offdrMobileNo: stepFilters.offdrMobileNo || customFilters.offdrMobileNo || '',
-    offrOccupation: customFilters.offrOccupation || stepFilters.offrOccupation || '',
-    psName: customFilters.psName || stepFilters.psName || ''
-  });
+  if (Object.keys(customFilters).length > 0) {
+    add('Custom Filter Match', customFilters);
+  }
 
-  if (!cleanName && !cleanPhone && Object.keys(customFilters).length === 0) {
+  return steps;
+};
+
+export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacyCustom = {}) {
+  const options = typeof input === 'string'
+    ? { candidateName: input, candidatePhone: legacyPhone, ...legacyCustom }
+    : input;
+
+  const {
+    candidateName = '',
+    candidatePhone = '',
+    fatherName = '',
+    occupation = '',
+    ecaseNo = '',
+    offdrName = '',
+    offdrMobileNo = '',
+    offrFName = '',
+    offrOccupation = '',
+    psName = '',
+  } = options;
+
+  const name = (candidateName || offdrName || '').trim();
+  const phone = normalizePhone(candidatePhone || offdrMobileNo);
+  const father = (fatherName || offrFName || '').trim();
+  const role = (occupation || offrOccupation || '').trim();
+  const extraFilters = { ecaseNo, psName };
+
+  const hasSearchInput = name || phone || father || role || ecaseNo || psName;
+  if (!hasSearchInput) {
     return { matches: [], priorityLabel: null, matchedSource: null };
   }
 
@@ -141,35 +211,13 @@ export const searchEpettyCandidate = async (candidateName = '', candidatePhone =
     lookupError
   });
 
-  if (cleanName && cleanPhone) {
-    const { matches, lookupError } = await runLookup(buildPayload({ offdrName: cleanName, offdrMobileNo: cleanPhone }));
-    if (lookupError) return unavailable(lookupError);
-    if (matches.length > 0) {
-      return { matches, priorityLabel: 'High Priority (Exact Name & Phone Match)', matchedSource: 'ePetty Case' };
-    }
-  }
+  const steps = buildSearchSteps({ name, phone, father, occupation: role, customFilters: extraFilters });
 
-  if (cleanName) {
-    const { matches, lookupError } = await runLookup(buildPayload({ offdrName: cleanName }));
+  for (const step of steps) {
+    const { matches, lookupError } = await runLookup(step.filters);
     if (lookupError) return unavailable(lookupError);
     if (matches.length > 0) {
-      return { matches, priorityLabel: 'Medium Priority (Exact Name Match)', matchedSource: 'ePetty Case' };
-    }
-  }
-
-  if (cleanPhone && cleanPhone.length >= 7) {
-    const { matches, lookupError } = await runLookup(buildPayload({ offdrMobileNo: cleanPhone }));
-    if (lookupError) return unavailable(lookupError);
-    if (matches.length > 0) {
-      return { matches, priorityLabel: 'Low Priority (Exact Phone Match)', matchedSource: 'ePetty Case' };
-    }
-  }
-
-  if (Object.keys(customFilters).length > 0) {
-    const { matches, lookupError } = await runLookup(buildPayload());
-    if (lookupError) return unavailable(lookupError);
-    if (matches.length > 0) {
-      return { matches, priorityLabel: 'Custom Filter Match', matchedSource: 'ePetty Case' };
+      return { matches, priorityLabel: step.label, matchedSource: 'ePetty Case' };
     }
   }
 

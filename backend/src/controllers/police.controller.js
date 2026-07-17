@@ -109,7 +109,8 @@ export const scanVerificationById = async (req, res) => {
     const cctnsOutcome = await searchCctnsCandidate({
       candidateName: verification.candidateName,
       candidatePhone: verification.phone,
-      aadharNumber: verification.aadharNumber
+      aadharNumber: verification.aadharNumber,
+      fatherName: verification.fatherName
     });
     const cctnsSuspects = cctnsOutcome.matches;
 
@@ -130,7 +131,12 @@ export const scanVerificationById = async (req, res) => {
     };
 
     if (!shouldSkipEpettyAfterCctns(cctnsOutcome)) {
-      epettyOutcome = await searchEpettyCandidate(verification.candidateName, verification.phone);
+      epettyOutcome = await searchEpettyCandidate({
+        candidateName: verification.candidateName,
+        candidatePhone: verification.phone,
+        fatherName: verification.fatherName,
+        occupation: verification.role,
+      });
       const epettyMeta = mapEpettyMatchMeta(epettyOutcome.priorityLabel || '');
       epettySuspects = epettyOutcome.matches.map(m => ({
         id: m.recordId || m.caseNumber || '—',

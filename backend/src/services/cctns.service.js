@@ -19,6 +19,20 @@ export const CCTNS_MATCH_CATEGORIES = {
     confidence: 95,
     priorityLabel: 'High Priority (Exact Name & Phone Match)'
   },
+  name_phone_father: {
+    key: 'name_phone_father',
+    label: 'Name + phone + father exact',
+    params: ['name', 'phone', 'father'],
+    confidence: 97,
+    priorityLabel: 'High Priority (Exact Name, Phone & Father Match)'
+  },
+  name_father: {
+    key: 'name_father',
+    label: 'Name + father exact',
+    params: ['name', 'father'],
+    confidence: 88,
+    priorityLabel: 'Medium Priority (Exact Name & Father Match)'
+  },
   name: {
     key: 'name',
     label: 'Name exact',
@@ -32,6 +46,20 @@ export const CCTNS_MATCH_CATEGORIES = {
     params: ['phone'],
     confidence: 68,
     priorityLabel: 'Low Priority (Exact Phone Match)'
+  },
+  phone_father: {
+    key: 'phone_father',
+    label: 'Phone + father exact',
+    params: ['phone', 'father'],
+    confidence: 72,
+    priorityLabel: 'Low Priority (Exact Phone & Father Match)'
+  },
+  father: {
+    key: 'father',
+    label: 'Father exact',
+    params: ['father'],
+    confidence: 58,
+    priorityLabel: 'Medium Priority (Exact Father Match)'
   },
   fuzzy: {
     key: 'fuzzy',
@@ -257,6 +285,43 @@ const searchHigh = (normName, normPhone) =>
     `)
   );
 
+const fatherNormSql = (normFather) => Prisma.sql`
+  lower(regexp_replace(COALESCE(src.match_father_name, ''), '\\s+', ' ', 'g')) = ${normFather}
+  AND COALESCE(src.match_father_name, '') <> ''
+`;
+
+const searchNamePhoneFather = (normName, normPhone, normFather) =>
+  runWithMvFallback(() =>
+    runAccusedSearch(Prisma.sql`
+      src.search_name_norm = ${normName}
+      AND src.match_phone_norm = ${normPhone}
+      AND src.match_phone_norm <> ''
+      AND ${fatherNormSql(normFather)}
+    `)
+  );
+
+const searchNameFather = (normName, normFather) =>
+  runWithMvFallback(() =>
+    runAccusedSearch(Prisma.sql`
+      src.search_name_norm = ${normName}
+      AND ${fatherNormSql(normFather)}
+    `)
+  );
+
+const searchPhoneFather = (normPhone, normFather) =>
+  runWithMvFallback(() =>
+    runAccusedSearch(Prisma.sql`
+      src.match_phone_norm = ${normPhone}
+      AND length(src.match_phone_norm) >= 7
+      AND ${fatherNormSql(normFather)}
+    `)
+  );
+
+const searchFather = (normFather) =>
+  runWithMvFallback(() =>
+    runAccusedSearch(Prisma.sql`${fatherNormSql(normFather)}`)
+  );
+
 const searchMedium = (normName) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`src.search_name_norm = ${normName}`)
@@ -310,13 +375,15 @@ const isHighOrMediumPriority = (priorityLabel = '') =>
 export const searchCctnsCandidate = async ({
   candidateName = '',
   candidatePhone = '',
-  aadharNumber = ''
+  aadharNumber = '',
+  fatherName = ''
 } = {}) => {
   const normName = normalizeName(candidateName);
   const normPhone = normalizePhone(candidatePhone);
   const normAadhaar = normalizeAadhaar(aadharNumber);
+  const normFather = normalizeName(fatherName);
 
-  if (!normName && !normPhone && !normAadhaar) {
+  if (!normName && !normPhone && !normAadhaar && !normFather) {
     return { matches: [], priorityLabel: null, matchedSource: null, matchCategory: null };
   }
 
@@ -326,9 +393,19 @@ export const searchCctnsCandidate = async ({
       if (rows.length > 0) return buildOutcome(rows, 'aadhaar');
     }
 
+    if (normName && normPhone && normFather) {
+      const rows = await searchNamePhoneFather(normName, normPhone, normFather);
+      if (rows.length > 0) return buildOutcome(rows, 'name_phone_father');
+    }
+
     if (normName && normPhone) {
       const rows = await searchHigh(normName, normPhone);
       if (rows.length > 0) return buildOutcome(rows, 'name_phone');
+    }
+
+    if (normName && normFather) {
+      const rows = await searchNameFather(normName, normFather);
+      if (rows.length > 0) return buildOutcome(rows, 'name_father');
     }
 
     if (normName) {
@@ -336,9 +413,19 @@ export const searchCctnsCandidate = async ({
       if (rows.length > 0) return buildOutcome(rows, 'name');
     }
 
+    if (normPhone && normPhone.length >= 7 && normFather) {
+      const rows = await searchPhoneFather(normPhone, normFather);
+      if (rows.length > 0) return buildOutcome(rows, 'phone_father');
+    }
+
     if (normPhone && normPhone.length >= 7) {
       const rows = await searchLow(normPhone);
       if (rows.length > 0) return buildOutcome(rows, 'phone');
+    }
+
+    if (normFather) {
+      const rows = await searchFather(normFather);
+      if (rows.length > 0) return buildOutcome(rows, 'father');
     }
 
     if (normName) {
