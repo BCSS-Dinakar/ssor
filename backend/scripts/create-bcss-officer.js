@@ -1,9 +1,10 @@
+import '../src/config/env.js';
 import prisma from '../src/config/db.js';
 import bcrypt from 'bcryptjs';
 
 async function main() {
-  const loginId = 'bcss.officer';
-  const password = 'bcss@123';
+  const loginId = 'admin@ssor';
+  const password = 'ssor@123';
   
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
@@ -62,7 +63,7 @@ async function main() {
     }
   });
 
-  console.log('BCSS Test Officer successfully created or updated:');
+  console.log('SSOR Police Officer successfully created or updated:');
   console.log('Username (loginId):', officer.loginId);
   console.log('Role:', officer.role);
   console.log('Status:', officer.status);

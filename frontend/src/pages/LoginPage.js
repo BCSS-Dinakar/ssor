@@ -226,7 +226,7 @@ function LoginPage() {
   const [mode, setMode] = useState(initialMode);
 
   const [initialCaptcha] = useState(makeCaptcha);
-  const [loginForm, setLoginForm] = useState({ userId: '', password: '', officerName: '', captcha: initialCaptcha });
+  const [loginForm, setLoginForm] = useState({ userId: '', password: '', captcha: initialCaptcha });
   const [showPassword, setShowPassword] = useState(false);
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
@@ -277,9 +277,6 @@ function LoginPage() {
     e.preventDefault();
     const idLabel = role === 'police' ? 'Officer username' : 'Login ID';
     if (!loginForm.userId.trim()) return setLoginAlert({ type: 'error', message: `${idLabel} is required.` });
-    if (role === 'police' && !loginForm.officerName.trim()) {
-      return setLoginAlert({ type: 'error', message: 'Name is required.' });
-    }
     if (!loginForm.password) return setLoginAlert({ type: 'error', message: 'Password is required.' });
     if (loginForm.captcha !== loginCaptcha) {
       refreshLoginCaptcha();
@@ -569,17 +566,6 @@ function LoginPage() {
                       />
                     </div>
                   </Field>
-
-                  {role === 'police' && (
-                    <Field label="Name" required hint="Your official name.">
-                      <input
-                        className={inputClass}
-                        placeholder="e.g. John Doe"
-                        value={loginForm.officerName}
-                        onChange={(e) => setLoginForm({ ...loginForm, officerName: e.target.value })}
-                      />
-                    </Field>
-                  )}
 
                   <Field label="Password" required>
                     <div className="relative">
