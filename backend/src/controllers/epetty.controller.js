@@ -5,14 +5,30 @@ export const searchEpettyCases = async (req, res) => {
     const {
       candidateName,
       candidatePhone,
+      fatherName,
+      occupation,
       ecaseNo,
       offdrName,
       offdrMobileNo,
+      offrFName,
       offrOccupation,
       psName
     } = req.body;
 
-    const hasCandidateSearch = candidateName || candidatePhone;
+    const searchInput = {
+      candidateName,
+      candidatePhone,
+      fatherName: fatherName || offrFName,
+      occupation: occupation || offrOccupation,
+      ecaseNo,
+      offdrName,
+      offdrMobileNo,
+      offrFName,
+      offrOccupation,
+      psName
+    };
+
+    const hasCandidateSearch = candidateName || candidatePhone || fatherName || offrFName || occupation || offrOccupation;
     const customFilters = { ecaseNo, offdrName, offdrMobileNo, offrOccupation, psName };
     const hasCustomFilters = Object.values(customFilters).some(Boolean);
 
@@ -21,7 +37,7 @@ export const searchEpettyCases = async (req, res) => {
     }
 
     if (hasCandidateSearch) {
-      const result = await searchEpettyCandidate(candidateName, candidatePhone, customFilters);
+      const result = await searchEpettyCandidate(searchInput);
       return res.status(200).json({ success: true, ...result });
     }
 
