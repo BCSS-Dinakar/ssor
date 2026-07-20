@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, CreditCard, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, CreditCard, MapPin, Download } from 'lucide-react';
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
@@ -434,25 +434,16 @@ function VerificationVetting() {
                 </div>
               )}
               {record.consentFile && (
-                <div className="space-y-2 col-span-full mt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400 font-bold tracking-wide">Signed Consent Document</span>
-                    <a
-                      href={policeApi.getDocumentUrl(record.consentFile)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
-                    >
-                      <Eye className="h-3.5 w-3.5" /> Open Full Screen
-                    </a>
-                  </div>
-                  <div className="w-full h-[500px] border border-slate-200 rounded-xl overflow-hidden bg-slate-100">
-                    <iframe
-                      src={policeApi.getDocumentUrl(record.consentFile)}
-                      title="Consent Document"
-                      className="w-full h-full"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <span className="text-sm text-slate-400 font-bold tracking-wide">Consent Declaration</span>
+                  <a
+                    href={policeApi.getDocumentUrl(record.consentFile)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-lg transition-colors"
+                  >
+                    <Download className="h-4 w-4" /> View Signed Consent
+                  </a>
                 </div>
               )}
             </div>
