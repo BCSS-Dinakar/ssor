@@ -14,7 +14,10 @@ export const organizationApi = {
   },
 
   generateConsentTemplate: async (data) => {
-    const response = await api.post('/organization/generate-consent-template', data, { responseType: 'blob' });
+    const isFormData = data instanceof FormData;
+    const config = { responseType: 'blob' };
+    if (isFormData) config.headers = { 'Content-Type': 'multipart/form-data' };
+    const response = await api.post('/organization/generate-consent-template', data, config);
     return response.data;
   },
 

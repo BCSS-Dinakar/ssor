@@ -63,7 +63,7 @@ function LandingPage() {
                 className="mt-3 sm:mt-4 text-gray-300 max-w-xl lg:mx-0 mx-auto leading-relaxed"
                 style={{ fontSize: 'clamp(0.875rem, 0.4vw + 0.75rem, 1.125rem)' }}
               >
-                A conviction-based, colour-coded Sexual Offender Register built to protect women and
+                A conviction-based, colour-coded Sexual Offender Registry built to protect women and
                 children — verified clearance for organizations, structured monitoring for police.
               </p>
 

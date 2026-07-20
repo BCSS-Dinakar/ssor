@@ -6,7 +6,7 @@ export const ROLES = [
 ];
 
 export const ORG_TYPES = [
-  'School',
+  'School / College',
   'Crèche / day-care',
   'Sports academy',
   'Transport operator',

@@ -15,11 +15,11 @@ function Footer() {
               </div>
               <div>
                 <span className="text-xl font-bold text-white font-heading">SSOR</span>
-                <span className="block text-sm text-gray-400">State Sexual Offender Register · Telangana</span>
+                <span className="block text-sm text-gray-400">State Sexual Offender Registry · Telangana</span>
               </div>
             </div>
             <p className="text-gray-400 text-base leading-relaxed max-w-md">
-              The State Sexual Offender Register is a conviction-based, controlled-access database with three
+              The State Sexual Offender Registry is a conviction-based, controlled-access database with three
               access roles — organizations and police officers — interoperable with the
               National Database on Sexual Offenders.
             </p>
@@ -69,7 +69,7 @@ function Footer() {
         <div className="border-t border-white/10 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-sm text-center md:text-left">
-              © {new Date().getFullYear()} SSOR — State Sexual Offender Register, Telangana. Prototype for demonstration.
+              © {new Date().getFullYear()} SSOR — State Sexual Offender Registry, Telangana. Prototype for demonstration.
             </p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Lock className="h-3 w-3 text-green-500" />

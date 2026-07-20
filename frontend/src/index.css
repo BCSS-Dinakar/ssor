@@ -110,7 +110,7 @@
   }
 
   .input-base {
-    @apply w-full min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-secondary focus:outline-none focus:ring-4 focus:ring-secondary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60;
+    @apply w-full h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-secondary focus:outline-none focus:ring-4 focus:ring-secondary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:opacity-60;
   }
 
   .section-label {

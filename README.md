@@ -1,12 +1,12 @@
-# SSOR — State Sexual Offender Register
+# SSOR — State Sexual Offender Registry
 
-> A secure, conviction-based, colour-coded sexual offender register built for the **Government of Telangana, State Police** — enabling verified background checks for institutions and structured monitoring for the police, without ever becoming an open public list.
+> A secure, conviction-based, colour-coded sexual offender registry built for the **Government of Telangana, State Police** — enabling verified background checks for institutions and structured monitoring for the police, without ever becoming an open public list.
 
 ---
 
 ## 💡 Project Idea
 
-The State Sexual Offender Register (SSOR) is designed to protect women and children by tracking convicted sexual offenders. Unlike public offender registries (such as in the United States) which can lead to vigilantism and privacy violations, SSOR follows a **controlled-disclosure model** used in the UK, Canada, and Australia. 
+The State Sexual Offender Registry (SSOR) is designed to protect women and children by tracking convicted sexual offenders. Unlike public offender registries (such as in the United States) which can lead to vigilantism and privacy violations, SSOR follows a **controlled-disclosure model** used in the UK, Canada, and Australia. 
 
 The system operates strictly on **convictions** (accused persons are never listed) and is entirely closed to the general public. Instead, it serves as a secure clearinghouse for background verification.
 

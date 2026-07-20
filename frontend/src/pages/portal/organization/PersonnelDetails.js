@@ -143,7 +143,7 @@ function PersonnelDetails() {
                     <span className="text-sm font-mono text-secondary font-bold block pt-1">{selectedCandidate.id}</span>
                   </div>
                   <div className="text-sm text-slate-600 leading-normal max-w-sm mx-auto font-medium">
-                    This certifies that applicant <strong>{selectedCandidate.candidate}</strong> has been cleared under the State Sexual Offender Register vetting cell.
+                    This certifies that applicant <strong>{selectedCandidate.candidate}</strong> has been cleared under the State Sexual Offender Registry vetting cell.
                   </div>
                   <div className="flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-200 border-dashed pt-2 mt-2">
                     <span>DSP DIGITAL SIGNATURE: VERIFIED</span>

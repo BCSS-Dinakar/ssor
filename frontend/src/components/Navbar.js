@@ -27,7 +27,7 @@ function Navbar() {
             </div>
             <div>
               <span className="text-xl font-bold text-white tracking-wide font-heading">SSOR</span>
-              <span className="hidden sm:block text-sm text-gray-400 -mt-1 tracking-wider uppercase">State Sexual Offender Register</span>
+              <span className="hidden sm:block text-sm text-gray-400 -mt-1 tracking-wider uppercase">State Sexual Offender Registry</span>
             </div>
           </Link>
 

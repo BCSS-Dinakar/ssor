@@ -171,6 +171,7 @@ function ContactPage() {
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                         inputMode="numeric"
+                        maxLength={10}
                       />
                     </div>
                     <div className="flex flex-col gap-2">

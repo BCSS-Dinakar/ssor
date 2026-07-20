@@ -1,6 +1,6 @@
 # SSOR Setup Guide
 
-Follow these steps to set up the entire SSOR (State Sexual Offender Register) stack on your local machine.
+Follow these steps to set up the entire SSOR (State Sexual Offender Registry) stack on your local machine.
 
 ## Prerequisites
 - **Node.js** (v16 or higher)

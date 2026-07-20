@@ -76,7 +76,7 @@ function OrganizationDashboard() {
           { label: 'Dashboard' },
         ]}
         title={auth?.name || 'Organization Dashboard'}
-        subtitle="Submit and track clearance requests for child-facing personnel against the State Sexual Offender Register."
+        subtitle="Submit and track clearance requests for child-facing personnel against the State Sexual Offender Registry."
         actions={
           <Button asChild variant="accent">
             <Link to="/portal/apply">

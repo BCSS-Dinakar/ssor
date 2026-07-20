@@ -7,7 +7,7 @@ export const submitVerification = async (req, res) => {
   try {
     const {
       type, role, candidate,
-      dob, phone, consent, fatherName, aadharNumber
+      dob, phone, consent, fatherName, aadharNumber, address
     } = req.body;
 
     if (!candidate || !dob || !phone || !role || consent !== 'true' && consent !== true) {
@@ -41,6 +41,7 @@ export const submitVerification = async (req, res) => {
         phone: phone,
         consent: consent === 'true' || consent === true,
         aadharNumber: aadharNumber || null,
+        address: address || null,
         candidateImage: imagePath,
         consentFile: consentPath
       }
@@ -259,7 +260,7 @@ export const addTicketMessage = async (req, res) => {
 
 export const generateConsentTemplate = async (req, res) => {
   try {
-    const { candidate, fatherName, dob, aadharNumber, phone, role } = req.body;
+    const { candidate, fatherName, dob, aadharNumber, phone, role, address, type } = req.body;
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
@@ -276,24 +277,26 @@ export const generateConsentTemplate = async (req, res) => {
     doc.moveDown(1);
     doc.fontSize(16).font('Helvetica-Bold').text('GOVERNMENT OF TELANGANA - STATE POLICE', { align: 'center' });
     doc.moveDown(0.2);
-    doc.fontSize(14).font('Helvetica-Bold').text('STATE SEXUAL OFFENDER REGISTER (SSOR)', { align: 'center' });
+    doc.fontSize(14).font('Helvetica-Bold').text('STATE SEXUAL OFFENDER REGISTRY (SSOR)', { align: 'center' });
     doc.moveDown(0.2);
     doc.fontSize(12).font('Helvetica').text('CANDIDATE VERIFICATION CONSENT FORM', { align: 'center', underline: true });
 
     doc.moveDown(1);
 
     // Intro
-    doc.fontSize(11).font('Helvetica').text('This document serves as explicit, irrevocable consent for the below-mentioned individual to undergo a formal background verification against the State Sexual Offender Register, conducted by the Telangana State Police.', { align: 'justify' });
+    doc.fontSize(11).font('Helvetica').text('This document serves as explicit, irrevocable consent for the below-mentioned individual to undergo a formal background verification against the State Sexual Offender Registry, conducted by the Telangana State Police.', { align: 'justify' });
 
     doc.moveDown(1);
 
     // Details Box
     const startX = 50;
     let currentY = doc.y;
-    doc.rect(40, currentY - 10, doc.page.width - 80, 140).stroke();
+    doc.rect(40, currentY - 10, doc.page.width - 80, 170).stroke();
 
     doc.fontSize(12).font('Helvetica-Bold').text('I. CANDIDATE DEMOGRAPHICS', 50, currentY);
     doc.moveDown(0.5);
+
+
 
     const drawField = (label, value) => {
       doc.font('Helvetica-Bold').fontSize(11).text(`${label}: `, { continued: true })
@@ -306,6 +309,8 @@ export const generateConsentTemplate = async (req, res) => {
     drawField('Date of Birth', dob);
     drawField('Aadhar Number', aadharNumber);
     drawField('Phone Number', phone);
+    drawField('Residential Address', address);
+    drawField('Institution Category', type);
     drawField('Designated Role', role);
 
     doc.moveDown(1.5);
@@ -314,7 +319,7 @@ export const generateConsentTemplate = async (req, res) => {
     doc.fontSize(12).font('Helvetica-Bold').text('II. DECLARATION OF CONSENT', 50, doc.y);
     doc.moveDown(0.5);
     doc.font('Helvetica').fontSize(11).text(
-      `I, ${candidate || 'the undersigned'}, hereby voluntarily give my explicit consent to the requesting organization to forward my personal data, including demographics and biometrics (if applicable), to the Telangana State Police. I authorize the Telangana State Police to query the State Sexual Offender Register for the exclusive purpose of background verification for my employment/role.`,
+      `I, ${candidate || 'the undersigned'}, hereby voluntarily give my explicit consent to the requesting organization to forward my personal data, including demographics and biometrics (if applicable), to the Telangana State Police. I authorize the Telangana State Police to query the State Sexual Offender Registry for the exclusive purpose of background verification for my employment/role.`,
       { align: 'justify', lineGap: 3 }
     );
     doc.moveDown();

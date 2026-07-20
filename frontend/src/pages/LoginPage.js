@@ -310,7 +310,7 @@ function LoginPage() {
     }
     try {
       setRegAlert({ type: 'info', message: 'Sending OTP...' });
-      const data = await otpApi.send(orgReg.mobile);
+      const data = await otpApi.send(orgReg.mobile.replace(/-/g, ''));
       if (data.success) {
         setOtpSent(true);
         setOtpVerified(false);
@@ -348,7 +348,6 @@ function LoginPage() {
     return true;
   };
 
-
   const validateOrgStep1 = () => {
     if (!orgReg.orgName.trim()) return setRegAlert({ type: 'error', message: 'Organization name is required.' });
     if (!orgReg.orgType) return setRegAlert({ type: 'error', message: 'Organization type is required.' });
@@ -384,8 +383,8 @@ function LoginPage() {
     if (!orgReg.empId.trim()) return setRegAlert({ type: 'error', message: 'Employee ID is required.' });
     if (!orgReg.adminEmail.trim()) return setRegAlert({ type: 'error', message: 'Admin email is required.' });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.adminEmail.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid admin email address.' });
-    if (!orgReg.mobile.trim()) return setRegAlert({ type: 'error', message: 'Mobile number is required.' });
-    if (!/^\d{10}$/.test(orgReg.mobile.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
+    if (!orgReg.mobile.replace(/-/g, '').trim()) return setRegAlert({ type: 'error', message: 'Mobile number is required.' });
+    if (!/^\d{10}$/.test(orgReg.mobile.replace(/-/g, '').trim())) return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number.' });
     if (!orgReg.loginId.trim()) return setRegAlert({ type: 'error', message: 'Username (Login ID) is required.' });
     if (!orgReg.password) return setRegAlert({ type: 'error', message: 'Password is required.' });
     if (orgReg.password.length < 8) return setRegAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
@@ -442,7 +441,8 @@ function LoginPage() {
     if (role === 'organization') {
       try {
         setRegAlert({ type: 'info', message: 'Submitting registration...' });
-        await registerOrganization(orgReg);
+        const submitData = { ...orgReg, mobile: orgReg.mobile.replace(/-/g, '') };
+        await registerOrganization(submitData);
         setIsSubmitted(true);
       } catch (err) {
         setRegAlert({ type: 'error', message: err.message || 'Registration failed.' });
@@ -560,7 +560,7 @@ function LoginPage() {
                       <User className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         className={getInputClass(loginForm.userId, 'text') + ' pl-9'}
-                        placeholder={role === 'police' ? 'e.g. insp.naidu' : 'Your registered login ID'}
+                        placeholder={role === 'police' ? 'e.g. insp.reddy' : 'Your registered login ID'}
                         value={loginForm.userId}
                         onChange={(e) => setLoginForm({ ...loginForm, userId: e.target.value })}
                       />
@@ -670,7 +670,7 @@ function LoginPage() {
                     {regStep === 1 && (
                       <div className="grid sm:grid-cols-2 gap-4">
                         <Field label="Organization name" required className="sm:col-span-2">
-                          <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Little Scholars School" />
+                          <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Kakatiya High School" />
                         </Field>
                         <Field label="Organization type" required>
                           <SearchableSelect 
@@ -734,6 +734,7 @@ function LoginPage() {
                             onChange={(e) => setOrgReg({ ...orgReg, pinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
                             placeholder="6-digit PIN"
                             inputMode="numeric"
+                            maxLength={6}
                           />
                         </Field>
                       </div>
@@ -770,9 +771,10 @@ function LoginPage() {
                         <Field label="Mobile Number" required>
                           <div className="flex gap-2">
                             <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
-                              onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                              onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
                               placeholder="10-digit mobile"
                               inputMode="numeric"
+                              maxLength={11}
                               disabled={otpVerified}
                             />
                             {otpTimer > 0 ? (
@@ -780,7 +782,7 @@ function LoginPage() {
                                 <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
                               </div>
                             ) : (
-                              <button type="button" onClick={() => sendOtp(orgReg.mobile)} disabled={otpVerified}
+                              <button type="button" onClick={() => sendOtp(orgReg.mobile.replace(/-/g, ''))} disabled={otpVerified}
                                 className={`btn-secondary whitespace-nowrap px-3 py-2 text-sm shrink-0 ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
                               </button>
@@ -794,9 +796,9 @@ function LoginPage() {
                                 className={getInputClass(orgReg.otp, 'pin')}
                                 value={orgReg.otp}
                                 onChange={(e) => {
-                                  const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                  const val = e.target.value.replace(/-/g, '').slice(0, 6);
                                   setOrgReg({ ...orgReg, otp: val });
-                                  if (val.length === 6) verifyOtpApi(orgReg.mobile, val);
+                                  if (val.length === 6) verifyOtpApi(orgReg.mobile.replace(/-/g, ''), val);
                                 }}
                                 placeholder="Enter 6-digit OTP"
                                 inputMode="numeric"
@@ -872,7 +874,7 @@ function LoginPage() {
                         <div className="space-y-3 bg-white p-5 border border-slate-200 rounded-xl">
                           <label className="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptTerms} onChange={(e) => setOrgReg({ ...orgReg, acceptTerms: e.target.checked })} />
-                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Register.</span>
+                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Registry.</span>
                           </label>
                           <label className="flex items-start gap-3 cursor-pointer group">
                             <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptPrivacy} onChange={(e) => setOrgReg({ ...orgReg, acceptPrivacy: e.target.checked })} />

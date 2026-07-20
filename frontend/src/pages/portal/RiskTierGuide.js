@@ -44,11 +44,11 @@ function RiskTierGuide() {
       <PageHeader
         crumb="Administration / Risk Tiers"
         title="Risk Tier Classification Guide"
-        subtitle="Understanding the colour-coded classification system for offenders based on the State Sexual Offender Register Concept Note."
+        subtitle="Understanding the colour-coded classification system for offenders based on the State Sexual Offender Registry Concept Note."
       />
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6 text-base text-slate-700 shadow-sm">
-        <p className="mb-2"><strong>Overview:</strong> The State Sexual Offender Register uses a colour-coded scheme allowing officers to grade offenders by the seriousness of their conduct and the risk they carry. </p>
+        <p className="mb-2"><strong>Overview:</strong> The State Sexual Offender Registry uses a colour-coded scheme allowing officers to grade offenders by the seriousness of their conduct and the risk they carry. </p>
         <p className="text-slate-500"><strong>Note:</strong> Juveniles (Silver Tier) are dealt with under the Juvenile Justice Act, 2015, and are placed in no disclosable list. The "homosexual crimes" category does not exist in Indian law and orientation is never used for grading.</p>
       </div>
 
