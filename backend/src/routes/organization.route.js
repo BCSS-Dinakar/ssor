@@ -14,7 +14,7 @@ router.post(
   upload.fields([{ name: 'candidateImage', maxCount: 1 }, { name: 'consentFile', maxCount: 1 }]),
   submitVerification
 );
-router.post('/generate-consent-template', generateConsentTemplate);
+router.post('/generate-consent-template', upload.single('candidateImage'), generateConsentTemplate);
 router.get('/documents/:filename', getDocument);
 router.get('/verifications', getVerifications);
 router.get('/verifications/:id', getVerificationById);

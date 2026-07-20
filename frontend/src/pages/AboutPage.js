@@ -37,7 +37,7 @@ function AboutPage() {
             className="mt-4 sm:mt-5 text-gray-300 max-w-2xl mx-auto leading-relaxed"
             style={{ fontSize: 'clamp(0.9rem, 0.35vw + 0.8rem, 1.125rem)' }}
           >
-            The State Sexual Offender Register is a conviction-based, controlled-access database designed to protect
+            The State Sexual Offender Registry is a conviction-based, controlled-access database designed to protect
             women and children — enabling verified background checks and structured monitoring without becoming
             an open public list.
           </p>
@@ -143,7 +143,7 @@ function AboutPage() {
               <Globe className="h-8 w-8 text-accent mb-3" />
               <h3 className="text-base font-bold text-white font-heading mb-2">NDSO Interoperability</h3>
               <p className="text-base leading-relaxed text-gray-200">
-                The state register is designed to be interoperable with the National Database on Sexual Offenders (NDSO) maintained by the NCRB.
+                The state registry is designed to be interoperable with the National Database on Sexual Offenders (NDSO) maintained by the NCRB.
               </p>
             </div>
           </div>

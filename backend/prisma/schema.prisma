@@ -94,6 +94,7 @@ model CandidateVerification {
   phone          String
   consent        Boolean
   aadharNumber   String?
+  address        String?
   candidateImage String?
   consentFile    String?
   status         String   @default("pending")

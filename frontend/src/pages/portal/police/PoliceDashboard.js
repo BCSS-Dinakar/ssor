@@ -91,7 +91,7 @@ function PoliceDashboard() {
           { label: 'Dashboard' },
         ]}
         title="Register Console"
-        subtitle="State Sexual Offender Register — clearance queues, registry metrics, and audit activity."
+        subtitle="State Sexual Offender Registry — clearance queues, registry metrics, and audit activity."
       />
 
       <SecurityBanner>
@@ -172,7 +172,7 @@ function PoliceDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Register by Risk Tier</CardTitle>
-            <CardDescription>Statutory risk levels across the offender register.</CardDescription>
+            <CardDescription>Statutory risk levels across the offender registry.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[250px] w-full">

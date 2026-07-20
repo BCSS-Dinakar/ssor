@@ -71,6 +71,7 @@ function VerificationDetails() {
           consentFile: record.consentFile,
           dob: new Date(record.dob).toLocaleDateString(),
           phone: record.phone,
+          address: record.address,
 
           submitted: submittedDate,
           decisionDate: !isCompleted ? '' : new Date(record.updatedAt).toLocaleDateString(),
@@ -146,6 +147,11 @@ function VerificationDetails() {
             </div>
             
             {/* New Fields */}
+            {selectedRequest.address && (
+              <div className="sm:col-span-2">
+                <DetailField label="Residential Address" value={selectedRequest.address} />
+              </div>
+            )}
             {selectedRequest.aadharNumber && (
               <div className="sm:col-span-2">
                 <DetailField label="Aadhar Number" value={selectedRequest.aadharNumber} mono />
@@ -227,7 +233,7 @@ function VerificationDetails() {
               <div className="space-y-4">
                 <div className="p-4 bg-emerald-50 border border-emerald-200 text-sm font-semibold text-emerald-800 rounded-2xl">
                   <strong>Clearance Status: CLEARED (APPROVED)</strong>
-                  <p className="mt-1 text-emerald-700/90 font-medium">No matching sex offender register records identified. Candidate is cleared for recruitment.</p>
+                  <p className="mt-1 text-emerald-700/90 font-medium">No matching sex offender registry records identified. Candidate is cleared for recruitment.</p>
                 </div>
 
                 {/* Official Stamp Box */}

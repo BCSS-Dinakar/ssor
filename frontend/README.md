@@ -1,6 +1,6 @@
 # SSOR Frontend
 
-This is the client-side Single Page Application (SPA) for the State Sexual Offender Register (SSOR) portals.
+This is the client-side Single Page Application (SPA) for the State Sexual Offender Registry (SSOR) portals.
 
 ---
 

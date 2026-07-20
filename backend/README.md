@@ -1,6 +1,6 @@
 # SSOR Backend
 
-This is the secure REST API layer for the State Sexual Offender Register (SSOR). It handles all data persistence, authentication, and secure document serving.
+This is the secure REST API layer for the State Sexual Offender Registry (SSOR). It handles all data persistence, authentication, and secure document serving.
 
 ---
 

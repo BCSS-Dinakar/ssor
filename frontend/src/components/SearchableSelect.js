@@ -31,15 +31,15 @@ export default function SearchableSelect({
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div 
-        className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-base cursor-pointer flex items-center justify-between transition-all duration-300 ${
+        className={`w-full bg-slate-50 border rounded-xl px-3 py-2 h-10 text-sm cursor-pointer flex items-center justify-between transition-all duration-300 ${
           disabled ? 'opacity-50 cursor-not-allowed border-slate-200' : 
           isOpen ? 'border-secondary bg-white ring-4 ring-secondary/10' : 
           value ? 'border-emerald-500 bg-emerald-50/30 text-emerald-900' : 
-          'border-slate-200 hover:border-slate-300 text-slate-800'
+          'border-slate-300 hover:border-slate-400 text-slate-900'
         } ${className}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
-        <span className={value ? 'text-slate-800 font-medium' : 'text-slate-400'}>
+        <span className={value ? 'text-slate-900 font-medium' : 'text-slate-400'}>
           {value || placeholder}
         </span>
         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />

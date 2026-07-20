@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, Download, CreditCard } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, CreditCard, MapPin } from 'lucide-react';
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
@@ -20,7 +20,7 @@ function InfoRow({ icon: Icon, label, value }) {
 
 function DetailRow({ label, value, mono, span2 }) {
   const displayValue = (value === 'N/A' || !value) ? '-' : value;
-  
+
   return (
     <div className={`p-3 bg-slate-50 border border-slate-200 rounded-xl ${span2 ? 'sm:col-span-2 lg:col-span-2' : ''}`}>
       <div className="text-xs tracking-wide text-slate-400 font-black mb-1 flex items-center gap-1.5 break-words">
@@ -43,21 +43,21 @@ function SectionHeading({ title, icon: Icon, badge }) {
 
 function DynamicDataGrid({ data }) {
   if (!data || Object.keys(data).length === 0) return <DetailRow label="Status" value="No records found in database" />;
-  
+
   // Filter out N/A or empty values
   const validEntries = Object.entries(data).filter(([_, value]) => value && value !== 'N/A' && value !== '—');
 
   if (validEntries.length === 0) {
     return <DetailRow label="Status" value="No relevant data present in this section." />;
   }
-  
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {validEntries.map(([key, value]) => {
         const formattedKey = key.replace(/_/g, ' ').toUpperCase();
         const stringValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
         const isLongText = stringValue.length > 50;
-        
+
         return <DetailRow key={key} label={formattedKey} value={stringValue} span2={isLongText} />;
       })}
     </div>
@@ -104,7 +104,7 @@ const isCctnsSuspect = (sus) => {
   if (sus?.sourceType === 'epetty') return false;
   const source = (sus?.source || '').toLowerCase();
   if (source.includes('epetty') || source.includes('e-petty')) return false;
-  return source.includes('cctns') || source.includes('state register');
+  return source.includes('cctns') || source.includes('state registry');
 };
 
 const isEpettySuspect = (sus) => !isCctnsSuspect(sus);
@@ -120,7 +120,7 @@ function VerificationVetting() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  
+
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -286,7 +286,7 @@ function VerificationVetting() {
     try {
       await policeApi.updateVerificationStatus(id, { status: 'verifying' });
       setRecord(prev => ({ ...prev, status: 'verifying' }));
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
     setActiveLog('');
     setSuspects([]);
     setScanMeta(null);
@@ -394,7 +394,7 @@ function VerificationVetting() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main workflow block */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Candidate Profile Details */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <h3 className="font-extrabold text-primary font-heading text-sm tracking-wide mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
@@ -403,15 +403,16 @@ function VerificationVetting() {
             <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
               <InfoRow icon={User} label="Full Name" value={record.candidateName} />
               <InfoRow icon={User} label="Date of Birth Profile" value={new Date(record.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} />
-              
+
               <InfoRow icon={User} label="Phone Number" value={record.phone} />
+              {record.address && <InfoRow icon={MapPin} label="Residential Address" value={record.address} />}
               {record.fatherName && <InfoRow icon={User} label="Father's Name" value={record.fatherName} />}
               <InfoRow icon={Building} label="Employer Station" value={record.orgName} />
               <InfoRow icon={Building} label="Organization Type" value={record.orgType} />
-              
+
               <InfoRow icon={Building} label="Requested Role/Seat" value={record.role} />
               <InfoRow icon={CheckCircle2} label="Consent Status" value={record.consent ? "Consent Authorized & Verified" : "Not Provided"} />
-              
+
               <InfoRow icon={FileText} label="Submission Date" value={new Date(record.createdAt).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} />
               <InfoRow icon={ShieldAlert} label="Current Status" value={record.status.toUpperCase()} />
               {record.aadharNumber && <InfoRow icon={CreditCard} label="Aadhar Number" value={record.aadharNumber} />}
@@ -423,9 +424,9 @@ function VerificationVetting() {
                 <div className="space-y-2">
                   <span className="text-sm text-slate-400 font-bold tracking-wide">Candidate Image</span>
                   <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                    <img 
-                      src={policeApi.getDocumentUrl(record.candidateImage)} 
-                      alt="Candidate" 
+                    <img
+                      src={policeApi.getDocumentUrl(record.candidateImage)}
+                      alt="Candidate"
                       className="w-full h-full object-cover"
                       onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
                     />
@@ -433,16 +434,25 @@ function VerificationVetting() {
                 </div>
               )}
               {record.consentFile && (
-                <div className="space-y-2">
-                  <span className="text-sm text-slate-400 font-bold tracking-wide">Consent Declaration</span>
-                  <a 
-                    href={policeApi.getDocumentUrl(record.consentFile)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-lg transition-colors"
-                  >
-                    <Download className="h-4 w-4" /> View Signed Consent
-                  </a>
+                <div className="space-y-2 col-span-full mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400 font-bold tracking-wide">Signed Consent Document</span>
+                    <a
+                      href={policeApi.getDocumentUrl(record.consentFile)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
+                    >
+                      <Eye className="h-3.5 w-3.5" /> Open Full Screen
+                    </a>
+                  </div>
+                  <div className="w-full h-[500px] border border-slate-200 rounded-xl overflow-hidden bg-slate-100">
+                    <iframe
+                      src={policeApi.getDocumentUrl(record.consentFile)}
+                      title="Consent Document"
+                      className="w-full h-full"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -472,13 +482,13 @@ function VerificationVetting() {
                   <div className="absolute inset-0 overflow-hidden">
                     <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-blue-500/10 to-transparent animate-[spin_3s_linear_infinite] opacity-50"></div>
                   </div>
-                  
+
                   <div className="relative z-10 flex items-center justify-center mb-4">
                     <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full"></div>
                     <Database className="h-7 w-7 text-blue-400 absolute animate-pulse" />
                     <Loader2 className="h-12 w-12 animate-spin text-blue-500/50" />
                   </div>
-                  
+
                   <div className="relative z-10 flex items-center gap-2">
                     <Search className="h-3.5 w-3.5 text-blue-400 animate-pulse" />
                     <div className="text-sm font-bold text-blue-100 tracking-wide font-mono animate-pulse">
@@ -522,11 +532,10 @@ function VerificationVetting() {
                               setMatchSourceTab(tab.id);
                               if (tab.id === 'cctns') setCctnsCategoryTab('all');
                             }}
-                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black tracking-wide border transition-all ${
-                              active
-                                ? 'bg-primary text-white border-primary shadow-sm'
-                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                            }`}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black tracking-wide border transition-all ${active
+                              ? 'bg-primary text-white border-primary shadow-sm'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                              }`}
                           >
                             {tab.label}
                             <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
@@ -544,11 +553,10 @@ function VerificationVetting() {
                           <button
                             type="button"
                             onClick={() => setCctnsCategoryTab('all')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                              cctnsCategoryTab === 'all'
-                                ? 'bg-blue-600 text-white border-blue-600'
-                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${cctnsCategoryTab === 'all'
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                              }`}
                           >
                             All ({cctnsSuspects.length})
                           </button>
@@ -561,11 +569,10 @@ function VerificationVetting() {
                                 type="button"
                                 disabled={count === 0}
                                 onClick={() => setCctnsCategoryTab(cat.key)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                                  active
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                                }`}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${active
+                                  ? 'bg-blue-600 text-white border-blue-600'
+                                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                                  }`}
                                 title={cat.label}
                               >
                                 {cat.label}
@@ -604,21 +611,19 @@ function VerificationVetting() {
                           return (
                             <div
                               key={suspectKey}
-                              className={`group relative bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${
-                                isConfirmed
-                                  ? 'border-red-300 hover:border-red-400'
-                                  : isDiscarded
-                                    ? 'border-emerald-200 opacity-75'
-                                    : 'border-slate-200/80 hover:shadow-md hover:border-primary/30'
-                              }`}
+                              className={`group relative bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${isConfirmed
+                                ? 'border-red-300 hover:border-red-400'
+                                : isDiscarded
+                                  ? 'border-emerald-200 opacity-75'
+                                  : 'border-slate-200/80 hover:shadow-md hover:border-primary/30'
+                                }`}
                             >
-                              <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl opacity-80 pointer-events-none ${
-                                isConfirmed
-                                  ? 'bg-red-500'
-                                  : isDiscarded
-                                    ? 'bg-emerald-500'
-                                    : 'bg-gradient-to-b from-primary via-blue-500 to-indigo-600'
-                              }`} />
+                              <div className={`absolute top-0 left-0 w-1.5 h-full rounded-l-2xl opacity-80 pointer-events-none ${isConfirmed
+                                ? 'bg-red-500'
+                                : isDiscarded
+                                  ? 'bg-emerald-500'
+                                  : 'bg-gradient-to-b from-primary via-blue-500 to-indigo-600'
+                                }`} />
                               <div className="pl-5 pr-4 py-4 space-y-3 relative z-10">
                                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -796,21 +801,21 @@ function VerificationVetting() {
                   {/* Matching Scan Metrics */}
                   <div className="p-4 bg-amber-50 border border-amber-250 text-amber-800 rounded-2xl text-sm font-bold space-y-1 shadow-inner">
                     <strong className="block text-xs tracking-wide text-amber-500 font-black">Database Scan Outcome</strong>
-                    <p>Fuzzy database scan identified <strong className="text-amber-700">2 suspect records</strong> in local disclosable sex offender register database matching constraints.</p>
+                    <p>Fuzzy database scan identified <strong className="text-amber-700">2 suspect records</strong> in local disclosable sex offender registry database matching constraints.</p>
                   </div>
 
                   <div className="p-4.5 bg-red-50/50 border border-red-200 text-red-800 rounded-2xl text-sm font-bold space-y-2 shadow-inner">
                     <div className="flex items-center gap-2 text-red-850 font-heading uppercase text-sm font-black">
                       <X className="h-5 w-5 bg-red-100 p-0.5 border border-red-300 rounded-full text-red-750" /> SELECTED IDENTITY MATCH VERIFIED
                     </div>
-                    <p className="font-semibold text-slate-700">The officer manually verified and confirmed identity match with offender register file <strong>{record.matchedSuspect?.name} ({record.matchedSuspect?.id})</strong>.</p>
+                    <p className="font-semibold text-slate-700">The officer manually verified and confirmed identity match with offender registry file <strong>{record.matchedSuspect?.name} ({record.matchedSuspect?.id})</strong>.</p>
                   </div>
 
                   <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-sm font-bold space-y-2 shadow-inner">
                     <div className="flex items-center gap-2 text-red-850 font-heading uppercase text-sm font-black">
                       <ShieldAlert className="h-5 w-5 text-red-700" /> VETTING DENIED / REJECTED
                     </div>
-                    <p className="font-semibold text-slate-700">Background checks confirmed an active identity match against local disclosable sex offender register database.</p>
+                    <p className="font-semibold text-slate-700">Background checks confirmed an active identity match against local disclosable sex offender registry database.</p>
                     <div className="border-t border-red-200 pt-2.5 mt-2.5 font-mono text-sm text-red-750">
                       <strong className="block text-xs tracking-wide text-red-500 font-bold mb-1">Police Vetting Match Reason</strong>
                       {record.policeFeedback || 'Candidate matches registered sexual offender profile details.'}
@@ -848,11 +853,10 @@ function VerificationVetting() {
                               key={t.id}
                               type="button"
                               onClick={() => setActiveSuspectTab(t.id)}
-                              className={`flex items-center gap-1.5 px-3 py-2 border-b-2 font-heading font-black text-xs tracking-wide transition-all whitespace-nowrap ${
-                                active
-                                  ? 'border-secondary text-secondary font-black'
-                                  : 'border-transparent text-slate-500 hover:text-primary hover:border-slate-300'
-                              }`}
+                              className={`flex items-center gap-1.5 px-3 py-2 border-b-2 font-heading font-black text-xs tracking-wide transition-all whitespace-nowrap ${active
+                                ? 'border-secondary text-secondary font-black'
+                                : 'border-transparent text-slate-500 hover:text-primary hover:border-slate-300'
+                                }`}
                             >
                               <Icon className="h-3.5 w-3.5" /> {t.label}
                             </button>
@@ -928,7 +932,7 @@ function VerificationVetting() {
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <h3 className="font-extrabold text-primary font-heading text-sm tracking-wide mb-4 pb-3 border-b border-slate-100">Vetting Outcome</h3>
-            
+
             <div className="mb-6">
               <div className="text-sm font-bold text-slate-400 tracking-wide mb-2">Vetting Status</div>
               <StatusPill status={record.status} />
@@ -977,63 +981,61 @@ function VerificationVetting() {
                       ></textarea>
                     </div>
                     <div className="space-y-3">
-                    {hasHistory ? (
-                      <>
-                        <button
-                          disabled={!canRejectClearance}
-                          onClick={handleReject}
-                          className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide text-white transition-all rounded-xl shadow-lg ${
-                            canRejectClearance
+                      {hasHistory ? (
+                        <>
+                          <button
+                            disabled={!canRejectClearance}
+                            onClick={handleReject}
+                            className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide text-white transition-all rounded-xl shadow-lg ${canRejectClearance
                               ? 'bg-red-600 hover:bg-red-700 shadow-red-100'
                               : 'bg-slate-300 cursor-not-allowed opacity-60 shadow-none'
-                          }`}
-                        >
-                          <XCircle className="h-4 w-4" /> Reject Clearance Request
-                        </button>
-                        <button
-                          disabled={!canIssueClearance}
-                          onClick={handleClear}
-                          className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide transition-all rounded-xl ${
-                            canIssueClearance
+                              }`}
+                          >
+                            <XCircle className="h-4 w-4" /> Reject Clearance Request
+                          </button>
+                          <button
+                            disabled={!canIssueClearance}
+                            onClick={handleClear}
+                            className={`w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide transition-all rounded-xl ${canIssueClearance
                               ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100'
                               : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-50'
-                          }`}
-                        >
-                          <CheckCircle2 className="h-4 w-4" /> Issue Clearance
-                        </button>
-                        {canRejectClearance && (
-                          <p className="text-xs text-red-600 font-bold text-center mt-2 leading-relaxed">
-                            Identity confirmed. Reject clearance to finalize, or discard that match if it was selected in error.
-                          </p>
-                        )}
-                        {!canRejectClearance && !canIssueClearance && (
-                          <p className="text-xs text-amber-600 font-bold text-center mt-2 leading-relaxed">
-                            Confirm a true identity match to reject, or discard all remaining false positives to enable clearance.
-                          </p>
-                        )}
-                        {canIssueClearance && (
-                          <p className="text-xs text-emerald-700 font-bold text-center mt-2 leading-relaxed">
-                            No confirmed identity matches remain. You may issue clearance.
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={handleClear}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all rounded-xl shadow-lg shadow-emerald-100"
-                        >
-                          <CheckCircle2 className="h-4 w-4" /> Approve Vetting Clearance
-                        </button>
-                        <button
-                          disabled={true}
-                          className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide bg-slate-100 text-slate-400 border border-slate-200 transition-all rounded-xl cursor-not-allowed opacity-50"
-                        >
-                          <XCircle className="h-4 w-4" /> Reject Request (Clean)
-                        </button>
-                      </>
-                    )}
-                  </div>
+                              }`}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Issue Clearance
+                          </button>
+                          {canRejectClearance && (
+                            <p className="text-xs text-red-600 font-bold text-center mt-2 leading-relaxed">
+                              Identity confirmed. Reject clearance to finalize, or discard that match if it was selected in error.
+                            </p>
+                          )}
+                          {!canRejectClearance && !canIssueClearance && (
+                            <p className="text-xs text-amber-600 font-bold text-center mt-2 leading-relaxed">
+                              Confirm a true identity match to reject, or discard all remaining false positives to enable clearance.
+                            </p>
+                          )}
+                          {canIssueClearance && (
+                            <p className="text-xs text-emerald-700 font-bold text-center mt-2 leading-relaxed">
+                              No confirmed identity matches remain. You may issue clearance.
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={handleClear}
+                            className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white transition-all rounded-xl shadow-lg shadow-emerald-100"
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Approve Vetting Clearance
+                          </button>
+                          <button
+                            disabled={true}
+                            className="w-full inline-flex justify-center items-center gap-2 px-4 py-3 text-sm font-black tracking-wide bg-slate-100 text-slate-400 border border-slate-200 transition-all rounded-xl cursor-not-allowed opacity-50"
+                          >
+                            <XCircle className="h-4 w-4" /> Reject Request (Clean)
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
@@ -1046,12 +1048,12 @@ function VerificationVetting() {
       {inspectSuspect && (
         <div className="fixed inset-0 z-[100] bg-slate-900/50 flex items-center justify-center p-4" onClick={() => setInspectSuspect(null)}>
           <div className="bg-white rounded-2xl max-w-2xl w-[90vw] md:w-[70vw] flex flex-col shadow-2xl overflow-hidden border border-slate-200 h-[85vh]" onClick={(e) => e.stopPropagation()}>
-            
+
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-primary to-[#0f2a4a] text-white border-b border-slate-700/30">
               <div className="flex items-center gap-2">
                 <AlertOctagon className="h-4.5 w-4.5 text-accent animate-pulse" />
-                <span className="text-sm font-bold tracking-wide font-heading">Offender Register Match Vetting</span>
+                <span className="text-sm font-bold tracking-wide font-heading">Offender Registry Match Vetting</span>
               </div>
               <button onClick={() => setInspectSuspect(null)} className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors" aria-label="Close modal">
                 <X className="h-4 w-4" />
@@ -1088,7 +1090,7 @@ function VerificationVetting() {
 
                 <SectionHeading title="Physical Features" icon={Fingerprint} />
                 <DynamicDataGrid data={inspectSuspect.latest_physical_features} />
-                
+
                 <DynamicArrayList items={inspectSuspect.crimes} title="FIR & Crimes" icon={FileText} />
                 <DynamicArrayList items={inspectSuspect.arrests} title="Arrest Records" icon={AlertOctagon} />
               </div>
