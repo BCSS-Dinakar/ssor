@@ -249,7 +249,7 @@ const runAccusedSearch = async (whereClause, orderClause = Prisma.empty, limit =
         src.*,
         similarity(src.search_name_norm, ${normName}) AS name_similarity
       FROM ${fromSource} AS src
-      WHERE similarity(src.search_name_norm, ${normName}) > 0.4
+      WHERE src.search_name_norm LIKE ${'%' + normName + '%'}
       ORDER BY similarity(src.search_name_norm, ${normName}) DESC
       LIMIT ${limit}
     `;
@@ -280,22 +280,22 @@ const runWithMvFallback = async (queryFn) => {
 const searchHigh = (normName, normPhone) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`
-      src.search_name_norm = ${normName}
-      AND src.match_phone_norm = ${normPhone}
+      src.search_name_norm LIKE ${'%' + normName + '%'}
+      AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
       AND src.match_phone_norm <> ''
     `)
   );
 
 const fatherNormSql = (normFather) => Prisma.sql`
-  lower(regexp_replace(COALESCE(src.match_father_name, ''), '\\s+', ' ', 'g')) = ${normFather}
+  lower(regexp_replace(COALESCE(src.match_father_name, ''), '\\s+', ' ', 'g')) LIKE ${'%' + normFather + '%'}
   AND COALESCE(src.match_father_name, '') <> ''
 `;
 
 const searchNamePhoneFather = (normName, normPhone, normFather) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`
-      src.search_name_norm = ${normName}
-      AND src.match_phone_norm = ${normPhone}
+      src.search_name_norm LIKE ${'%' + normName + '%'}
+      AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
       AND src.match_phone_norm <> ''
       AND ${fatherNormSql(normFather)}
     `)
@@ -304,7 +304,7 @@ const searchNamePhoneFather = (normName, normPhone, normFather) =>
 const searchNameFather = (normName, normFather) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`
-      src.search_name_norm = ${normName}
+      src.search_name_norm LIKE ${'%' + normName + '%'}
       AND ${fatherNormSql(normFather)}
     `)
   );
@@ -312,7 +312,7 @@ const searchNameFather = (normName, normFather) =>
 const searchPhoneFather = (normPhone, normFather) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`
-      src.match_phone_norm = ${normPhone}
+      src.match_phone_norm LIKE ${'%' + normPhone + '%'}
       AND length(src.match_phone_norm) >= 7
       AND ${fatherNormSql(normFather)}
     `)
@@ -325,13 +325,13 @@ const searchFather = (normFather) =>
 
 const searchMedium = (normName) =>
   runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`src.search_name_norm = ${normName}`)
+    runAccusedSearch(Prisma.sql`src.search_name_norm LIKE ${'%' + normName + '%'}`)
   );
 
 const searchLow = (normPhone) =>
   runWithMvFallback(() =>
     runAccusedSearch(Prisma.sql`
-      src.match_phone_norm = ${normPhone}
+      src.match_phone_norm LIKE ${'%' + normPhone + '%'}
       AND length(src.match_phone_norm) >= 7
     `)
   );
@@ -369,6 +369,24 @@ const buildOutcome = (rows, categoryKey) => {
 const isHighOrMediumPriority = (priorityLabel = '') =>
   priorityLabel.includes('High Priority') || priorityLabel.includes('Medium Priority');
 
+const postFilterMatches = (matches, { normName, normPhone, normFather }) => {
+  return matches.filter(record => {
+    if (normName) {
+      const recordName = (record.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!recordName.includes(normName)) return false;
+    }
+    if (normPhone) {
+      const recordPhone = record.phone || '';
+      if (!recordPhone.includes(normPhone)) return false;
+    }
+    if (normFather) {
+      const recordFather = (record.fatherName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!recordFather.includes(normFather)) return false;
+    }
+    return true;
+  });
+};
+
 /**
  * Search CCTNS accused records for clearance vetting.
  * Prefers mv_clearance_accused_search; falls back to live accused/persons joins.
@@ -394,44 +412,82 @@ export const searchCctnsCandidate = async ({
       if (rows.length > 0) return buildOutcome(rows, 'aadhaar');
     }
 
+    const checkAndReturn = (rows, categoryKey) => {
+      const outcome = buildOutcome(rows, categoryKey);
+      const category = CCTNS_MATCH_CATEGORIES[categoryKey];
+      const filterCriteria = {};
+      
+      if (category.params.includes('name')) filterCriteria.normName = normName;
+      if (category.params.includes('phone')) filterCriteria.normPhone = normPhone;
+      if (category.params.includes('father')) filterCriteria.normFather = normFather;
+
+      outcome.matches = postFilterMatches(outcome.matches, filterCriteria);
+      if (outcome.matches.length > 0) return outcome;
+      return null;
+    };
+
     if (normName && normPhone && normFather) {
       const rows = await searchNamePhoneFather(normName, normPhone, normFather);
-      if (rows.length > 0) return buildOutcome(rows, 'name_phone_father');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'name_phone_father');
+        if (result) return result;
+      }
     }
 
     if (normName && normPhone) {
       const rows = await searchHigh(normName, normPhone);
-      if (rows.length > 0) return buildOutcome(rows, 'name_phone');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'name_phone');
+        if (result) return result;
+      }
     }
 
     if (normName && normFather) {
       const rows = await searchNameFather(normName, normFather);
-      if (rows.length > 0) return buildOutcome(rows, 'name_father');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'name_father');
+        if (result) return result;
+      }
     }
 
     if (normName) {
       const rows = await searchMedium(normName);
-      if (rows.length > 0) return buildOutcome(rows, 'name');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'name');
+        if (result) return result;
+      }
     }
 
     if (normPhone && normPhone.length >= 7 && normFather) {
       const rows = await searchPhoneFather(normPhone, normFather);
-      if (rows.length > 0) return buildOutcome(rows, 'phone_father');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'phone_father');
+        if (result) return result;
+      }
     }
 
     if (normPhone && normPhone.length >= 7) {
       const rows = await searchLow(normPhone);
-      if (rows.length > 0) return buildOutcome(rows, 'phone');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'phone');
+        if (result) return result;
+      }
     }
 
     if (normFather) {
       const rows = await searchFather(normFather);
-      if (rows.length > 0) return buildOutcome(rows, 'father');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'father');
+        if (result) return result;
+      }
     }
 
     if (normName) {
       const rows = await searchFallback(normName);
-      if (rows.length > 0) return buildOutcome(rows, 'fuzzy');
+      if (rows.length > 0) {
+        const result = checkAndReturn(rows, 'fuzzy');
+        if (result) return result;
+      }
     }
 
     return { matches: [], priorityLabel: null, matchedSource: null, matchCategory: null };

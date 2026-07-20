@@ -163,6 +163,39 @@ const buildSearchSteps = ({ name, phone, father, occupation, customFilters = {} 
   return steps;
 };
 
+const postFilterMatches = (matches, filters) => {
+  return matches.filter(record => {
+    // Ensure the record name strictly includes the requested search name
+    if (filters.offdrName) {
+      const searchName = filters.offdrName.toLowerCase().replace(/\s+/g, ' ').trim();
+      const recordName = (record.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!recordName.includes(searchName)) {
+        return false;
+      }
+    }
+
+    // Ensure the record phone strictly includes the requested phone number
+    if (filters.offdrMobileNo) {
+      const searchPhone = filters.offdrMobileNo;
+      const recordPhone = record.phone || '';
+      if (!recordPhone.includes(searchPhone)) {
+        return false;
+      }
+    }
+
+    // Ensure the record father's name strictly includes the requested father's name
+    if (filters.offrFName) {
+      const searchFather = filters.offrFName.toLowerCase().replace(/\s+/g, ' ').trim();
+      const recordFather = (record.fatherName || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (!recordFather.includes(searchFather)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
+
 export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacyCustom = {}) {
   const options = typeof input === 'string'
     ? { candidateName: input, candidatePhone: legacyPhone, ...legacyCustom }
@@ -200,7 +233,12 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
       };
     } catch (error) {
       console.warn(`[ePetty] API lookup failed (${env.EPETTY_API_URL}): ${error.message}`);
-      return { matches: [], lookupError: error.message };
+      let errMsg = error.message;
+      const lowerMsg = errMsg.toLowerCase();
+      if (lowerMsg.includes('timeout') || lowerMsg.includes('fetch failed') || lowerMsg.includes('und_err') || lowerMsg.includes('econnrefused')) {
+        errMsg = "ePetty server is currently down or not responding.";
+      }
+      return { matches: [], lookupError: errMsg };
     }
   };
 
@@ -216,8 +254,13 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
   for (const step of steps) {
     const { matches, lookupError } = await runLookup(step.filters);
     if (lookupError) return unavailable(lookupError);
-    if (matches.length > 0) {
-      return { matches, priorityLabel: step.label, matchedSource: 'ePetty Case' };
+    
+    // The external API often returns very broad matches.
+    // We post-filter locally to ensure the records strictly match the requested criteria (e.g. exactly 'sai kiran').
+    const strictMatches = postFilterMatches(matches, step.filters);
+
+    if (strictMatches.length > 0) {
+      return { matches: strictMatches, priorityLabel: step.label, matchedSource: 'ePetty Case' };
     }
   }
 
