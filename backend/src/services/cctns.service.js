@@ -512,5 +512,4 @@ export const searchCctnsCandidate = async ({
   }
 };
 
-export const shouldSkipEpettyAfterCctns = (cctnsOutcome) =>
-  isHighOrMediumPriority(cctnsOutcome?.priorityLabel || '');
+export const shouldSkipEpettyAfterCctns = (cctnsOutcome) => false;
