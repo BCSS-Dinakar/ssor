@@ -122,21 +122,10 @@ export const getDashboardStats = async (req, res) => {
     const rejected = verifications.filter((v) => v.status === 'rejected').length;
     const total = verifications.length;
 
-    // Dynamic Role Distribution
-    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b', '#ec4899', '#14b8a6'];
-    const roleMap = {};
-    verifications.forEach(v => {
-      roleMap[v.role] = (roleMap[v.role] || 0) + 1;
-    });
-    const roleDistribution = Object.keys(roleMap).map((role, i) => ({
-      name: role,
-      value: roleMap[role],
-      color: colors[i % colors.length]
-    })).sort((a, b) => b.value - a.value);
 
-    // Dynamic Trend Data & Processing Times (Last 6 Months)
+
+    // Dynamic Trend Data (Last 6 Months)
     const trendData = [];
-    const processingTimes = [];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
     const now = new Date();
@@ -151,14 +140,6 @@ export const getDashboardStats = async (req, res) => {
       const clearedInMonth = reqsInMonth.filter(v => v.status === 'cleared');
       
       trendData.push({ month: monthStr, requests: reqsInMonth.length, cleared: clearedInMonth.length });
-      
-      let sumDays = 0;
-      clearedInMonth.forEach(v => {
-        const msDiff = new Date(v.updatedAt).getTime() - new Date(v.createdAt).getTime();
-        sumDays += msDiff / (1000 * 3600 * 24);
-      });
-      const avgDays = clearedInMonth.length > 0 ? (sumDays / clearedInMonth.length).toFixed(1) : 0;
-      processingTimes.push({ category: monthStr, days: parseFloat(avgDays) });
     }
 
     // Dynamic Recent Activity
@@ -206,8 +187,6 @@ export const getDashboardStats = async (req, res) => {
         rejected
       },
       trendData,
-      roleDistribution,
-      processingTimes,
       recentActivity,
       recentVerifications: verifications.slice(0, 5)
     });
