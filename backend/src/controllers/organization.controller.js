@@ -305,7 +305,7 @@ export const generateConsentTemplate = async (req, res) => {
 
     // Draw Watermark
     try {
-      const imgPath = 'C:\\\\Users\\\\Nandeep\\\\OneDrive - BLUE CLOUD SOFTECH SOLUTIONS LIMITED\\\\Desktop\\\\images.png';
+      const imgPath = path.join(process.cwd(), 'assets', 'watermark.png');
       if (fs.existsSync(imgPath)) {
         doc.save();
         doc.opacity(0.12);
