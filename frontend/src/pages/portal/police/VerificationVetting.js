@@ -107,7 +107,13 @@ const isCctnsSuspect = (sus) => {
   return source.includes('cctns') || source.includes('state registry');
 };
 
-const isEpettySuspect = (sus) => !isCctnsSuspect(sus);
+const isEpettySuspect = (sus) => {
+  if (sus?.sourceType === 'epetty') return true;
+  if (sus?.sourceType === 'cctns') return false;
+  const source = (sus?.source || '').toLowerCase();
+  if (source.includes('cctns') || source.includes('state registry')) return false;
+  return source.includes('epetty') || source.includes('e-petty');
+};
 
 const confidenceTone = (score) => {
   if (score >= 90) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -521,7 +527,6 @@ function VerificationVetting() {
                             type="button"
                             onClick={() => {
                               setMatchSourceTab(tab.id);
-                              if (tab.id === 'cctns') setCctnsCategoryTab('all');
                             }}
                             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black tracking-wide border transition-all ${active
                               ? 'bg-primary text-white border-primary shadow-sm'
