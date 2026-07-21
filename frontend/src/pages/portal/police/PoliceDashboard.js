@@ -7,7 +7,7 @@ import StatCard from '../../../components/portal/StatCard';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { policeApi } from '../../../api/police.api';
 import { TIERS } from '../../../utils/data/portalData';
-import { PageSkeleton } from '../../../components/ui/Skeleton';
+import { PoliceDashboardSkeleton } from '../../../components/ui/Skeleton';
 import { Alert } from '../../../components/ui/Alert';
 import { StatusBadge } from '../../../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/Card';
@@ -42,7 +42,7 @@ function PoliceDashboard() {
     fetchAll();
   }, []);
 
-  if (loading) return <PageSkeleton />;
+  if (loading) return <PoliceDashboardSkeleton />;
 
   const byTier = Object.keys(TIERS).map((key) => {
     const match = stats?.byTier?.find((t) => t.tier === key);
@@ -100,7 +100,7 @@ function PoliceDashboard() {
 
       {error && <Alert variant="danger" title="Dashboard error">{error}</Alert>}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card className="p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary" aria-hidden="true">
@@ -168,21 +168,21 @@ function PoliceDashboard() {
         </Alert>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Register by Risk Tier</CardTitle>
             <CardDescription>Statutory risk levels across the offender registry.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] w-full">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={byTier} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                   <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontWeight: 600 }} formatter={(value) => [value, 'Offenders']} />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={40}>
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={80}>
                     {byTier.map((entry, index) => {
                       let hex = '#3b82f6';
                       if (entry.color?.includes('red')) hex = '#ef4444';
@@ -207,11 +207,11 @@ function PoliceDashboard() {
             <CardDescription>Category segmentation as per statutory acts.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[230px] w-full">
+            <div className="h-[400px] w-full">
               {sectionData.length ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={sectionData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
+                    <Pie data={sectionData} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={3} dataKey="value">
                       {sectionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -228,8 +228,8 @@ function PoliceDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="flex h-[380px] flex-col overflow-hidden">
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card className="flex h-[500px] flex-col overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between shrink-0">
             <div>
               <CardTitle>Clearance Queue</CardTitle>
@@ -272,7 +272,7 @@ function PoliceDashboard() {
           </div>
         </Card>
 
-        <Card className="flex h-[380px] flex-col overflow-hidden">
+        <Card className="flex h-[500px] flex-col overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between shrink-0">
             <div>
               <CardTitle>System Audit Log</CardTitle>

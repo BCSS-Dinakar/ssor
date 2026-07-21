@@ -257,12 +257,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-mono text-[11px] font-bold tracking-wider text-indigo-600 uppercase">
+              <span className="font-mono text-[11px] font-bold tracking-wider text-secondary uppercase">
                 Statutory GIS Engine v3.8 — Puttaswamy & ePrisons Gateway
               </span>
             </div>
             <CardTitle className="mt-0.5 flex items-center gap-2 text-lg font-extrabold text-slate-900">
-              <MapPin className="h-4.5 w-4.5 text-indigo-600 shrink-0" />
+              <MapPin className="h-4.5 w-4.5 text-secondary shrink-0" />
               Telangana State Geographical & Jail Release Console
             </CardTitle>
           </div>
@@ -277,8 +277,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   setSelectedJailMarker(null);
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${activeSlide === 'offenders'
-                    ? 'bg-white text-indigo-600 shadow-xs ring-1 ring-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white text-secondary shadow-xs ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
                   }`}
               >
                 <Layers className="h-3.5 w-3.5" />
@@ -292,8 +292,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   setSelectedMandal(null);
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${activeSlide === 'eprisons'
-                    ? 'bg-red-600 text-white shadow-xs ring-1 ring-red-700'
-                    : 'text-slate-600 hover:text-red-600'
+                  ? 'bg-red-600 text-white shadow-xs ring-1 ring-red-700'
+                  : 'text-slate-600 hover:text-red-600'
                   }`}
               >
                 <ShieldAlert className="h-3.5 w-3.5 animate-pulse" />
@@ -311,7 +311,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 variant="secondary"
                 size="sm"
                 onClick={handleResetZoom}
-                className="bg-indigo-600 font-semibold text-white hover:bg-indigo-700 border-0 shadow-xs text-xs py-1 h-8 cursor-pointer transition-all animate-fadeIn"
+                className="bg-secondary font-semibold text-white hover:bg-indigo-700 border-0 shadow-xs text-xs py-1 h-8 cursor-pointer transition-all animate-fadeIn"
               >
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                 Reset View
@@ -322,17 +322,17 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       </CardHeader>
 
       <CardContent className="p-0 bg-white">
-        <div className="grid grid-cols-1 lg:grid-cols-12 bg-white">
+        <div className="grid grid-cols-1 xl:grid-cols-12 bg-white">
 
           {/* 1. LEFT SECTION: Slide 1 (Offenders Data) vs Slide 2 (ePrisons Controls) */}
-          <div className="col-span-1 lg:col-span-3 bg-white p-5 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100">
+          <div className="col-span-1 xl:col-span-3 bg-white p-5 flex flex-col justify-between border-b xl:border-b-0 xl:border-r border-slate-100">
             {activeSlide === 'offenders' ? (
               selectedDistrict ? (
                 /* District Zoom List View */
                 <div className="space-y-3.5">
                   <div className="pb-2.5 border-b border-slate-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 font-mono flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-secondary font-mono flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                       Telangana State Registry
                     </span>
                     <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
@@ -357,8 +357,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                             key={m.id}
                             onClick={(e) => handleMandalClick(e, m, selectedDistrict)}
                             className={`cursor-pointer rounded-lg border p-2 transition-all ${isSelected
-                                ? 'border-indigo-500 bg-indigo-50 shadow-xs ring-1 ring-indigo-500'
-                                : 'border-slate-100 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-200'
+                              ? 'border-secondary bg-secondary/10 shadow-xs ring-1 ring-secondary'
+                              : 'border-slate-100 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-200'
                               }`}
                           >
                             <div className="flex items-center justify-between">
@@ -381,8 +381,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 /* State View: General Summary with Circle Graph representing Total Statutory Districts */
                 <div className="space-y-3.5">
                   <div className="pb-2.5 border-b border-slate-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 font-mono flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-secondary font-mono flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                       Telangana State Registry
                     </span>
                     <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
@@ -454,7 +454,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         <div
                           key={d.id}
                           onClick={() => handleDistrictClick(d)}
-                          className="flex items-center justify-between p-1.5 rounded-lg border border-slate-100 bg-slate-50/40 hover:border-indigo-300 hover:bg-slate-100 cursor-pointer transition-all"
+                          className="flex items-center justify-between p-1.5 rounded-lg border border-slate-100 bg-slate-50/40 hover:border-secondary/30 hover:bg-slate-100 cursor-pointer transition-all"
                         >
                           <div className="flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -493,7 +493,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         setSelectedJailCode(e.target.value);
                         setSelectedJailMarker(null);
                       }}
-                      className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-secondary focus:outline-none"
                     >
                       <option value="ALL">ALL - All Telangana Jails (11 Facilities)</option>
                       {jailsList.map((j) => (
@@ -590,7 +590,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
           </div>
 
           {/* 2. MIDDLE SECTION: Clean White SVG Map Viewport (col-span-6) */}
-          <div className="col-span-1 lg:col-span-6 bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]">
+          <div className="col-span-1 xl:col-span-6 bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
             <svg
@@ -802,7 +802,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             <div className="absolute top-3.5 right-3.5 z-20">
               {selectedDistrict && activeSlide === 'offenders' ? (
                 <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800 shadow-xs backdrop-blur-xs">
-                  <MapPin className="h-3.5 w-3.5 text-indigo-600" />
+                  <MapPin className="h-3.5 w-3.5 text-secondary" />
                   <span>{selectedDistrict.name.toUpperCase()}</span>
                 </div>
               ) : activeSlide === 'eprisons' ? (
@@ -826,7 +826,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
           </div>
 
           {/* 3. RIGHT SECTION: Slide 1 Metrics vs Slide 2 Release Intelligence Feed */}
-          <div className="col-span-1 lg:col-span-3 bg-white p-5 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-100">
+          <div className="col-span-1 xl:col-span-3 bg-white p-5 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-slate-100">
             {activeSlide === 'offenders' ? (
               selectedDistrict ? (
                 /* District Specific Metrics */
@@ -844,7 +844,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   return (
                     <div className="space-y-4">
                       <div className="pb-2 border-b border-slate-100">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 font-mono">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-secondary font-mono">
                           Registry Status
                         </span>
                         <h3 className="text-base font-bold text-slate-900 mt-0.5">
@@ -854,18 +854,18 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                       <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
                         <h4 className="text-[9px] uppercase font-bold text-slate-400">Offenders on Register</h4>
-                        <div className="font-mono text-2xl font-black text-indigo-600 mt-0.5">
+                        <div className="font-mono text-2xl font-black text-primary mt-0.5">
                           {total}
                         </div>
 
                         <div className="mt-3">
-                          <div className="flex justify-between text-[9px] font-bold text-slate-500">
-                            <span>Convicted: {convicted}</span>
-                            <span>Under Trial: {underTrial}</span>
+                          <div className="flex justify-between text-[10px] font-bold">
+                            <span className="text-secondary">Convicted: {convicted}</span>
+                            <span className="text-warning">Under Trial: {underTrial}</span>
                           </div>
                           <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-slate-200">
-                            <div className="bg-indigo-600" style={{ width: `${(convicted / total) * 100}%` }} />
-                            <div className="bg-orange-500" style={{ width: `${(underTrial / total) * 100}%` }} />
+                            <div className="bg-secondary" style={{ width: `${(convicted / total) * 100}%` }} />
+                            <div className="bg-warning" style={{ width: `${(underTrial / total) * 100}%` }} />
                           </div>
                         </div>
                       </div>
@@ -913,7 +913,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         </div>
                       </div>
 
-                      <Link to="/portal/register" className="block text-center text-xs font-bold text-indigo-600 hover:underline">
+                      <Link to="/portal/register" className="block text-center text-xs font-bold text-secondary hover:underline">
                         Open full registry →
                       </Link>
                     </div>
@@ -923,7 +923,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 /* State-Wide Offenders Metrics inside map card right panel */
                 <div className="space-y-4">
                   <div className="pb-2 border-b border-slate-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 font-mono">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-secondary font-mono">
                       Registry Status
                     </span>
                     <h3 className="text-base font-bold text-slate-900 mt-0.5">
@@ -933,31 +933,31 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                   <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5">
                     <h4 className="text-[9px] uppercase font-bold text-slate-400">Offenders on Register</h4>
-                    <div className="font-mono text-3xl font-black text-indigo-600 mt-0.5">
+                    <div className="font-mono text-3xl font-black text-primary mt-0.5">
                       {stateStats?.totalOffenders || 0}
                     </div>
 
                     <div className="mt-4">
-                      <div className="flex justify-between text-[9px] font-bold text-slate-500">
-                        <span>Convicted: {stateStats?.convictedCount || 0}</span>
-                        <span>Under Trial: {stateStats?.underTrialCount || 0}</span>
+                      <div className="flex justify-between text-[10px] font-bold">
+                        <span className="text-secondary">Convicted: {stateStats?.convictedCount || 0}</span>
+                        <span className="text-warning">Under Trial: {stateStats?.underTrialCount || 0}</span>
                       </div>
                       <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-slate-200">
                         <div
-                          className="bg-indigo-600"
+                          className="bg-secondary"
                           style={{
                             width: `${stateStats?.totalOffenders
-                                ? (stateStats.convictedCount / stateStats.totalOffenders) * 100
-                                : 0
+                              ? (stateStats.convictedCount / stateStats.totalOffenders) * 100
+                              : 0
                               }%`,
                           }}
                         />
                         <div
-                          className="bg-orange-500"
+                          className="bg-warning"
                           style={{
                             width: `${stateStats?.totalOffenders
-                                ? (stateStats.underTrialCount / stateStats.totalOffenders) * 100
-                                : 0
+                              ? (stateStats.underTrialCount / stateStats.totalOffenders) * 100
+                              : 0
                               }%`,
                           }}
                         />
@@ -969,7 +969,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     This registry contains telemetry for all convicted and under-trial offenders across Telangana's 33 districts. Zoom into a district on the map to filter this console automatically.
                   </div>
 
-                  <Link to="/portal/register" className="block text-center text-xs font-bold text-indigo-600 hover:underline">
+                  <Link to="/portal/register" className="block text-center text-xs font-bold text-secondary hover:underline">
                     Open full registry →
                   </Link>
                 </div>
@@ -1009,7 +1009,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                             type="button"
                             onClick={handleResetToToday}
                             title="Reset filters & go back to today's data"
-                            className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200 transition-all cursor-pointer"
+                            className="flex items-center gap-1 text-[10px] font-bold text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-0.5 rounded-md border border-secondary/20 transition-all cursor-pointer"
                           >
                             <RotateCcw className="h-2.5 w-2.5" />
                             Reset View

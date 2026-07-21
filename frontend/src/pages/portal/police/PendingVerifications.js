@@ -6,7 +6,7 @@ import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { StatusPill } from '../../../components/portal/Badges';
 import DataTable from '../../../components/common/DataTable';
 import { policeApi } from '../../../api/police.api';
-import { PageSkeleton } from '../../../components/ui/Skeleton';
+import { ListSkeleton } from '../../../components/ui/Skeleton';
 import { Alert } from '../../../components/ui/Alert';
 import { Button } from '../../../components/ui/Button';
 
@@ -88,7 +88,7 @@ function PendingVerifications() {
     },
   ];
 
-  if (loading) return <PageSkeleton rows={6} />;
+  if (loading) return <ListSkeleton />;
 
   return (
     <div className="space-y-6 pb-10 animate-fadeIn">

@@ -130,7 +130,7 @@ function RegistryDatabase() {
                 <button onClick={() => setSelectedTiers([])} className="text-sm text-secondary font-bold hover:underline transition-all">Clear Selection</button>
               )}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
               {Object.keys(TIERS).map((t) => (
                 <label key={t} className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedTiers.includes(t) ? 'bg-secondary/5 border-secondary' : 'bg-white border-slate-100 hover:border-slate-300 hover:bg-slate-50'}`}>
                   <input type="checkbox" className="hidden" checked={selectedTiers.includes(t)} onChange={() => toggleTier(t)} />
