@@ -37,10 +37,10 @@ function PortalLayout() {
   );
 
   return (
-    <div className="min-h-dvh bg-background lg:pl-56">
+    <div className="min-h-dvh bg-background lg:pl-64 2xl:pl-80">
       {/* Fixed desktop sidebar */}
       <aside
-        className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col overflow-hidden bg-primary lg:flex"
+        className="fixed inset-y-0 left-0 z-30 hidden w-64 2xl:w-80 flex-col overflow-hidden bg-primary lg:flex"
         aria-label="Main navigation"
       >
         <div className="flex shrink-0 items-center border-b border-white/10 px-3 py-3">

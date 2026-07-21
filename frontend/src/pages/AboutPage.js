@@ -19,7 +19,7 @@ import { principles, legalFramework, timeline } from '../utils/data/aboutData';
 
 function AboutPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ───────── HERO ───────── */}
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
@@ -46,7 +46,7 @@ function AboutPage() {
 
       {/* ───────── MISSION ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-blue-50 text-secondary px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
@@ -99,7 +99,7 @@ function AboutPage() {
 
       {/* ───────── CORE PRINCIPLES ───────── */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Core principles</h2>
             <p className="section-subtitle">Every aspect of the SSOR is designed to be operated, audited, and defended in court — within the bounds of the Constitution.</p>
@@ -121,7 +121,7 @@ function AboutPage() {
 
       {/* ───────── LEGAL FRAMEWORK ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Legal framework</h2>
             <p className="section-subtitle">The SSOR is built on the Constitution and specific statutory provisions — not on executive discretion.</p>
@@ -187,7 +187,7 @@ function AboutPage() {
 
       {/* ───────── CTA ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="card p-10 md:p-14 text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-secondary to-primary"></div>
             <Layers className="h-12 w-12 text-secondary mx-auto mb-6" />

@@ -5,7 +5,7 @@ import { ExternalLink, Phone, Mail, MapPin, Lock } from 'lucide-react';
 function Footer() {
   return (
     <footer className="bg-primary text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12 grid md:grid-cols-4 gap-8">
           {/* Branding */}
           <div className="md:col-span-2">

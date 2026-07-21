@@ -1,3 +1,4 @@
+import { DetailSkeleton } from '../../../components/ui/index';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -89,9 +90,7 @@ function VerificationDetails() {
     fetchVerification();
   }, [id]);
 
-  if (loading) {
-    return <div className="text-center p-12 text-slate-400 font-bold">Loading Verification Record...</div>;
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (!selectedRequest) {
     return (
@@ -119,7 +118,7 @@ function VerificationDetails() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <div className="grid xl:grid-cols-2 gap-6 items-start">
         {/* Left Card: Audit File */}
         <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 space-y-5 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />

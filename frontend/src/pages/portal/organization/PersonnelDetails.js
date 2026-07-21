@@ -1,3 +1,4 @@
+import { DetailSkeleton } from '../../../components/ui/index';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ShieldAlert, Award, User, Lock, ArrowLeft, CheckCircle2, Mail, Phone, Calendar, Clock } from 'lucide-react';
@@ -43,13 +44,7 @@ function PersonnelDetails() {
     fetchDetails();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-20 text-slate-400">
-        <div className="animate-spin h-8 w-8 border-4 border-secondary border-t-transparent rounded-full mb-4"></div>
-      </div>
-    );
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (!selectedCandidate) {
     return (
@@ -77,7 +72,7 @@ function PersonnelDetails() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <div className="grid xl:grid-cols-2 gap-6 items-start">
         {/* Profile Card */}
         <div className="card p-6 space-y-5 bg-white relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />

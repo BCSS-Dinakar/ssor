@@ -19,6 +19,8 @@ model User {
   policeProfile          PoliceProfile?
   supportTickets         SupportTicket[]
   auditLogs              SystemAuditLog[]
+
+  @@index([role])
 }
 
 model SystemAuditLog {
@@ -102,6 +104,9 @@ model CandidateVerification {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   organization   User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
 }
 
 model SupportTicket {
@@ -148,4 +153,6 @@ model EPettyCase {
   disposalStatus String?  @default("Fine Paid")
   riskTier       String   @default("Orange")
   createdAt      DateTime @default(now())
+
+  @@index([riskTier])
 }

@@ -181,7 +181,7 @@ function StepIndicator({ steps, currentStep }) {
   const progress = total > 1 ? ((currentStep - 1) / (total - 1)) * 100 : 0;
 
   return (
-    <div className="flex items-center justify-between mb-10 relative px-2 pt-1">
+    <div className="flex items-center justify-between mb-12 relative px-2 pt-1">
       <div className="absolute left-6 right-6 top-4 h-1 bg-slate-100 z-0 rounded-full" />
       <div
         className="absolute left-6 top-4 h-1 bg-accent transition-all duration-500 z-0 rounded-full"
@@ -200,8 +200,8 @@ function StepIndicator({ steps, currentStep }) {
               {step}
             </div>
             <span
-              className={`text-sm font-bold tracking-wide absolute -bottom-5 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
-                }`}
+              className={`text-[10px] sm:text-xs font-bold tracking-wide absolute -bottom-6 whitespace-nowrap transition-colors duration-500 ${currentStep >= step ? 'text-primary' : 'text-slate-400'
+                } ${currentStep === step ? 'block' : 'hidden md:block'}`}
             >
               {label}
             </span>
@@ -451,7 +451,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-x-hidden">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-primary shrink-0">
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -468,12 +468,15 @@ function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent z-10" />
           <img src="/images/hero-shield.png" alt="" className="w-full h-full object-cover opacity-30 mix-blend-overlay" />
         </div>
-        <div className="relative z-10 p-12 lg:p-16 flex flex-col h-full justify-between">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium transition-colors w-max">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
-          <div className="mb-20">
+        <div className="relative z-10 p-12 lg:p-16 flex flex-col h-full">
+          <div className="flex-none">
+            <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium transition-colors w-max">
+              <ArrowLeft className="h-4 w-4" />
+              Back to home
+            </Link>
+          </div>
+          
+          <div className="flex-1 flex flex-col justify-center">
             <div className="inline-flex items-center justify-start gap-3 mb-8">
               <div className="h-16 w-16 overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg">
                 <img src="/images/ssor-logo.png" alt="SSOR Logo" className="h-full w-full object-cover rounded-2xl" />
@@ -487,7 +490,8 @@ function LoginPage() {
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold">
+          
+          <div className="flex-none flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold mt-12">
             <Lock className="h-4 w-4" />
             Two roles · Strict access control
           </div>
@@ -495,7 +499,10 @@ function LoginPage() {
       </div>
 
       {/* Right panel */}
-      <div className="w-full lg:w-1/2 flex flex-col min-h-screen overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col lg:h-screen lg:overflow-y-auto relative bg-white">
+        {/* Subtle background pattern for large screens to reduce emptiness */}
+        <div className="hidden lg:block absolute inset-0 z-0 opacity-[0.4] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        
         <div className="lg:hidden bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary p-6 sm:p-8 text-white relative overflow-hidden shrink-0">
           <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium mb-6 transition-colors relative z-10">
             <ArrowLeft className="h-4 w-4" />
@@ -509,9 +516,10 @@ function LoginPage() {
           </div>
         </div>
 
-        <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 py-8 lg:py-12 flex-1">
-          {/* Role toggle */}
-          <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-2 gap-1.5 mb-6">
+        <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 py-8 lg:py-12 flex-1 flex flex-col justify-center min-h-[calc(100vh-200px)] lg:min-h-0 relative z-10">
+          <div className="w-full pb-10 lg:pb-0">
+            {/* Role toggle */}
+            <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-2 gap-1.5 mb-6">
             {ROLES.map((r) => {
               const active = role === r.id;
               return (
@@ -537,8 +545,8 @@ function LoginPage() {
             })}
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-            <div className="p-6 sm:p-8">
+          <div className="w-full">
+            <div className="px-2 sm:px-6 lg:px-8">
               {/* Login */}
               {mode === 'login' && (
                 <form onSubmit={handleLogin} className="space-y-5">
@@ -595,7 +603,7 @@ function LoginPage() {
                     onRefresh={refreshLoginCaptcha}
                   />
 
-                  <button type="submit" className="btn-primary w-full justify-center py-3.5 rounded-xl shadow-lg shadow-primary/20 text-base">
+                  <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
                     <LogIn className="h-5 w-5" />
                     Sign In
                   </button>
@@ -769,7 +777,7 @@ function LoginPage() {
                           <input className={getInputClass(orgReg.empId, 'text')} value={orgReg.empId} onChange={(e) => setOrgReg({ ...orgReg, empId: e.target.value })} placeholder="Staff ID" />
                         </Field>
                         <Field label="Mobile Number" required>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
                               onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
                               placeholder="10-digit mobile"
@@ -778,12 +786,12 @@ function LoginPage() {
                               disabled={otpVerified}
                             />
                             {otpTimer > 0 ? (
-                              <div className="btn-secondary whitespace-nowrap px-3 py-2 text-sm shrink-0 flex items-center gap-1 opacity-70 cursor-not-allowed">
+                              <div className="btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 flex justify-center items-center gap-1 opacity-70 cursor-not-allowed w-full sm:w-auto">
                                 <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
                               </div>
                             ) : (
                               <button type="button" onClick={() => sendOtp(orgReg.mobile.replace(/-/g, ''))} disabled={otpVerified}
-                                className={`btn-secondary whitespace-nowrap px-3 py-2 text-sm shrink-0 ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                className={`btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 justify-center w-full sm:w-auto ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                 {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
                               </button>
                             )}
@@ -910,7 +918,7 @@ function LoginPage() {
                     </button>
                   </div>
 
-                  <p className="text-center text-base text-slate-500 font-medium">
+                  <p className="text-center text-base text-slate-500 font-medium mt-6">
                     Already registered?{' '}
                     <button type="button" onClick={() => setMode('login')} className="text-secondary hover:text-blue-700 transition-colors">
                       Sign in
@@ -924,6 +932,7 @@ function LoginPage() {
           <p className="text-center text-sm text-slate-500 mt-6 max-w-lg mx-auto leading-relaxed px-4">
             This is a prototype. Authentication is simulated in the browser and no data is transmitted or stored.
           </p>
+        </div>
         </div>
       </div>
     </div>

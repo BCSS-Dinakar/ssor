@@ -170,7 +170,7 @@ function Profile() {
       </div>
 
       {isOrg ? (
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="grid xl:grid-cols-3 gap-6 items-start">
           {/* Column 1 (Left 1/3) */}
           <div className="space-y-6 lg:col-span-1">
             {/* Clearance Badge */}
@@ -340,7 +340,7 @@ function Profile() {
           </div>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="grid xl:grid-cols-3 gap-6 items-start">
           {/* Police Column 1 */}
           <div className="space-y-6 lg:col-span-1">
             <div className="card p-5 bg-white border border-blue-200 shadow-sm rounded-2xl relative overflow-hidden">

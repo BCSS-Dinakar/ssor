@@ -1,6 +1,7 @@
+import { DetailSkeleton } from '../../../components/ui/index';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, User, Shield, FileText, Fingerprint, Loader2, Info, CheckCircle2, Activity, Users, Home, Database } from 'lucide-react';
+import { ArrowLeft, User, Shield, FileText, Fingerprint, Info, CheckCircle2, Activity, Users, Home, Database } from 'lucide-react';
 import { TIERS } from '../../../utils/data/portalData';
 import { TierChip } from '../../../components/portal/Badges';
 import PageHeader from '../../../components/portal/PageHeader';
@@ -33,7 +34,7 @@ function DynamicDataGrid({ data }) {
   if (!data || Object.keys(data).length === 0) return <DetailRow label="Status" value="No records found in database" />;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 xl:grid-cols-4 gap-3">
       {Object.entries(data).map(([key, value]) => {
         const formattedKey = key.replace(/_/g, ' ').toUpperCase();
         const stringValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
@@ -106,14 +107,7 @@ function OffenderDetail() {
     fetchRecord();
   }, [fetchRecord]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-32 animate-fadeIn">
-        <Loader2 className="w-12 h-12 text-secondary animate-spin mb-4" />
-        <span className="text-slate-500 font-bold tracking-widest uppercase text-base animate-pulse">Fetching Classified Dossier...</span>
-      </div>
-    );
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (!record) {
     return (
