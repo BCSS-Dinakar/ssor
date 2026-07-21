@@ -2,6 +2,10 @@ import prisma from '../config/db.js';
 import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const submitVerification = async (req, res) => {
   try {
@@ -343,7 +347,8 @@ export const generateConsentTemplate = async (req, res) => {
 
     // Draw Watermark
     try {
-      const imgPath = path.join(process.cwd(), 'assets', 'watermark.png');
+      // Robust path resolution relative to this file's location, ensuring it works anywhere
+      const imgPath = path.join(__dirname, '../../assets/watermark.png');
       if (fs.existsSync(imgPath)) {
         doc.save();
         doc.opacity(0.12);
