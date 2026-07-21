@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, logout, getMe, deleteAccount, getDocument } from '../controllers/auth.controller.js';
+import { register, login, logout, getMe, deleteAccount, getDocument, requestLoginOtp, verifyLoginOtp } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { upload } from '../middleware/upload.middleware.js';
 
@@ -13,6 +13,8 @@ router.post('/register', upload.fields([
   { name: 'policeDocs', maxCount: 5 }
 ]), register);
 router.post('/login', login);
+router.post('/login-otp-request', requestLoginOtp);
+router.post('/login-otp-verify', verifyLoginOtp);
 router.post('/logout', logout);
 router.get('/me', requireAuth, getMe);
 router.delete('/delete', requireAuth, deleteAccount);

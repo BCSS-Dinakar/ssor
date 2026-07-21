@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
 import { env } from '../config/env.js';
+import { setCache, getCache, deleteCache } from '../config/redis.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -259,6 +260,107 @@ export const getDocument = async (req, res) => {
       res.status(404).json({ success: false, message: 'File not found' });
     }
   } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+  }
+};
+
+export const requestLoginOtp = async (req, res) => {
+  try {
+    const { loginId, role } = req.body;
+    if (!loginId || !role) {
+      return res.status(400).json({ success: false, message: 'Login ID and role are required.' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { loginId },
+      include: { policeProfile: true, organizationProfile: true }
+    });
+
+    if (!user || user.role !== role) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials or role mismatch.' });
+    }
+
+    if (user.status !== 'approved') {
+      return res.status(403).json({ success: false, message: `Login failed: Account is ${user.status}.` });
+    }
+
+    let mobile = null;
+    if (role === 'police' && user.policeProfile) {
+      mobile = user.policeProfile.mobile;
+    } else if (role === 'organization' && user.organizationProfile) {
+      mobile = user.organizationProfile.mobile;
+    }
+
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: 'No registered mobile number found for this account.' });
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const redisKey = `login-otp:${loginId.trim()}`;
+
+    await setCache(redisKey, otp, 120); // 2 minutes valid for login
+
+    console.log(`🔑 Login OTP for ${loginId} (${mobile}): ${otp}`);
+
+    const maskedMobile = mobile.slice(0, 2) + '******' + mobile.slice(-2);
+
+    return res.status(200).json({
+      success: true,
+      message: `OTP sent to ${maskedMobile}.`,
+      ...(process.env.NODE_ENV === 'development' && { devOtp: otp })
+    });
+  } catch (error) {
+    console.error('requestLoginOtp Error:', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+  }
+};
+
+export const verifyLoginOtp = async (req, res) => {
+  try {
+    const { loginId, role, otp } = req.body;
+
+    if (!loginId || !role || !otp) {
+      return res.status(400).json({ success: false, message: 'Login ID, role, and OTP are required.' });
+    }
+
+    const redisKey = `login-otp:${loginId.trim()}`;
+    const storedOtp = await getCache(redisKey);
+
+    if (!storedOtp) {
+      return res.status(400).json({ success: false, message: 'OTP expired or not requested. Please request a new OTP.' });
+    }
+
+    if (storedOtp !== otp.trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect OTP. Please try again.' });
+    }
+
+    // OTP matched, delete it from redis
+    await deleteCache(redisKey);
+
+    const user = await prisma.user.findUnique({
+      where: { loginId },
+      include: { policeProfile: true, organizationProfile: true }
+    });
+
+    if (!user || user.role !== role || user.status !== 'approved') {
+      return res.status(401).json({ success: false, message: 'Invalid request.' });
+    }
+
+    const token = jwt.sign({ id: user.id, role: user.role }, env.JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('token', token, COOKIE_OPTIONS);
+
+    const { passwordHash, ...userProfile } = user;
+    if (userProfile.role === 'police' && userProfile.policeProfile) {
+      userProfile.name = userProfile.policeProfile.name;
+      userProfile.clearance = userProfile.policeProfile.clearanceLevel || userProfile.policeProfile.rank || 'Police Officer';
+    } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
+      userProfile.name = userProfile.organizationProfile.adminName;
+      userProfile.clearance = userProfile.organizationProfile.designation || 'Org Admin';
+    }
+
+    res.status(200).json({ success: true, user: userProfile });
+  } catch (error) {
+    console.error('verifyLoginOtp Error:', error);
     res.status(500).json({ success: false, message: 'Server error.', error: error.message });
   }
 };

@@ -1,4 +1,4 @@
-import getRedis from '../config/redis.js';
+import { setCache, getCache, deleteCache } from '../config/redis.js';
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -16,9 +16,8 @@ export const sendOtp = async (req, res) => {
   const redisKey = `otp:${mobile.trim()}`;
 
   try {
-    const redis = getRedis();
     // Store OTP in Redis with 60-second TTL
-    await redis.set(redisKey, otp, 'EX', 60);
+    await setCache(redisKey, otp, 60);
 
     // In production, integrate an SMS gateway here (Twilio, MSG91, etc.)
     // For development we log the OTP to the console
@@ -47,8 +46,7 @@ export const verifyOtp = async (req, res) => {
   const redisKey = `otp:${mobile.trim()}`;
 
   try {
-    const redis = getRedis();
-    const storedOtp = await redis.get(redisKey);
+    const storedOtp = await getCache(redisKey);
 
     if (!storedOtp) {
       return res.status(400).json({ success: false, message: 'OTP expired or not sent. Please request a new OTP.' });
@@ -59,7 +57,7 @@ export const verifyOtp = async (req, res) => {
     }
 
     // OTP verified – delete it so it cannot be reused
-    await redis.del(redisKey);
+    await deleteCache(redisKey);
 
     return res.status(200).json({ success: true, message: 'OTP verified successfully.' });
   } catch (err) {
