@@ -262,7 +262,7 @@ export const generateConsentTemplate = async (req, res) => {
   try {
     const { candidate, fatherName, dob, aadharNumber, phone, role, address, type } = req.body;
 
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margins: { top: 50, bottom: 20, left: 50, right: 50 }, size: 'A4' });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=Consent_Template_${candidate ? candidate.replace(/\\s+/g, '_') : 'Candidate'}.pdf`);
@@ -273,30 +273,45 @@ export const generateConsentTemplate = async (req, res) => {
     doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).stroke();
     doc.rect(22, 22, doc.page.width - 44, doc.page.height - 44).stroke(); // Double border
 
+    // Draw Watermark
+    try {
+      const imgPath = 'C:\\\\Users\\\\Nandeep\\\\OneDrive - BLUE CLOUD SOFTECH SOLUTIONS LIMITED\\\\Desktop\\\\images.png';
+      if (fs.existsSync(imgPath)) {
+        doc.save();
+        doc.opacity(0.12);
+        const imgSize = 400;
+        doc.image(imgPath, (doc.page.width - imgSize) / 2, (doc.page.height - imgSize) / 2, {
+          width: imgSize,
+          align: 'center',
+          valign: 'center'
+        });
+        doc.restore();
+      }
+    } catch (e) {
+      console.error('[Watermark Error]', e);
+    }
+
     // Header
-    doc.moveDown(1);
+    doc.moveDown(0.5);
     doc.fontSize(16).font('Helvetica-Bold').text('GOVERNMENT OF TELANGANA - STATE POLICE', { align: 'center' });
     doc.moveDown(0.2);
     doc.fontSize(14).font('Helvetica-Bold').text('STATE SEXUAL OFFENDER REGISTRY (SSOR)', { align: 'center' });
     doc.moveDown(0.2);
     doc.fontSize(12).font('Helvetica').text('CANDIDATE VERIFICATION CONSENT FORM', { align: 'center', underline: true });
 
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Intro
     doc.fontSize(11).font('Helvetica').text('This document serves as explicit, irrevocable consent for the below-mentioned individual to undergo a formal background verification against the State Sexual Offender Registry, conducted by the Telangana State Police.', { align: 'justify' });
 
-    doc.moveDown(1);
+    doc.moveDown(0.5);
 
     // Details Box
     const startX = 50;
-    let currentY = doc.y;
-    doc.rect(40, currentY - 10, doc.page.width - 80, 170).stroke();
+    const startY = doc.y;
 
-    doc.fontSize(12).font('Helvetica-Bold').text('I. CANDIDATE DEMOGRAPHICS', 50, currentY);
+    doc.fontSize(12).font('Helvetica-Bold').text('I. CANDIDATE DEMOGRAPHICS', 50, startY);
     doc.moveDown(0.5);
-
-
 
     const drawField = (label, value) => {
       doc.font('Helvetica-Bold').fontSize(11).text(`${label}: `, { continued: true })
@@ -313,7 +328,10 @@ export const generateConsentTemplate = async (req, res) => {
     drawField('Institution Category', type);
     drawField('Designated Role', role);
 
-    doc.moveDown(1.5);
+    const endY = doc.y;
+    doc.rect(40, startY - 10, doc.page.width - 80, endY - startY + 15).stroke();
+
+    doc.moveDown(1);
 
     // Declaration
     doc.fontSize(12).font('Helvetica-Bold').text('II. DECLARATION OF CONSENT', 50, doc.y);
@@ -328,10 +346,8 @@ export const generateConsentTemplate = async (req, res) => {
       { align: 'justify', lineGap: 3 }
     );
 
-    doc.moveDown(2.5);
-
     // Signatures
-    const sigY = doc.y;
+    const sigY = doc.page.height - 140; 
 
     doc.font('Helvetica').fontSize(11);
     doc.text('Date: ________________', 50, sigY);
@@ -341,7 +357,7 @@ export const generateConsentTemplate = async (req, res) => {
     doc.text('Signature / Thumb Impression of Candidate', 350, sigY + 15, { width: 200, align: 'center' });
 
     // Footer text
-    doc.font('Helvetica-Oblique').fontSize(8).text('This is a system-generated document for SSOR compliance.', 50, doc.page.height - 50, { align: 'center' });
+    doc.font('Helvetica-Oblique').fontSize(8).text('This is a system-generated document for SSOR compliance.', 50, doc.page.height - 35, { align: 'center', width: doc.page.width - 100, lineBreak: false });
 
     doc.end();
   } catch (error) {
