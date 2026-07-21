@@ -44,3 +44,7 @@ ecosystem.config.cjs
 # Prisma
 .prisma
 /src/generated/prisma
+
+# Uploaded files (runtime data - should never be committed)
+backend/storage/documents/
+backend/storage/

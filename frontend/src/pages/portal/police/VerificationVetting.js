@@ -101,18 +101,26 @@ const CCTNS_CATEGORY_ORDER = [
 ];
 
 const isCctnsSuspect = (sus) => {
+  // Strict: use sourceType if present (set by backend)
   if (sus?.sourceType === 'cctns') return true;
   if (sus?.sourceType === 'epetty') return false;
+  // Fallback: source string check — only match explicit CCTNS labels
   const source = (sus?.source || '').toLowerCase();
   if (source.includes('epetty') || source.includes('e-petty')) return false;
-  return source.includes('cctns') || source.includes('state registry');
+  // Only classify as CCTNS if source explicitly mentions it
+  if (source.includes('cctns') || source.includes('state registry')) return true;
+  // Unknown source — do NOT default to CCTNS, exclude from both tabs
+  return false;
 };
 
 const isEpettySuspect = (sus) => {
+  // Strict: use sourceType if present (set by backend)
   if (sus?.sourceType === 'epetty') return true;
   if (sus?.sourceType === 'cctns') return false;
+  // Fallback: source string check — only match explicit ePetty labels
   const source = (sus?.source || '').toLowerCase();
   if (source.includes('cctns') || source.includes('state registry')) return false;
+  // Only classify as ePetty if source explicitly mentions it
   return source.includes('epetty') || source.includes('e-petty');
 };
 
@@ -151,6 +159,9 @@ function VerificationVetting() {
   const [checkState, setCheckState] = useState('idle'); // 'idle' | 'running' | 'done'
   const [activeLog, setActiveLog] = useState('');
   const [suspects, setSuspects] = useState([]);
+  // Store CCTNS and ePetty suspects separately to avoid render-time filtering bugs
+  const [cctnsSuspectsState, setCctnsSuspectsState] = useState([]);
+  const [epettySuspectsState, setEpettySuspectsState] = useState([]);
   const [scanMeta, setScanMeta] = useState(null);
   const [matchSourceTab, setMatchSourceTab] = useState('cctns'); // 'cctns' | 'epetty'
   const [cctnsCategoryTab, setCctnsCategoryTab] = useState('all');
@@ -265,10 +276,11 @@ function VerificationVetting() {
     );
   }
 
-  // Check if we expect history based on status
+  // Use stable state arrays (set once from backend response) instead of re-filtering on every render
+  // This prevents the tab-switch bug where ePetty records leaked into the CCTNS view
+  const cctnsSuspects = cctnsSuspectsState;
+  const epettySuspects = epettySuspectsState;
   const hasHistory = suspects.length > 0;
-  const cctnsSuspects = suspects.filter(isCctnsSuspect);
-  const epettySuspects = suspects.filter(isEpettySuspect);
   const cctnsCategoryCounts = CCTNS_CATEGORY_ORDER.reduce((acc, cat) => {
     acc[cat.key] = cctnsSuspects.filter((s) => (s.matchCategory || 'fuzzy') === cat.key).length;
     return acc;
@@ -290,6 +302,8 @@ function VerificationVetting() {
     } catch (e) { console.error(e); }
     setActiveLog('');
     setSuspects([]);
+    setCctnsSuspectsState([]);
+    setEpettySuspectsState([]);
     setScanMeta(null);
     setMatchSourceTab('cctns');
     setCctnsCategoryTab('all');
@@ -322,20 +336,25 @@ function VerificationVetting() {
           toast.error('ePetty lookup issue', scanRes.epettyError);
         }
         const nextSuspects = scanRes?.suspects || [];
+        // Use backend-provided separate arrays — these are already cleanly tagged
+        // This avoids any render-time filtering ambiguity that caused the tab-switch bug
+        const nextCctns = scanRes?.cctnsMatches || nextSuspects.filter(isCctnsSuspect);
+        const nextEpetty = scanRes?.epettyMatches || nextSuspects.filter(isEpettySuspect);
         setSuspects(nextSuspects);
+        setCctnsSuspectsState(nextCctns);
+        setEpettySuspectsState(nextEpetty);
         setScanMeta({
-          sourceCounts: scanRes?.sourceCounts || {
-            cctns: (scanRes?.cctnsMatches || nextSuspects.filter(isCctnsSuspect)).length,
-            epetty: (scanRes?.epettyMatches || nextSuspects.filter(isEpettySuspect)).length,
+          sourceCounts: {
+            cctns: nextCctns.length,
+            epetty: nextEpetty.length,
           },
           cctnsStatus: scanRes?.cctnsStatus || null,
           epettyStatus: scanRes?.epettyStatus || null,
           priorityLabel: scanRes?.priorityLabel || null
         });
 
-        const cctnsCount = nextSuspects.filter(isCctnsSuspect).length;
-        const epettyCount = nextSuspects.length - cctnsCount;
-        setMatchSourceTab(cctnsCount > 0 ? 'cctns' : (epettyCount > 0 ? 'epetty' : 'cctns'));
+        // Default to whichever tab has results; CCTNS takes priority
+        setMatchSourceTab(nextCctns.length > 0 ? 'cctns' : (nextEpetty.length > 0 ? 'epetty' : 'cctns'));
         setCctnsCategoryTab('all');
       } catch (err) {
         console.error('Scan failed:', err);
