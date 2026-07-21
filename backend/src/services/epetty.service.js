@@ -63,6 +63,13 @@ const normalizePhone = (value = '') => {
   return digits;
 };
 
+const getApiSearchName = (name) => {
+  if (!name) return '';
+  const words = name.trim().split(/\s+/);
+  const coreWords = words.filter(w => w.length > 1);
+  return coreWords.length > 0 ? coreWords.join(' ') : name;
+};
+
 export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
   if (!env.EPETTY_API_URL) {
     console.warn('[ePetty] EPETTY_API_URL is not configured. Skipping live ePetty lookup.');
@@ -130,9 +137,19 @@ const buildSearchSteps = ({ name, phone, father, occupation, customFilters = {} 
     add('High Priority (Name, Phone & Father Match)', {
       offdrName: name, offdrMobileNo: phone, offrFName: father
     });
+    add('High Priority (Dynamic Name, Phone & Father Match)', {
+      offdrMobileNo: phone, offrFName: father, _dynamicName: name
+    });
   }
   if (name && phone) {
     add('High Priority (Exact Name & Phone Match)', { offdrName: name, offdrMobileNo: phone });
+    add('High Priority (Dynamic Name & Phone Match)', { offdrMobileNo: phone, _dynamicName: name });
+  }
+  if (phone && phone.length >= 7 && father) {
+    add('High Priority (Phone & Father Match)', { offdrMobileNo: phone, offrFName: father });
+  }
+  if (phone && phone.length >= 7) {
+    add('High Priority (Exact Phone Match)', { offdrMobileNo: phone });
   }
   if (name && father) {
     add('Medium Priority (Name & Father Match)', { offdrName: name, offrFName: father });
@@ -140,38 +157,58 @@ const buildSearchSteps = ({ name, phone, father, occupation, customFilters = {} 
   if (name && occupation) {
     add('Medium Priority (Name & Occupation Match)', { offdrName: name, offrOccupation: occupation });
   }
-  if (name) {
-    add('Medium Priority (Exact Name Match)', { offdrName: name });
-  }
-  if (phone && phone.length >= 7 && father) {
-    add('Low Priority (Phone & Father Match)', { offdrMobileNo: phone, offrFName: father });
-  }
-  if (phone && phone.length >= 7) {
-    add('Low Priority (Exact Phone Match)', { offdrMobileNo: phone });
-  }
   if (father && !name && !phone) {
     add('Medium Priority (Father Name Match)', { offrFName: father });
+  }
+  if (name) {
+    add('Low Priority (Exact Name Match)', { offdrName: name });
   }
   if (occupation && !name && !phone && !father) {
     add('Custom Filter Match', { offrOccupation: occupation });
   }
 
-  if (Object.keys(customFilters).length > 0) {
-    add('Custom Filter Match', customFilters);
+  const validCustomFilters = Object.fromEntries(
+    Object.entries(customFilters).filter(([_, v]) => v)
+  );
+
+  if (Object.keys(validCustomFilters).length > 0) {
+    add('Custom Filter Match', validCustomFilters);
   }
 
   return steps;
 };
 
+const isNameMatch = (searchStr, recordStr) => {
+  const cleanSearch = (searchStr || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const cleanRecord = (recordStr || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  if (!cleanSearch) return true; // If no valid search string, count as match
+
+  const searchParts = cleanSearch.split(/\s+/).map(part => {
+    if (part.length === 1) {
+      return part + '[a-z0-9]*';
+    }
+    return part;
+  }).filter(Boolean);
+
+  if (searchParts.length > 0) {
+    const regexStr = searchParts.join('\\s+');
+    const regex = new RegExp(regexStr);
+    return regex.test(cleanRecord);
+  }
+
+  return true;
+};
+
 const postFilterMatches = (matches, filters) => {
   return matches.filter(record => {
-    // Ensure the record name strictly includes the requested search name
-    if (filters.offdrName) {
-      const searchName = filters.offdrName.toLowerCase().replace(/\s+/g, ' ').trim();
-      const recordName = (record.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
-      if (!recordName.includes(searchName)) {
-        return false;
-      }
+    // Ensure the record name strictly includes the requested search name, allowing initials to match full words
+    if (filters.offdrName && !isNameMatch(filters.offdrName, record.name)) {
+      return false;
+    }
+
+    if (filters._dynamicName && !isNameMatch(filters._dynamicName, record.name)) {
+      return false;
     }
 
     // Ensure the record phone strictly includes the requested phone number
@@ -183,13 +220,9 @@ const postFilterMatches = (matches, filters) => {
       }
     }
 
-    // Ensure the record father's name strictly includes the requested father's name
-    if (filters.offrFName) {
-      const searchFather = filters.offrFName.toLowerCase().replace(/\s+/g, ' ').trim();
-      const recordFather = (record.fatherName || '').toLowerCase().replace(/\s+/g, ' ').trim();
-      if (!recordFather.includes(searchFather)) {
-        return false;
-      }
+    // Ensure the record father's name strictly includes the requested father's name, allowing initials to match full words
+    if (filters.offrFName && !isNameMatch(filters.offrFName, record.fatherName)) {
+      return false;
     }
 
     return true;
