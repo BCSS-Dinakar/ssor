@@ -122,42 +122,80 @@ export const getDashboardStats = async (req, res) => {
     const rejected = verifications.filter((v) => v.status === 'rejected').length;
     const total = verifications.length;
 
-    const trendData = [
-      { month: 'Jan', requests: 4, cleared: 4 },
-      { month: 'Feb', requests: 7, cleared: 6 },
-      { month: 'Mar', requests: 5, cleared: 5 },
-      { month: 'Apr', requests: 9, cleared: 8 },
-      { month: 'May', requests: 12, cleared: 11 },
-      { month: 'Jun', requests: total > 12 ? total : 15, cleared: cleared > 11 ? cleared : 13 },
-    ];
+    // Dynamic Role Distribution
+    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b', '#ec4899', '#14b8a6'];
+    const roleMap = {};
+    verifications.forEach(v => {
+      roleMap[v.role] = (roleMap[v.role] || 0) + 1;
+    });
+    const roleDistribution = Object.keys(roleMap).map((role, i) => ({
+      name: role,
+      value: roleMap[role],
+      color: colors[i % colors.length]
+    })).sort((a, b) => b.value - a.value);
 
-    const roleDistribution = [
-      { name: 'Teachers / Tutors', value: 35, color: '#10b981' },
-      { name: 'Support Staff', value: 20, color: '#3b82f6' },
-      { name: 'Bus Drivers', value: 15, color: '#f59e0b' },
-      { name: 'Security Guards', value: 10, color: '#ef4444' },
-      { name: 'Administrative', value: 8, color: '#8b5cf6' },
-      { name: 'Other', value: 12, color: '#64748b' },
-    ];
+    // Dynamic Trend Data & Processing Times (Last 6 Months)
+    const trendData = [];
+    const processingTimes = [];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStr = monthNames[d.getMonth()];
+      
+      const reqsInMonth = verifications.filter(v => {
+        const vd = new Date(v.createdAt);
+        return vd.getMonth() === d.getMonth() && vd.getFullYear() === d.getFullYear();
+      });
+      const clearedInMonth = reqsInMonth.filter(v => v.status === 'cleared');
+      
+      trendData.push({ month: monthStr, requests: reqsInMonth.length, cleared: clearedInMonth.length });
+      
+      let sumDays = 0;
+      clearedInMonth.forEach(v => {
+        const msDiff = new Date(v.updatedAt).getTime() - new Date(v.createdAt).getTime();
+        sumDays += msDiff / (1000 * 3600 * 24);
+      });
+      const avgDays = clearedInMonth.length > 0 ? (sumDays / clearedInMonth.length).toFixed(1) : 0;
+      processingTimes.push({ category: monthStr, days: parseFloat(avgDays) });
+    }
 
-    const processingTimes = [
-      { category: 'Jan', days: 5.2 },
-      { category: 'Feb', days: 4.8 },
-      { category: 'Mar', days: 4.1 },
-      { category: 'Apr', days: 3.5 },
-      { category: 'May', days: 2.9 },
-      { category: 'Jun', days: 2.1 },
-    ];
+    // Dynamic Recent Activity
+    const rawActivity = await prisma.systemAuditLog.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 8
+    });
 
-    const recentActivity = [
-      { action: 'Submitted clearance request for candidate R. Sharma', time: '10 mins ago', type: 'submit' },
-      { action: 'Downloaded Clearance Certificate for S. Patel', time: '2 hours ago', type: 'download' },
-      { action: 'Added 5 candidates to verification queue', time: 'Yesterday', type: 'batch' },
-      { action: 'Received notification: Background check failed for Candidate #892', time: '2 days ago', type: 'alert' },
-      { action: 'Updated organization profile information', time: '1 week ago', type: 'system' },
-      { action: 'Submitted clearance request for candidate M. Kumar', time: '1 week ago', type: 'submit' },
-      { action: 'Downloaded Clearance Certificate for A. Singh', time: '2 weeks ago', type: 'download' },
-    ];
+    const formatTimeAgo = (date) => {
+      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+      let interval = seconds / 31536000;
+      if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " year ago" : " years ago");
+      interval = seconds / 2592000;
+      if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " month ago" : " months ago");
+      interval = seconds / 86400;
+      if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " day ago" : " days ago");
+      interval = seconds / 3600;
+      if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " hour ago" : " hours ago");
+      interval = seconds / 60;
+      if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " min ago" : " mins ago");
+      return "just now";
+    };
+
+    const recentActivity = rawActivity.map(log => {
+      let type = 'system';
+      const actionLow = log.action.toLowerCase();
+      if (actionLow.includes('submit') || actionLow.includes('add')) type = 'submit';
+      if (actionLow.includes('download')) type = 'download';
+      if (actionLow.includes('fail') || actionLow.includes('reject')) type = 'alert';
+      
+      return {
+        action: log.action,
+        time: formatTimeAgo(log.createdAt),
+        type
+      };
+    });
 
     res.status(200).json({
       success: true,
