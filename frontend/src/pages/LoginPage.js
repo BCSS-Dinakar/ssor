@@ -23,6 +23,7 @@ import {
   ORG_REG_STEPS,
 } from '../utils/data/authData';
 import { otpApi } from '../api/otp.api';
+import { authApi } from '../api/auth.api';
 import SearchableSelect from '../components/SearchableSelect';
 import locationData from '../utils/data/locationData.json';
 
@@ -230,13 +231,25 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
-  
+
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [loginOtp, setLoginOtp] = useState('');
   const [loginOtpTimer, setLoginOtpTimer] = useState(0);
   const [loginDevOtp, setLoginDevOtp] = useState(null);
   const [loginOtpSent, setLoginOtpSent] = useState(false);
 
+  // Recovery States
+  const [recoverStep, setRecoverStep] = useState(1);
+  const [recoverMobile, setRecoverMobile] = useState('');
+  const [recoverOtp, setRecoverOtp] = useState('');
+  const [recoverOtpTimer, setRecoverOtpTimer] = useState(0);
+  const [recoverDevOtp, setRecoverDevOtp] = useState(null);
+  const [recoverLoginId, setRecoverLoginId] = useState(null);
+  const [recoveryToken, setRecoveryToken] = useState(null);
+  const [recoverNewPassword, setRecoverNewPassword] = useState('');
+  const [recoverConfirmPassword, setRecoverConfirmPassword] = useState('');
+  const [recoverAlert, setRecoverAlert] = useState(null);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   const [orgReg, setOrgReg] = useState(emptyOrgReg());
   const [regCaptcha, setRegCaptcha] = useState(makeCaptcha());
@@ -309,15 +322,25 @@ function LoginPage() {
   };
 
   useEffect(() => {
-    if (loginOtpTimer <= 0) return;
-    const tick = setTimeout(() => setLoginOtpTimer((t) => t - 1), 1000);
-    return () => clearTimeout(tick);
+    let t;
+    if (loginOtpTimer > 0) {
+      t = setInterval(() => setLoginOtpTimer((x) => x - 1), 1000);
+    }
+    return () => clearInterval(t);
   }, [loginOtpTimer]);
+
+  useEffect(() => {
+    let t;
+    if (recoverOtpTimer > 0) {
+      t = setInterval(() => setRecoverOtpTimer((x) => x - 1), 1000);
+    }
+    return () => clearInterval(t);
+  }, [recoverOtpTimer]);
 
   const handleSendLoginOtp = async () => {
     const idLabel = role === 'police' ? 'Officer username' : 'Login ID';
     if (!loginForm.userId.trim()) return setLoginAlert({ type: 'error', message: `${idLabel} is required to send OTP.` });
-    
+
     try {
       setLoginAlert({ type: 'info', message: 'Requesting OTP...' });
       const data = await requestLoginOtp(role, loginForm.userId.trim());
@@ -342,7 +365,83 @@ function LoginPage() {
       setLoginAlert({ type: 'success', message: 'Sign in successful! Redirecting...' });
       setTimeout(() => navigate('/portal'), 700);
     } catch (err) {
-      setLoginAlert({ type: 'error', message: err.message || 'OTP Verification failed.' });
+      setLoginAlert({ type: 'error', message: err.response?.data?.message || 'Login failed.' });
+    }
+  };
+
+  const handleRecoverRequest = async () => {
+    if (!recoverMobile.trim() || recoverMobile.length !== 10) {
+      setRecoverAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number.' });
+      return;
+    }
+    setIsRecovering(true);
+    setRecoverAlert(null);
+    try {
+      const res = await authApi.recoverRequest({ role, mobile: recoverMobile });
+      if (res.success) {
+        setRecoverAlert({ type: 'success', message: res.message });
+        setRecoverStep(2);
+        setRecoverOtpTimer(120);
+        if (res.devOtp) setRecoverDevOtp(res.devOtp);
+      }
+    } catch (err) {
+      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Failed to request recovery.' });
+    } finally {
+      setIsRecovering(false);
+    }
+  };
+
+  const handleRecoverVerify = async () => {
+    if (!recoverOtp || recoverOtp.length !== 6) {
+      setRecoverAlert({ type: 'error', message: 'Please enter a valid 6-digit OTP.' });
+      return;
+    }
+    setIsRecovering(true);
+    setRecoverAlert(null);
+    try {
+      const res = await authApi.recoverVerify({ mobile: recoverMobile, otp: recoverOtp });
+      if (res.success) {
+        setRecoverLoginId(res.loginId);
+        setRecoveryToken(res.recoveryToken);
+        setRecoverStep(3);
+        setRecoverAlert({ type: 'success', message: 'Account verified successfully!' });
+      }
+    } catch (err) {
+      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Invalid OTP.' });
+    } finally {
+      setIsRecovering(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!recoverNewPassword || recoverNewPassword.length < 8) {
+      setRecoverAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
+      return;
+    }
+    if (recoverNewPassword !== recoverConfirmPassword) {
+      setRecoverAlert({ type: 'error', message: 'Passwords do not match.' });
+      return;
+    }
+    setIsRecovering(true);
+    setRecoverAlert(null);
+    try {
+      const res = await authApi.resetPassword({ recoveryToken, newPassword: recoverNewPassword });
+      if (res.success) {
+        setRecoverAlert({ type: 'success', message: 'Password reset successfully. Please log in.' });
+        setTimeout(() => {
+          setMode('login');
+          setLoginForm({ userId: recoverLoginId, password: '', captcha: initialCaptcha });
+          refreshLoginCaptcha();
+          setRecoverStep(1);
+          setRecoverMobile('');
+          setRecoverOtp('');
+        }, 3000);
+      }
+    } catch (err) {
+      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Failed to reset password.' });
+    } finally {
+      setIsRecovering(false);
     }
   };
 
@@ -524,7 +623,7 @@ function LoginPage() {
               Back to home
             </Link>
           </div>
-          
+
           <div className="flex-1 flex flex-col justify-center">
             <div className="inline-flex items-center justify-start gap-3 mb-8">
               <div className="h-16 w-16 overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg">
@@ -539,7 +638,7 @@ function LoginPage() {
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
           </div>
-          
+
           <div className="flex-none flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold mt-12">
             <Lock className="h-4 w-4" />
             Two roles · Strict access control
@@ -551,7 +650,7 @@ function LoginPage() {
       <div className="w-full lg:w-1/2 flex flex-col lg:h-screen lg:overflow-y-auto relative bg-white">
         {/* Subtle background pattern for large screens to reduce emptiness */}
         <div className="hidden lg:block absolute inset-0 z-0 opacity-[0.4] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-        
+
         <div className="lg:hidden bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary p-6 sm:p-8 text-white relative overflow-hidden shrink-0">
           <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium mb-6 transition-colors relative z-10">
             <ArrowLeft className="h-4 w-4" />
@@ -569,476 +668,593 @@ function LoginPage() {
           <div className="w-full pb-10 lg:pb-0">
             {/* Role toggle */}
             <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-2 gap-1.5 mb-6">
-            {ROLES.map((r) => {
-              const active = role === r.id;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setRole(r.id)}
-                  className={`flex items-start gap-2.5 rounded-xl px-3 sm:px-4 py-3 text-left transition-all duration-300 min-w-0 ${
-                    active ? 'bg-white shadow-md ring-1 ring-slate-200/80' : 'hover:bg-slate-200/70'
-                  }`}
-                >
-                  <r.Icon className={`h-5 w-5 shrink-0 mt-0.5 ${active ? 'text-accent' : 'text-slate-400'}`} />
-                  <div className="min-w-0 flex-1">
-                    <div className={`font-bold text-sm sm:text-base leading-snug ${active ? 'text-primary' : 'text-slate-700'}`}>
-                      {r.label}
+              {ROLES.map((r) => {
+                const active = role === r.id;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setRole(r.id)}
+                    className={`flex items-start gap-2.5 rounded-xl px-3 sm:px-4 py-3 text-left transition-all duration-300 min-w-0 ${active ? 'bg-white shadow-md ring-1 ring-slate-200/80' : 'hover:bg-slate-200/70'
+                      }`}
+                  >
+                    <r.Icon className={`h-5 w-5 shrink-0 mt-0.5 ${active ? 'text-accent' : 'text-slate-400'}`} />
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-bold text-sm sm:text-base leading-snug ${active ? 'text-primary' : 'text-slate-700'}`}>
+                        {r.label}
+                      </div>
+                      <div className="text-xs sm:text-sm text-slate-500 leading-snug mt-0.5 break-words">
+                        {r.sub}
+                      </div>
                     </div>
-                    <div className="text-xs sm:text-sm text-slate-500 leading-snug mt-0.5 break-words">
-                      {r.sub}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-full">
+              <div className="px-2 sm:px-6 lg:px-8">
+                {/* Login */}
+                {mode === 'login' && (
+                  <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-5">
+                    <div className="mb-2">
+                      <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
+                        {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
+                      </h2>
+                      <p className="text-base text-slate-500 mt-2 leading-relaxed">
+                        {role === 'police'
+                          ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
+                          : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
+                      </p>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
 
-          <div className="w-full">
-            <div className="px-2 sm:px-6 lg:px-8">
-              {/* Login */}
-              {mode === 'login' && (
-                <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-5">
-                  <div className="mb-2">
-                    <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
-                      {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
-                    </h2>
-                    <p className="text-base text-slate-500 mt-2 leading-relaxed">
-                      {role === 'police'
-                        ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
-                        : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
-                    </p>
-                  </div>
-
-                  <div className="flex bg-slate-100 rounded-lg p-1 w-max mb-4 border border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => { setLoginMethod('password'); setLoginAlert(null); setLoginOtpSent(false); }}
-                      className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'password' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Use Password
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setLoginMethod('otp'); setLoginAlert(null); }}
-                      className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'otp' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Use OTP
-                    </button>
-                  </div>
-
-                  <Alert type={loginAlert?.type} message={loginAlert?.message} />
-
-                  <Field label={role === 'police' ? 'Officer username' : 'Login ID'} required>
-                    <div className="relative">
-                      <User className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        className={getInputClass(loginForm.userId, 'text') + ' pl-9'}
-                        placeholder={role === 'police' ? 'e.g. insp.reddy' : 'Your registered login ID'}
-                        value={loginForm.userId}
-                        onChange={(e) => setLoginForm({ ...loginForm, userId: e.target.value })}
-                      />
+                    <div className="flex bg-slate-100 rounded-lg p-1 w-max mb-4 border border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => { setLoginMethod('password'); setLoginAlert(null); setLoginOtpSent(false); }}
+                        className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'password' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Use Password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setLoginMethod('otp'); setLoginAlert(null); }}
+                        className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'otp' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Use OTP
+                      </button>
                     </div>
-                  </Field>
 
-                  {loginMethod === 'password' ? (
-                    <>
-                      <Field label="Password" required>
-                        <div className="relative">
-                          <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                          <input
-                            type={showPassword ? 'text' : 'password'}
-                            className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
-                            placeholder="Enter your password"
-                            value={loginForm.password}
-                            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword((s) => !s)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
-                            aria-label="Toggle password visibility"
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Alert type={loginAlert?.type} message={loginAlert?.message} />
+
+                    <Field label={role === 'police' ? 'Officer username' : 'Login ID'} required>
+                      <div className="relative">
+                        <User className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          className={getInputClass(loginForm.userId, 'text') + ' pl-9'}
+                          placeholder={role === 'police' ? 'e.g. insp.reddy' : 'Your registered login ID'}
+                          value={loginForm.userId}
+                          onChange={(e) => setLoginForm({ ...loginForm, userId: e.target.value })}
+                        />
+                      </div>
+                    </Field>
+
+                    {loginMethod === 'password' ? (
+                      <>
+                        <Field label="Password" required>
+                          <div className="relative">
+                            <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
+                              placeholder="Enter your password"
+                              value={loginForm.password}
+                              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword((s) => !s)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
+                              aria-label="Toggle password visibility"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </Field>
+
+                        <Captcha
+                          value={loginForm.captcha}
+                          code={loginCaptcha}
+                          onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
+                          onRefresh={refreshLoginCaptcha}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        {!loginOtpSent ? (
+                          <button type="button" onClick={handleSendLoginOtp} className="btn-secondary w-full justify-center py-3.5 rounded-xl shadow-sm text-base">
+                            Send OTP to Mobile
                           </button>
-                        </div>
-                      </Field>
+                        ) : (
+                          <Field label="Enter OTP" required>
+                            {loginDevOtp && (
+                              <div className="mb-2 text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-200 w-max">
+                                [Dev] devotp - {loginDevOtp}
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <input
+                                className={getInputClass(loginOtp, 'pin') + ' tracking-widest text-lg'}
+                                placeholder="6-digit OTP"
+                                value={loginOtp}
+                                onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                maxLength={6}
+                              />
+                              {loginOtpTimer > 0 ? (
+                                <div className="btn-secondary px-4 py-3 shrink-0 flex justify-center items-center opacity-70 cursor-not-allowed">
+                                  <span className="font-mono text-secondary font-bold">{loginOtpTimer}s</span>
+                                </div>
+                              ) : (
+                                <button type="button" onClick={handleSendLoginOtp} className="btn-secondary px-4 py-3 shrink-0 text-sm">
+                                  Resend
+                                </button>
+                              )}
+                            </div>
+                          </Field>
+                        )}
+                      </>
+                    )}
 
-                      <Captcha
-                        value={loginForm.captcha}
-                        code={loginCaptcha}
-                        onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
-                        onRefresh={refreshLoginCaptcha}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      {!loginOtpSent ? (
-                        <button type="button" onClick={handleSendLoginOtp} className="btn-secondary w-full justify-center py-3.5 rounded-xl shadow-sm text-base">
-                          Send OTP to Mobile
+                    {loginMethod === 'password' || loginOtpSent ? (
+                      <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
+                        <LogIn className="h-5 w-5" />
+                        Sign In
+                      </button>
+                    ) : null}
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base pt-1">
+                      <button type="button" onClick={() => { setMode('recover'); setRecoverAlert(null); setRecoverStep(1); }} className="text-secondary font-medium hover:text-blue-700 transition-colors text-left">
+                        Forgot Login Details?
+                      </button>
+                      {canRegister ? (
+                        <button type="button" onClick={() => setMode('register')} className="text-secondary font-medium hover:text-blue-700 transition-colors text-left sm:text-right">
+                          New user? Create account
                         </button>
                       ) : (
-                        <Field label="Enter OTP" required>
-                          {loginDevOtp && (
+                        <span className="text-sm text-slate-500 flex items-center gap-1.5 font-medium">
+                          <Info className="h-4 w-4 shrink-0" />
+                          Accounts provisioned by the department
+                        </span>
+                      )}
+                    </div>
+                  </form>
+                )}
+
+
+                {/* Recovery Flow */}
+                {mode === 'recover' && (
+                  <div className="space-y-5 animate-fadeIn">
+                    <div className="mb-6 flex items-center gap-3">
+                      <button onClick={() => setMode('login')} className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                        <ArrowLeft className="h-5 w-5" />
+                      </button>
+                      <div>
+                        <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Account Recovery</h2>
+                        <p className="text-sm text-slate-500 mt-1">Recover your Login ID or reset your password.</p>
+                      </div>
+                    </div>
+
+                    <Alert type={recoverAlert?.type} message={recoverAlert?.message} />
+
+                    {recoverStep === 1 && (
+                      <div className="space-y-5">
+                        <Field label="Registered Mobile Number" required>
+                          <input
+                            type="tel"
+                            className={getInputClass(recoverMobile, 'phone')}
+                            placeholder="10-digit mobile number"
+                            value={recoverMobile}
+                            onChange={(e) => setRecoverMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            maxLength={10}
+                          />
+                        </Field>
+                        <button
+                          type="button"
+                          onClick={handleRecoverRequest}
+                          disabled={isRecovering}
+                          className="btn-primary w-full justify-center py-3.5 rounded-xl text-base"
+                        >
+                          {isRecovering ? 'Searching...' : 'Find My Account'}
+                        </button>
+                      </div>
+                    )}
+
+                    {recoverStep === 2 && (
+                      <div className="space-y-5">
+                        <Field label="Enter OTP sent to your mobile" required>
+                          {recoverDevOtp && (
                             <div className="mb-2 text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-200 w-max">
-                              [Dev] devotp - {loginDevOtp}
+                              [Dev] devotp - {recoverDevOtp}
                             </div>
                           )}
                           <div className="flex gap-2">
                             <input
-                              className={getInputClass(loginOtp, 'pin') + ' tracking-widest text-lg'}
+                              className={getInputClass(recoverOtp, 'pin') + ' tracking-widest text-lg'}
                               placeholder="6-digit OTP"
-                              value={loginOtp}
-                              onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              value={recoverOtp}
+                              onChange={(e) => setRecoverOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                               maxLength={6}
                             />
-                            {loginOtpTimer > 0 ? (
+                            {recoverOtpTimer > 0 ? (
                               <div className="btn-secondary px-4 py-3 shrink-0 flex justify-center items-center opacity-70 cursor-not-allowed">
-                                <span className="font-mono text-secondary font-bold">{loginOtpTimer}s</span>
+                                <span className="font-mono text-secondary font-bold">{recoverOtpTimer}s</span>
                               </div>
                             ) : (
-                              <button type="button" onClick={handleSendLoginOtp} className="btn-secondary px-4 py-3 shrink-0 text-sm">
+                              <button type="button" onClick={handleRecoverRequest} disabled={isRecovering} className="btn-secondary px-4 py-3 shrink-0 text-sm">
                                 Resend
                               </button>
                             )}
                           </div>
                         </Field>
-                      )}
-                    </>
-                  )}
-
-                  {loginMethod === 'password' || loginOtpSent ? (
-                    <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
-                      <LogIn className="h-5 w-5" />
-                      Sign In
-                    </button>
-                  ) : null}
-
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base pt-1">
-                    <Link to="/login" className="text-secondary font-medium hover:text-blue-700 transition-colors">
-                      Forgot password?
-                    </Link>
-                    {canRegister ? (
-                      <button type="button" onClick={() => setMode('register')} className="text-secondary font-medium hover:text-blue-700 transition-colors text-left sm:text-right">
-                        New user? Create account
-                      </button>
-                    ) : (
-                      <span className="text-sm text-slate-500 flex items-center gap-1.5 font-medium">
-                        <Info className="h-4 w-4 shrink-0" />
-                        Accounts provisioned by the department
-                      </span>
-                    )}
-                  </div>
-                </form>
-              )}
-
-
-              {/* Organization registration */}
-
-              {/* Registration Success Screen */}
-              {mode === 'register' && role === 'organization' && isSubmitted && (
-                <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6">
-                  <div className="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20 mb-4 animate-pulse">
-                    <Clock className="w-12 h-12" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-slate-800 font-heading">Application Under Review</h2>
-                  <div className="max-w-md text-slate-500 space-y-4">
-                    <p>
-                      Thank you for registering <strong>{orgReg.orgName || 'your organization'}</strong>.
-                    </p>
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-base shadow-inner">
-                      Your application has been forwarded to the Police Verification Department. Verification typically takes 2-3 business days.
-                    </div>
-                    <p>
-                      You will receive an email notification at <strong>{orgReg.adminEmail || 'your official email'}</strong> once your account has been approved.
-                    </p>
-                  </div>
-                  <div className="pt-6">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsSubmitted(false);
-                        setMode('login');
-                      }}
-                      className="btn-primary"
-                    >
-                      <Home className="w-4 h-4" /> Return to Sign In
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {mode === 'register' && role === 'organization' && !isSubmitted && (
-                <form onSubmit={handleRegister} className="space-y-5">
-                  <div>
-                    <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Organization Registration</h2>
-                    <p className="text-base text-slate-500 mt-2">
-                      Register your institution to access clearance verification services. Accounts are licence-linked and verified by the police.
-                    </p>
-                  </div>
-
-                  <StepIndicator steps={ORG_REG_STEPS} currentStep={regStep} />
-                  <Alert type={regAlert?.type} message={regAlert?.message} />
-
-                  <div className="min-h-[240px]">
-                    {regStep === 1 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Organization name" required className="sm:col-span-2">
-                          <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Kakatiya High School" />
-                        </Field>
-                        <Field label="Organization type" required>
-                          <SearchableSelect 
-                            value={orgReg.orgType}
-                            onChange={(val) => setOrgReg({ ...orgReg, orgType: val })}
-                            options={ORG_TYPES}
-                            placeholder="Select Type"
-                          />
-                        </Field>
-                        <Field label="Parent organization" required>
-                          <input className={getInputClass(orgReg.parentOrg, 'text')} value={orgReg.parentOrg} onChange={(e) => setOrgReg({ ...orgReg, parentOrg: e.target.value })} placeholder="e.g. Trust or Society Name" />
-                        </Field>
-                        <Field label="Department / Unit" required>
-                          <input className={getInputClass(orgReg.department, 'text')} value={orgReg.department} onChange={(e) => setOrgReg({ ...orgReg, department: e.target.value })} placeholder="e.g. Primary Section" />
-                        </Field>
-                        <Field label="Jurisdiction" required>
-                          <input className={getInputClass(orgReg.jurisdiction, 'text')} value={orgReg.jurisdiction} onChange={(e) => setOrgReg({ ...orgReg, jurisdiction: e.target.value })} placeholder="e.g. South Zone" />
-                        </Field>
+                        <button
+                          type="button"
+                          onClick={handleRecoverVerify}
+                          disabled={isRecovering}
+                          className="btn-primary w-full justify-center py-3.5 rounded-xl text-base"
+                        >
+                          {isRecovering ? 'Verifying...' : 'Verify OTP'}
+                        </button>
                       </div>
                     )}
 
-                    {regStep === 2 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Country" required>
-                          <SearchableSelect 
-                            value={orgReg.country} 
-                            onChange={(val) => setOrgReg({ ...orgReg, country: val })} 
-                            options={COUNTRIES} 
-                            placeholder="Select Country" 
-                          />
-                        </Field>
-                        <Field label="State" required>
-                          <SearchableSelect 
-                            value={orgReg.state} 
-                            onChange={(val) => setOrgReg({ ...orgReg, state: val })} 
-                            options={STATES} 
-                            placeholder="Select State" 
-                          />
-                        </Field>
-                        <Field label="District" required>
-                          <SearchableSelect 
-                            value={orgReg.district} 
-                            onChange={(val) => setOrgReg({ ...orgReg, district: val })} 
-                            options={DISTRICTS} 
-                            placeholder="Select District" 
-                          />
-                        </Field>
-                        <Field label="City" required>
-                          <SearchableSelect 
-                            value={orgReg.city} 
-                            onChange={(val) => setOrgReg({ ...orgReg, city: val })} 
-                            options={CITIES} 
-                            placeholder="Select City" 
-                          />
-                        </Field>
-                        <Field label="Address" required className="sm:col-span-2">
-                          <input className={getInputClass(orgReg.address, 'text')} value={orgReg.address} onChange={(e) => setOrgReg({ ...orgReg, address: e.target.value })} placeholder="Street address, building, etc." />
-                        </Field>
-                        <Field label="PIN Code" required>
-                          <input className={getInputClass(orgReg.pinCode, 'pin')} value={orgReg.pinCode}
-                            onChange={(e) => setOrgReg({ ...orgReg, pinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                            placeholder="6-digit PIN"
-                            inputMode="numeric"
-                            maxLength={6}
-                          />
-                        </Field>
-                      </div>
-                    )}
+                    {recoverStep === 3 && (
+                      <div className="space-y-6">
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                          <p className="text-sm text-emerald-800 font-bold mb-1">Your Login ID is</p>
+                          <p className="text-2xl font-black text-emerald-900 tracking-wide font-mono bg-white inline-block px-4 py-1.5 rounded-lg border border-emerald-100 shadow-sm">{recoverLoginId}</p>
+                        </div>
 
-                    {regStep === 3 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Official Email" required className="sm:col-span-2">
-                          <input className={inputClass} type="email" value={orgReg.officialEmail} onChange={(e) => setOrgReg({ ...orgReg, officialEmail: e.target.value })} placeholder="official@institution.edu" />
-                        </Field>
-                        <Field label="Official Phone" required>
-                          <input className={getInputClass(orgReg.officialPhone, 'phone')} value={orgReg.officialPhone} onChange={(e) => setOrgReg({ ...orgReg, officialPhone: e.target.value })} placeholder="e.g. 040-12345678" />
-                        </Field>
-                        <Field label="Alternate Phone" required>
-                          <input className={getInputClass(orgReg.altPhone, 'phone')} value={orgReg.altPhone} onChange={(e) => setOrgReg({ ...orgReg, altPhone: e.target.value })} placeholder="Alternate contact number" />
-                        </Field>
-                        <Field label="Website" required className="sm:col-span-2">
-                          <input className={inputClass} type="url" value={orgReg.website} onChange={(e) => setOrgReg({ ...orgReg, website: e.target.value })} placeholder="https://www.institution.edu" />
-                        </Field>
-                      </div>
-                    )}
-
-                    {regStep === 4 && (
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <Field label="Full Name" required>
-                          <input className={getInputClass(orgReg.adminName, 'text')} value={orgReg.adminName} onChange={(e) => setOrgReg({ ...orgReg, adminName: e.target.value })} placeholder="Administrator's name" />
-                        </Field>
-                        <Field label="Designation" required>
-                          <input className={getInputClass(orgReg.designation, 'text')} value={orgReg.designation} onChange={(e) => setOrgReg({ ...orgReg, designation: e.target.value })} placeholder="e.g. Principal, Director" />
-                        </Field>
-                        <Field label="Employee ID" required>
-                          <input className={getInputClass(orgReg.empId, 'text')} value={orgReg.empId} onChange={(e) => setOrgReg({ ...orgReg, empId: e.target.value })} placeholder="Staff ID" />
-                        </Field>
-                        <Field label="Mobile Number" required>
-                          <div className="flex flex-col sm:flex-row gap-2">
-                            <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
-                              onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
-                              placeholder="10-digit mobile"
-                              inputMode="numeric"
-                              maxLength={11}
-                              disabled={otpVerified}
-                            />
-                            {otpTimer > 0 ? (
-                              <div className="btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 flex justify-center items-center gap-1 opacity-70 cursor-not-allowed w-full sm:w-auto">
-                                <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
-                              </div>
-                            ) : (
-                              <button type="button" onClick={() => sendOtp(orgReg.mobile.replace(/-/g, ''))} disabled={otpVerified}
-                                className={`btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 justify-center w-full sm:w-auto ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
-                              </button>
-                            )}
-                          </div>
-                        </Field>
-                        {otpSent && !otpVerified && (
-                          <Field label="OTP Verification" required hint="Enter the 6-digit OTP sent to your mobile.">
-                            <div className="relative">
+                        <div className="border-t border-slate-200 pt-5 space-y-5">
+                          <h3 className="font-bold text-slate-700">Optional: Reset Password</h3>
+                          <form onSubmit={handleResetPassword} className="space-y-5">
+                            <Field label="New Password" required>
                               <input
-                                className={getInputClass(orgReg.otp, 'pin')}
-                                value={orgReg.otp}
-                                onChange={(e) => {
-                                  const val = e.target.value.replace(/-/g, '').slice(0, 6);
-                                  setOrgReg({ ...orgReg, otp: val });
-                                  if (val.length === 6) verifyOtpApi(orgReg.mobile.replace(/-/g, ''), val);
-                                }}
-                                placeholder="Enter 6-digit OTP"
-                                inputMode="numeric"
-                                maxLength={6}
+                                type="password"
+                                className={getInputClass(recoverNewPassword, 'password')}
+                                placeholder="Min 8 characters"
+                                value={recoverNewPassword}
+                                onChange={(e) => setRecoverNewPassword(e.target.value)}
                               />
+                            </Field>
+                            <Field label="Confirm New Password" required>
+                              <input
+                                type="password"
+                                className={getInputClass(recoverConfirmPassword, 'confirm', recoverNewPassword)}
+                                placeholder="Confirm new password"
+                                value={recoverConfirmPassword}
+                                onChange={(e) => setRecoverConfirmPassword(e.target.value)}
+                              />
+                            </Field>
+                            <button
+                              type="submit"
+                              disabled={isRecovering}
+                              className="btn-primary w-full justify-center py-3.5 rounded-xl text-base shadow-sm"
+                            >
+                              {isRecovering ? 'Resetting...' : 'Reset Password'}
+                            </button>
+                          </form>
+                        </div>
+
+                        <button onClick={() => { setMode('login'); setLoginForm(f => ({ ...f, userId: recoverLoginId })); }} className="w-full text-center text-sm font-bold text-slate-500 hover:text-primary transition-colors py-2">
+                          Back to Login
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Organization registration */}
+
+                {/* Registration Success Screen */}
+                {mode === 'register' && role === 'organization' && isSubmitted && (
+                  <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6">
+                    <div className="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20 mb-4 animate-pulse">
+                      <Clock className="w-12 h-12" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-slate-800 font-heading">Application Under Review</h2>
+                    <div className="max-w-md text-slate-500 space-y-4">
+                      <p>
+                        Thank you for registering <strong>{orgReg.orgName || 'your organization'}</strong>.
+                      </p>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-base shadow-inner">
+                        Your application has been forwarded to the Police Verification Department. Verification typically takes 2-3 business days.
+                      </div>
+                      <p>
+                        You will receive an email notification at <strong>{orgReg.adminEmail || 'your official email'}</strong> once your account has been approved.
+                      </p>
+                    </div>
+                    <div className="pt-6">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSubmitted(false);
+                          setMode('login');
+                        }}
+                        className="btn-primary"
+                      >
+                        <Home className="w-4 h-4" /> Return to Sign In
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {mode === 'register' && role === 'organization' && !isSubmitted && (
+                  <form onSubmit={handleRegister} className="space-y-5">
+                    <div>
+                      <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Organization Registration</h2>
+                      <p className="text-base text-slate-500 mt-2">
+                        Register your institution to access clearance verification services. Accounts are licence-linked and verified by the police.
+                      </p>
+                    </div>
+
+                    <StepIndicator steps={ORG_REG_STEPS} currentStep={regStep} />
+                    <Alert type={regAlert?.type} message={regAlert?.message} />
+
+                    <div className="min-h-[240px]">
+                      {regStep === 1 && (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <Field label="Organization name" required className="sm:col-span-2">
+                            <input className={getInputClass(orgReg.orgName, 'text')} value={orgReg.orgName} onChange={(e) => setOrgReg({ ...orgReg, orgName: e.target.value })} placeholder="e.g. Kakatiya High School" />
+                          </Field>
+                          <Field label="Organization type" required>
+                            <SearchableSelect
+                              value={orgReg.orgType}
+                              onChange={(val) => setOrgReg({ ...orgReg, orgType: val })}
+                              options={ORG_TYPES}
+                              placeholder="Select Type"
+                            />
+                          </Field>
+                          <Field label="Parent organization" required>
+                            <input className={getInputClass(orgReg.parentOrg, 'text')} value={orgReg.parentOrg} onChange={(e) => setOrgReg({ ...orgReg, parentOrg: e.target.value })} placeholder="e.g. Trust or Society Name" />
+                          </Field>
+                          <Field label="Department / Unit" required>
+                            <input className={getInputClass(orgReg.department, 'text')} value={orgReg.department} onChange={(e) => setOrgReg({ ...orgReg, department: e.target.value })} placeholder="e.g. Primary Section" />
+                          </Field>
+                          <Field label="Jurisdiction" required>
+                            <input className={getInputClass(orgReg.jurisdiction, 'text')} value={orgReg.jurisdiction} onChange={(e) => setOrgReg({ ...orgReg, jurisdiction: e.target.value })} placeholder="e.g. South Zone" />
+                          </Field>
+                        </div>
+                      )}
+
+                      {regStep === 2 && (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <Field label="Country" required>
+                            <SearchableSelect
+                              value={orgReg.country}
+                              onChange={(val) => setOrgReg({ ...orgReg, country: val })}
+                              options={COUNTRIES}
+                              placeholder="Select Country"
+                            />
+                          </Field>
+                          <Field label="State" required>
+                            <SearchableSelect
+                              value={orgReg.state}
+                              onChange={(val) => setOrgReg({ ...orgReg, state: val })}
+                              options={STATES}
+                              placeholder="Select State"
+                            />
+                          </Field>
+                          <Field label="District" required>
+                            <SearchableSelect
+                              value={orgReg.district}
+                              onChange={(val) => setOrgReg({ ...orgReg, district: val })}
+                              options={DISTRICTS}
+                              placeholder="Select District"
+                            />
+                          </Field>
+                          <Field label="City" required>
+                            <SearchableSelect
+                              value={orgReg.city}
+                              onChange={(val) => setOrgReg({ ...orgReg, city: val })}
+                              options={CITIES}
+                              placeholder="Select City"
+                            />
+                          </Field>
+                          <Field label="Address" required className="sm:col-span-2">
+                            <input className={getInputClass(orgReg.address, 'text')} value={orgReg.address} onChange={(e) => setOrgReg({ ...orgReg, address: e.target.value })} placeholder="Street address, building, etc." />
+                          </Field>
+                          <Field label="PIN Code" required>
+                            <input className={getInputClass(orgReg.pinCode, 'pin')} value={orgReg.pinCode}
+                              onChange={(e) => setOrgReg({ ...orgReg, pinCode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                              placeholder="6-digit PIN"
+                              inputMode="numeric"
+                              maxLength={6}
+                            />
+                          </Field>
+                        </div>
+                      )}
+
+                      {regStep === 3 && (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <Field label="Official Email" required className="sm:col-span-2">
+                            <input className={inputClass} type="email" value={orgReg.officialEmail} onChange={(e) => setOrgReg({ ...orgReg, officialEmail: e.target.value })} placeholder="contact@school.edu.in" />
+                          </Field>
+                          <Field label="Official Phone" required>
+                            <input className={getInputClass(orgReg.officialPhone, 'phone')} value={orgReg.officialPhone} onChange={(e) => setOrgReg({ ...orgReg, officialPhone: e.target.value })} placeholder="e.g. 9848xxxxxxxx" />
+                          </Field>
+                          <Field label="Alternate Phone" required>
+                            <input className={getInputClass(orgReg.altPhone, 'phone')} value={orgReg.altPhone} onChange={(e) => setOrgReg({ ...orgReg, altPhone: e.target.value })} placeholder="e.g. 7848xxxxxx" />
+                          </Field>
+                          <Field label="Website" required className="sm:col-span-2">
+                            <input className={inputClass} type="url" value={orgReg.website} onChange={(e) => setOrgReg({ ...orgReg, website: e.target.value })} placeholder="https://www.school.edu.in" />
+                          </Field>
+                        </div>
+                      )}
+
+                      {regStep === 4 && (
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <Field label="Full Name" required>
+                            <input className={getInputClass(orgReg.adminName, 'text')} value={orgReg.adminName} onChange={(e) => setOrgReg({ ...orgReg, adminName: e.target.value })} placeholder="Administrator's name" />
+                          </Field>
+                          <Field label="Designation" required>
+                            <input className={getInputClass(orgReg.designation, 'text')} value={orgReg.designation} onChange={(e) => setOrgReg({ ...orgReg, designation: e.target.value })} placeholder="e.g. Principal, Director" />
+                          </Field>
+                          <Field label="Employee ID" required>
+                            <input className={getInputClass(orgReg.empId, 'text')} value={orgReg.empId} onChange={(e) => setOrgReg({ ...orgReg, empId: e.target.value })} placeholder="Staff ID" />
+                          </Field>
+                          <Field label="Mobile Number" required>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
+                                onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
+                                placeholder="10-digit mobile"
+                                inputMode="numeric"
+                                maxLength={11}
+                                disabled={otpVerified}
+                              />
+                              {otpTimer > 0 ? (
+                                <div className="btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 flex justify-center items-center gap-1 opacity-70 cursor-not-allowed w-full sm:w-auto">
+                                  <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
+                                </div>
+                              ) : (
+                                <button type="button" onClick={() => sendOtp(orgReg.mobile.replace(/-/g, ''))} disabled={otpVerified}
+                                  className={`btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 justify-center w-full sm:w-auto ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
+                                </button>
+                              )}
                             </div>
                           </Field>
-                        )}
-                        {otpVerified && (
-                          <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-base font-semibold">
-                            <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                            Mobile verified ✓
-                          </div>
-                        )}
+                          {otpSent && !otpVerified && (
+                            <Field label="OTP Verification" required hint="Enter the 6-digit OTP sent to your mobile.">
+                              <div className="relative">
+                                <input
+                                  className={getInputClass(orgReg.otp, 'pin')}
+                                  value={orgReg.otp}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/-/g, '').slice(0, 6);
+                                    setOrgReg({ ...orgReg, otp: val });
+                                    if (val.length === 6) verifyOtpApi(orgReg.mobile.replace(/-/g, ''), val);
+                                  }}
+                                  placeholder="Enter 6-digit OTP"
+                                  inputMode="numeric"
+                                  maxLength={6}
+                                />
+                              </div>
+                            </Field>
+                          )}
+                          {otpVerified && (
+                            <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-base font-semibold">
+                              <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                              Mobile verified ✓
+                            </div>
+                          )}
 
-                        <Field label="Official Email" required>
-                          <input className={inputClass} type="email" value={orgReg.adminEmail} onChange={(e) => setOrgReg({ ...orgReg, adminEmail: e.target.value })} placeholder="admin@institution.edu" />
-                        </Field>
-                        <Field label="Username" required className="sm:col-span-2 sm:max-w-sm">
-                          <input className={getInputClass(orgReg.loginId, 'text')} value={orgReg.loginId} onChange={(e) => setOrgReg({ ...orgReg, loginId: e.target.value })} placeholder="Choose a unique username" />
-                        </Field>
-                        <Field label="Password" required hint="At least 8 characters.">
-                          <input type="password" className={inputClass} value={orgReg.password} onChange={(e) => setOrgReg({ ...orgReg, password: e.target.value })} placeholder="Create a password" />
-                        </Field>
-                        <Field label="Confirm password" required>
-                          <input type="password" className={inputClass} value={orgReg.confirm} onChange={(e) => setOrgReg({ ...orgReg, confirm: e.target.value })} placeholder="Re-enter password" />
-                        </Field>
-                      </div>
-                    )}
-
-                    {regStep === 5 && (
-                      <div className="space-y-4">
-                        <Field label="Authorization Letter" required hint="PDF or JPG. Max 5MB.">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, authLetter: e.target.files[0] })} />
-                        </Field>
-                        <Field label="Government Certificate" required hint="e.g. School Registration Certificate">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
-                        </Field>
-                        <Field label="Supporting Documents" hint="Additional accreditations or licences (optional)">
-                          <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
-                        </Field>
-                        <p className="text-sm text-slate-500 mt-2 italic">Note: PDF, JPG or PNG accepted. Max 5MB per file.</p>
-                      </div>
-                    )}
-
-                    {regStep === 6 && (
-                      <div className="space-y-4 text-base bg-white p-5 border border-slate-200 rounded-xl max-h-[400px] overflow-y-auto shadow-inner">
-                        <h3 className="font-semibold text-primary mb-2 border-b pb-2">Application Review</h3>
-                        <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                          <div className="text-slate-500">Organization Name</div>
-                          <div className="font-medium">{orgReg.orgName || '-'}</div>
-                          <div className="text-slate-500">Type</div>
-                          <div className="font-medium">{orgReg.orgType || '-'}</div>
-                          <div className="text-slate-500">City / District</div>
-                          <div className="font-medium">{orgReg.city || '-'} ({orgReg.district || '-'})</div>
-                          <div className="text-slate-500">Official Email</div>
-                          <div className="font-medium">{orgReg.officialEmail || '-'}</div>
-                          <div className="text-slate-500">Admin Name</div>
-                          <div className="font-medium">{orgReg.adminName || '-'}</div>
-                          <div className="text-slate-500">Username</div>
-                          <div className="font-medium">{orgReg.loginId || '-'}</div>
-                          <div className="text-slate-500">Uploaded Docs</div>
-                          <div className="font-medium text-emerald-600">
-                            {orgReg.authLetter ? 'Letter' : ''} {orgReg.govCert ? ', Cert' : ''}
-                          </div>
+                          <Field label="Official Email" required>
+                            <input className={inputClass} type="email" value={orgReg.adminEmail} onChange={(e) => setOrgReg({ ...orgReg, adminEmail: e.target.value })} placeholder="admin@institution.edu" />
+                          </Field>
+                          <Field label="Username" required className="sm:col-span-2 sm:max-w-sm">
+                            <input className={getInputClass(orgReg.loginId, 'text')} value={orgReg.loginId} onChange={(e) => setOrgReg({ ...orgReg, loginId: e.target.value })} placeholder="Choose a unique username" />
+                          </Field>
+                          <Field label="Password" required hint="At least 8 characters.">
+                            <input type="password" className={inputClass} value={orgReg.password} onChange={(e) => setOrgReg({ ...orgReg, password: e.target.value })} placeholder="Create a password" />
+                          </Field>
+                          <Field label="Confirm password" required>
+                            <input type="password" className={inputClass} value={orgReg.confirm} onChange={(e) => setOrgReg({ ...orgReg, confirm: e.target.value })} placeholder="Re-enter password" />
+                          </Field>
                         </div>
-                        <p className="text-sm text-slate-400 mt-4">Please ensure all details are correct. You cannot edit these once submitted.</p>
-                      </div>
-                    )}
-
-                    {regStep === 7 && (
-                      <div className="space-y-5">
-                        <div className="space-y-3 bg-white p-5 border border-slate-200 rounded-xl">
-                          <label className="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptTerms} onChange={(e) => setOrgReg({ ...orgReg, acceptTerms: e.target.checked })} />
-                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Registry.</span>
-                          </label>
-                          <label className="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptPrivacy} onChange={(e) => setOrgReg({ ...orgReg, acceptPrivacy: e.target.checked })} />
-                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Privacy Policy and consent to data processing for verification.</span>
-                          </label>
-                          <label className="flex items-start gap-3 cursor-pointer group">
-                            <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.confirmInfo} onChange={(e) => setOrgReg({ ...orgReg, confirmInfo: e.target.checked })} />
-                            <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I confirm that all information provided is true and accurate to the best of my knowledge.</span>
-                          </label>
-                        </div>
-                        <Captcha
-                          value={orgReg.captcha}
-                          code={regCaptcha}
-                          onChange={(v) => setOrgReg({ ...orgReg, captcha: v })}
-                          onRefresh={refreshRegCaptchaState}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    {regStep > 1 && (
-                      <button type="button" onClick={prevStep} className="flex-1 btn-secondary justify-center py-3.5 rounded-xl text-base bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50">
-                        Back
-                      </button>
-                    )}
-                    <button type="submit" className="flex-[2] btn-primary justify-center py-3.5 rounded-xl shadow-lg shadow-primary/20 text-base">
-                      {regStep === maxRegStep ? (
-                        <><UserPlus className="h-5 w-5 mr-2" /> Create Account</>
-                      ) : (
-                        'Next Step'
                       )}
-                    </button>
-                  </div>
 
-                  <p className="text-center text-base text-slate-500 font-medium mt-6">
-                    Already registered?{' '}
-                    <button type="button" onClick={() => setMode('login')} className="text-secondary hover:text-blue-700 transition-colors">
-                      Sign in
-                    </button>
-                  </p>
-                </form>
-              )}
+                      {regStep === 5 && (
+                        <div className="space-y-4">
+                          <Field label="Authorization Letter" required hint="PDF or JPG. Max 5MB.">
+                            <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, authLetter: e.target.files[0] })} />
+                          </Field>
+                          <Field label="Government Certificate" required hint="e.g. School Registration Certificate">
+                            <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" onChange={(e) => setOrgReg({ ...orgReg, govCert: e.target.files[0] })} />
+                          </Field>
+                          <Field label="Supporting Documents" hint="Additional accreditations or licences (optional)">
+                            <input type="file" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 outline-none transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-blue-50 file:text-secondary hover:file:bg-blue-100" multiple onChange={(e) => setOrgReg({ ...orgReg, supportingDocs: e.target.files })} />
+                          </Field>
+                          <p className="text-sm text-slate-500 mt-2 italic">Note: PDF, JPG or PNG accepted. Max 5MB per file.</p>
+                        </div>
+                      )}
+
+                      {regStep === 6 && (
+                        <div className="space-y-4 text-base bg-white p-5 border border-slate-200 rounded-xl max-h-[400px] overflow-y-auto shadow-inner">
+                          <h3 className="font-semibold text-primary mb-2 border-b pb-2">Application Review</h3>
+                          <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                            <div className="text-slate-500">Organization Name</div>
+                            <div className="font-medium">{orgReg.orgName || '-'}</div>
+                            <div className="text-slate-500">Type</div>
+                            <div className="font-medium">{orgReg.orgType || '-'}</div>
+                            <div className="text-slate-500">City / District</div>
+                            <div className="font-medium">{orgReg.city || '-'} ({orgReg.district || '-'})</div>
+                            <div className="text-slate-500">Official Email</div>
+                            <div className="font-medium">{orgReg.officialEmail || '-'}</div>
+                            <div className="text-slate-500">Admin Name</div>
+                            <div className="font-medium">{orgReg.adminName || '-'}</div>
+                            <div className="text-slate-500">Username</div>
+                            <div className="font-medium">{orgReg.loginId || '-'}</div>
+                            <div className="text-slate-500">Uploaded Docs</div>
+                            <div className="font-medium text-emerald-600">
+                              {orgReg.authLetter ? 'Letter' : ''} {orgReg.govCert ? ', Cert' : ''}
+                            </div>
+                          </div>
+                          <p className="text-sm text-slate-400 mt-4">Please ensure all details are correct. You cannot edit these once submitted.</p>
+                        </div>
+                      )}
+
+                      {regStep === 7 && (
+                        <div className="space-y-5">
+                          <div className="space-y-3 bg-white p-5 border border-slate-200 rounded-xl">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                              <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptTerms} onChange={(e) => setOrgReg({ ...orgReg, acceptTerms: e.target.checked })} />
+                              <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Terms & Conditions of the State Sexual Offender Registry.</span>
+                            </label>
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                              <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.acceptPrivacy} onChange={(e) => setOrgReg({ ...orgReg, acceptPrivacy: e.target.checked })} />
+                              <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I accept the Privacy Policy and consent to data processing for verification.</span>
+                            </label>
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                              <input type="checkbox" className="mt-1 w-4 h-4 text-secondary border-slate-300 rounded focus:ring-secondary/20" checked={orgReg.confirmInfo} onChange={(e) => setOrgReg({ ...orgReg, confirmInfo: e.target.checked })} />
+                              <span className="text-base text-slate-700 group-hover:text-slate-900 transition-colors">I confirm that all information provided is true and accurate to the best of my knowledge.</span>
+                            </label>
+                          </div>
+                          <Captcha
+                            value={orgReg.captcha}
+                            code={regCaptcha}
+                            onChange={(v) => setOrgReg({ ...orgReg, captcha: v })}
+                            onRefresh={refreshRegCaptchaState}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-4 flex gap-3">
+                      {regStep > 1 && (
+                        <button type="button" onClick={prevStep} className="flex-1 btn-secondary justify-center py-3.5 rounded-xl text-base bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50">
+                          Back
+                        </button>
+                      )}
+                      <button type="submit" className="flex-[2] btn-primary justify-center py-3.5 rounded-xl shadow-lg shadow-primary/20 text-base">
+                        {regStep === maxRegStep ? (
+                          <><UserPlus className="h-5 w-5 mr-2" /> Create Account</>
+                        ) : (
+                          'Next Step'
+                        )}
+                      </button>
+                    </div>
+
+                    <p className="text-center text-base text-slate-500 font-medium mt-6">
+                      Already registered?{' '}
+                      <button type="button" onClick={() => setMode('login')} className="text-secondary hover:text-blue-700 transition-colors">
+                        Sign in
+                      </button>
+                    </p>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
-
-          <p className="text-center text-sm text-slate-500 mt-6 max-w-lg mx-auto leading-relaxed px-4">
-            This is a prototype. Authentication is simulated in the browser and no data is transmitted or stored.
-          </p>
-        </div>
         </div>
       </div>
     </div>
