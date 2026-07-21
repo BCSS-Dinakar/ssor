@@ -215,7 +215,7 @@ function StepIndicator({ steps, currentStep }) {
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, registerOrganization } = useAuth();
+  const { login, requestLoginOtp, verifyLoginOtp, registerOrganization } = useAuth();
   const roleParam = searchParams.get('role');
   const modeParam = searchParams.get('mode');
 
@@ -230,6 +230,12 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
+  
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [loginOtp, setLoginOtp] = useState('');
+  const [loginOtpTimer, setLoginOtpTimer] = useState(0);
+  const [loginDevOtp, setLoginDevOtp] = useState(null);
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
 
 
   const [orgReg, setOrgReg] = useState(emptyOrgReg());
@@ -254,6 +260,11 @@ function LoginPage() {
     setOtpTimer(0);
     setOrgReg(emptyOrgReg());
     setRegCaptcha(makeCaptcha());
+    setLoginMethod('password');
+    setLoginOtp('');
+    setLoginOtpTimer(0);
+    setLoginDevOtp(null);
+    setLoginOtpSent(false);
   }, [role]);
 
   useEffect(() => {
@@ -294,6 +305,44 @@ function LoginPage() {
     } catch (err) {
       setLoginAlert({ type: 'error', message: err.message || 'Authentication failed.' });
       refreshLoginCaptcha();
+    }
+  };
+
+  useEffect(() => {
+    if (loginOtpTimer <= 0) return;
+    const tick = setTimeout(() => setLoginOtpTimer((t) => t - 1), 1000);
+    return () => clearTimeout(tick);
+  }, [loginOtpTimer]);
+
+  const handleSendLoginOtp = async () => {
+    const idLabel = role === 'police' ? 'Officer username' : 'Login ID';
+    if (!loginForm.userId.trim()) return setLoginAlert({ type: 'error', message: `${idLabel} is required to send OTP.` });
+    
+    try {
+      setLoginAlert({ type: 'info', message: 'Requesting OTP...' });
+      const data = await requestLoginOtp(role, loginForm.userId.trim());
+      if (data.success) {
+        setLoginOtpSent(true);
+        setLoginOtpTimer(120);
+        setLoginDevOtp(data.devOtp || null);
+        setLoginAlert({ type: 'success', message: data.message });
+      }
+    } catch (err) {
+      setLoginAlert({ type: 'error', message: err.message || 'Failed to send OTP.' });
+    }
+  };
+
+  const handleVerifyLoginOtp = async (e) => {
+    e.preventDefault();
+    if (!loginOtp.trim()) return setLoginAlert({ type: 'error', message: 'OTP is required.' });
+
+    try {
+      setLoginAlert({ type: 'info', message: 'Verifying OTP...' });
+      await verifyLoginOtp(role, loginForm.userId.trim(), loginOtp.trim());
+      setLoginAlert({ type: 'success', message: 'Sign in successful! Redirecting...' });
+      setTimeout(() => navigate('/portal'), 700);
+    } catch (err) {
+      setLoginAlert({ type: 'error', message: err.message || 'OTP Verification failed.' });
     }
   };
 
@@ -549,7 +598,7 @@ function LoginPage() {
             <div className="px-2 sm:px-6 lg:px-8">
               {/* Login */}
               {mode === 'login' && (
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-5">
                   <div className="mb-2">
                     <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
                       {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
@@ -559,6 +608,23 @@ function LoginPage() {
                         ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
                         : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
                     </p>
+                  </div>
+
+                  <div className="flex bg-slate-100 rounded-lg p-1 w-max mb-4 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => { setLoginMethod('password'); setLoginAlert(null); setLoginOtpSent(false); }}
+                      className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'password' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Use Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setLoginMethod('otp'); setLoginAlert(null); }}
+                      className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'otp' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Use OTP
+                    </button>
                   </div>
 
                   <Alert type={loginAlert?.type} message={loginAlert?.message} />
@@ -575,38 +641,78 @@ function LoginPage() {
                     </div>
                   </Field>
 
-                  <Field label="Password" required>
-                    <div className="relative">
-                      <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
-                        placeholder="Enter your password"
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  {loginMethod === 'password' ? (
+                    <>
+                      <Field label="Password" required>
+                        <div className="relative">
+                          <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
+                            placeholder="Enter your password"
+                            value={loginForm.password}
+                            onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((s) => !s)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
+                            aria-label="Toggle password visibility"
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </Field>
+
+                      <Captcha
+                        value={loginForm.captcha}
+                        code={loginCaptcha}
+                        onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
+                        onRefresh={refreshLoginCaptcha}
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((s) => !s)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
-                        aria-label="Toggle password visibility"
-                      >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </Field>
+                    </>
+                  ) : (
+                    <>
+                      {!loginOtpSent ? (
+                        <button type="button" onClick={handleSendLoginOtp} className="btn-secondary w-full justify-center py-3.5 rounded-xl shadow-sm text-base">
+                          Send OTP to Mobile
+                        </button>
+                      ) : (
+                        <Field label="Enter OTP" required>
+                          {loginDevOtp && (
+                            <div className="mb-2 text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-200 w-max">
+                              [Dev] devotp - {loginDevOtp}
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <input
+                              className={getInputClass(loginOtp, 'pin') + ' tracking-widest text-lg'}
+                              placeholder="6-digit OTP"
+                              value={loginOtp}
+                              onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              maxLength={6}
+                            />
+                            {loginOtpTimer > 0 ? (
+                              <div className="btn-secondary px-4 py-3 shrink-0 flex justify-center items-center opacity-70 cursor-not-allowed">
+                                <span className="font-mono text-secondary font-bold">{loginOtpTimer}s</span>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={handleSendLoginOtp} className="btn-secondary px-4 py-3 shrink-0 text-sm">
+                                Resend
+                              </button>
+                            )}
+                          </div>
+                        </Field>
+                      )}
+                    </>
+                  )}
 
-                  <Captcha
-                    value={loginForm.captcha}
-                    code={loginCaptcha}
-                    onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
-                    onRefresh={refreshLoginCaptcha}
-                  />
-
-                  <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
-                    <LogIn className="h-5 w-5" />
-                    Sign In
-                  </button>
+                  {loginMethod === 'password' || loginOtpSent ? (
+                    <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
+                      <LogIn className="h-5 w-5" />
+                      Sign In
+                    </button>
+                  ) : null}
 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base pt-1">
                     <Link to="/login" className="text-secondary font-medium hover:text-blue-700 transition-colors">

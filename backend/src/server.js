@@ -2,6 +2,7 @@ import { env } from './config/env.js';
 import app from './app.js';
 import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
+import getRedis from './config/redis.js';
 
 const listenWithPortFallback = (preferredPort, retryLimit) => new Promise((resolve, reject) => {
   let port = preferredPort;
@@ -36,7 +37,10 @@ const startServer = async () => {
   // 2. Connect Prisma
   await connectDB();
 
-  // 3. Start Express Server
+  // 3. Connect Redis
+  const redis = getRedis();
+
+  // 4. Start Express Server
   const { server, port } = await listenWithPortFallback(env.PORT, env.PORT_RETRY_LIMIT);
 
   console.log(`
@@ -46,6 +50,7 @@ const startServer = async () => {
 📡 Server      : http://localhost:${port}
 🗄️ Database    : Connected
 ⚡ Prisma Client Ready
+📦 Redis       : ${['ready', 'connect', 'connecting', 'wait'].includes(redis.status) ? 'Connected (Lazy)' : 'Disconnected'}
 ────────────────────────────────────
     `);
 
