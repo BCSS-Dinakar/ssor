@@ -369,7 +369,7 @@ function LandingPage() {
         <div className="relative max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-white font-heading">System overview</h2>
-            <p className="text-gray-400 text-lg mt-3">Illustrative snapshot from fictional test data for this prototype.</p>
+            <p className="text-gray-400 text-lg mt-3">Illustrative snapshot of the dashboard.</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
