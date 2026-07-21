@@ -38,7 +38,7 @@ function VerifiedPersonnel() {
         subtitle="View cleared staff credential badges and verification outcomes."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard label="Total Roster" value={total} icon={Users} meta="All candidates" />
         <StatCard label="Active Clearances" value={cleared} icon={CheckCircle2} accent="bg-emerald-50 text-emerald-600" valueClass="text-emerald-600" />
         <StatCard label="Rejected" value={rejected} icon={AlertTriangle} accent="bg-red-50 text-red-600" valueClass="text-red-600" />
@@ -57,7 +57,7 @@ function VerifiedPersonnel() {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredCandidates.map((c) => {
           const isCleared = c.status === 'cleared';
           const isRejected = c.status === 'rejected';

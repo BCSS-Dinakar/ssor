@@ -118,6 +118,6 @@
   }
 
   .portal-content {
-    @apply mx-auto w-full max-w-[90rem];
+    @apply mx-auto w-full;
   }
 }

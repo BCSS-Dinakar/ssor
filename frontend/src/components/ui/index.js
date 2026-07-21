@@ -3,7 +3,7 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Label, Input, Textarea, Field } from './Input';
 export { Badge, StatusBadge, badgeVariants } from './Badge';
 export { Alert } from './Alert';
-export { Skeleton, PageSkeleton } from './Skeleton';
+export { Skeleton, PageSkeleton, PoliceDashboardSkeleton, OrgDashboardSkeleton, ListSkeleton, DetailSkeleton } from './Skeleton';
 export {
   Dialog,
   DialogTrigger,

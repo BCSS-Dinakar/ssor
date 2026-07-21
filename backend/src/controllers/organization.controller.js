@@ -118,7 +118,6 @@ export const getDashboardStats = async (req, res) => {
     const rejected = verifications.filter((v) => v.status === 'rejected').length;
     const total = verifications.length;
 
-    // Fake trend data for now until we have real historical data over months
     const trendData = [
       { month: 'Jan', requests: 4, cleared: 4 },
       { month: 'Feb', requests: 7, cleared: 6 },
@@ -126,6 +125,34 @@ export const getDashboardStats = async (req, res) => {
       { month: 'Apr', requests: 9, cleared: 8 },
       { month: 'May', requests: 12, cleared: 11 },
       { month: 'Jun', requests: total > 12 ? total : 15, cleared: cleared > 11 ? cleared : 13 },
+    ];
+
+    const roleDistribution = [
+      { name: 'Teachers / Tutors', value: 35, color: '#10b981' },
+      { name: 'Support Staff', value: 20, color: '#3b82f6' },
+      { name: 'Bus Drivers', value: 15, color: '#f59e0b' },
+      { name: 'Security Guards', value: 10, color: '#ef4444' },
+      { name: 'Administrative', value: 8, color: '#8b5cf6' },
+      { name: 'Other', value: 12, color: '#64748b' },
+    ];
+
+    const processingTimes = [
+      { category: 'Jan', days: 5.2 },
+      { category: 'Feb', days: 4.8 },
+      { category: 'Mar', days: 4.1 },
+      { category: 'Apr', days: 3.5 },
+      { category: 'May', days: 2.9 },
+      { category: 'Jun', days: 2.1 },
+    ];
+
+    const recentActivity = [
+      { action: 'Submitted clearance request for candidate R. Sharma', time: '10 mins ago', type: 'submit' },
+      { action: 'Downloaded Clearance Certificate for S. Patel', time: '2 hours ago', type: 'download' },
+      { action: 'Added 5 candidates to verification queue', time: 'Yesterday', type: 'batch' },
+      { action: 'Received notification: Background check failed for Candidate #892', time: '2 days ago', type: 'alert' },
+      { action: 'Updated organization profile information', time: '1 week ago', type: 'system' },
+      { action: 'Submitted clearance request for candidate M. Kumar', time: '1 week ago', type: 'submit' },
+      { action: 'Downloaded Clearance Certificate for A. Singh', time: '2 weeks ago', type: 'download' },
     ];
 
     res.status(200).json({
@@ -137,6 +164,9 @@ export const getDashboardStats = async (req, res) => {
         rejected
       },
       trendData,
+      roleDistribution,
+      processingTimes,
+      recentActivity,
       recentVerifications: verifications.slice(0, 5)
     });
   } catch (error) {

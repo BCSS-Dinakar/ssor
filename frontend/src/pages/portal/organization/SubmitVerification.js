@@ -213,7 +213,7 @@ function SubmitVerification() {
           <h3 className="font-bold text-slate-800 text-lg mb-4">Candidate Registry</h3>
           <p className="text-sm text-slate-500 mb-6 -mt-3">Credentials must match official state documents exactly.</p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-6">
             <Field label="Candidate Full Name" required>
               <input className={inputClass} value={form.candidate} onChange={set('candidate')} placeholder="e.g. Ramesh Kumar" required />
             </Field>

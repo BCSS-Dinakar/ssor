@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, Sh
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
+import { DetailSkeleton } from '../../../components/ui/index';
 import { useToast } from '../../../components/ui/Toast';
 
 function InfoRow({ icon: Icon, label, value }) {
@@ -52,7 +53,7 @@ function DynamicDataGrid({ data }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 xl:grid-cols-4 gap-3">
       {validEntries.map(([key, value]) => {
         const formattedKey = key.replace(/_/g, ' ').toUpperCase();
         const stringValue = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);
@@ -248,13 +249,7 @@ function VerificationVetting() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (!record) {
     return (
@@ -391,7 +386,7 @@ function VerificationVetting() {
         }
       />
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid xl:grid-cols-3 gap-6">
         {/* Main workflow block */}
         <div className="lg:col-span-2 space-y-6">
 
@@ -859,7 +854,7 @@ function VerificationVetting() {
                       <div className="min-h-[160px] pt-2">
                         {activeSuspectTab === 'profile' && (
                           <div className="space-y-4">
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                               <DetailRow label="Record suspect ID" value={record.matchedSuspect.id} mono />
                               <DetailRow label="Full Name" value={record.matchedSuspect.name} />
                               <DetailRow label="Alias (alias)" value={record.matchedSuspect.alias} />
@@ -879,7 +874,7 @@ function VerificationVetting() {
 
                         {activeSuspectTab === 'physical' && (
                           <div className="space-y-4">
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                               <DetailRow label="Height Profile" value={record.matchedSuspect.height} />
                               <DetailRow label="Body Build" value={record.matchedSuspect.build} />
                               <DetailRow label="Complexion / Color" value={record.matchedSuspect.complexion} />
@@ -898,7 +893,7 @@ function VerificationVetting() {
 
                         {activeSuspectTab === 'case' && (
                           <div className="space-y-4">
-                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
                               <DetailRow label="FIR Reference" value={record.matchedSuspect.firNo} />
                               <DetailRow label="FIR Date Vetted" value={record.matchedSuspect.firDate} mono />
                               <DetailRow label="Date of Conviction" value={record.matchedSuspect.convDate} mono />
