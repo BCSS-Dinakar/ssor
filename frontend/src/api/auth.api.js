@@ -7,6 +7,16 @@ export const authApi = {
     return response.data;
   },
 
+  loginOtpRequest: async (credentials) => {
+    const response = await api.post('/auth/login-otp-request', credentials);
+    return response.data;
+  },
+
+  loginOtpVerify: async (credentials) => {
+    const response = await api.post('/auth/login-otp-verify', credentials);
+    return response.data;
+  },
+
   logout: async () => {
     const response = await api.post('/auth/logout');
     return response.data;
