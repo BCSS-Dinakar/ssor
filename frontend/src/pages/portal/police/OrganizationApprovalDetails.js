@@ -1,3 +1,4 @@
+import { DetailSkeleton } from '../../../components/ui/index';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
@@ -108,9 +109,7 @@ function OrganizationApprovalDetails() {
     fetchOrg();
   }, [id]);
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500 font-medium">Loading organization details...</div>;
-  }
+  if (loading) return <DetailSkeleton />;
 
   if (!org) {
     return <div className="p-8 text-center text-red-500 font-medium">Organization not found.</div>;
@@ -212,7 +211,7 @@ function OrganizationApprovalDetails() {
       </div>
 
       {/* Details Grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid xl:grid-cols-2 gap-6">
         <div className="space-y-6">
           <Section title="Institution Details">
             <div className="grid sm:grid-cols-2 gap-4">

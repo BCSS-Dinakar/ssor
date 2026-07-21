@@ -19,7 +19,7 @@ import { services, steps, faqs } from '../utils/data/organizationServicesData';
 
 function OrganizationServicesPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <PageHero>
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium mb-5 sm:mb-6">
@@ -52,7 +52,7 @@ function OrganizationServicesPage() {
 
       {/* ───────── AVAILABLE SERVICES ───────── */}
       <section id="services" className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Available Services</h2>
             <p className="section-subtitle">Choose the service that applies to your needs. All services are accessed through a secure, audited portal.</p>
@@ -92,7 +92,7 @@ function OrganizationServicesPage() {
 
       {/* ───────── HOW IT WORKS ───────── */}
       <section id="how-it-works" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">How it works</h2>
             <p className="section-subtitle">A simple, transparent four-step process from application to certificate.</p>
@@ -122,7 +122,7 @@ function OrganizationServicesPage() {
 
       {/* ───────── IMPORTANT NOTES ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
@@ -197,7 +197,7 @@ function OrganizationServicesPage() {
 
       {/* ───────── CTA ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="card p-10 md:p-14 text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-secondary to-primary"></div>
             <ShieldCheck className="h-12 w-12 text-secondary mx-auto mb-6" />

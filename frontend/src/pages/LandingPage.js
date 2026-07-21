@@ -22,10 +22,10 @@ import { legalFramework, accessLevels, tiers, capabilities } from '../utils/data
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ───────── HERO: exact first viewport (below sticky nav h-16) ───────── */}
       <section
-        className="relative flex min-h-[calc(100svh-4rem)] overflow-x-hidden overflow-y-auto lg:overflow-hidden lg:h-[calc(100dvh-4rem)]"
+        className="relative flex min-h-[calc(100svh-4rem)] lg:min-h-[min(100dvh-4rem,56rem)] overflow-x-hidden overflow-y-auto lg:overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary" />
         <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -39,8 +39,8 @@ function LandingPage() {
           }}
         />
 
-        <div className="relative z-10 flex w-full flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12 pb-12 sm:pb-14 lg:pb-16 min-h-0 flex-1">
-          <div className="grid min-h-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-4 sm:gap-6 lg:gap-10 items-center">
+        <div className="relative z-10 flex w-full flex-col justify-center max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 lg:py-16 pb-20 sm:pb-24 lg:pb-32 min-h-0 flex-1">
+          <div className="grid min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-10 sm:gap-10 lg:gap-12 items-center">
             {/* Copy */}
             <div className="text-center lg:text-left flex flex-col justify-center min-h-0">
               <div className="inline-flex self-center lg:self-start items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4">
@@ -101,12 +101,12 @@ function LandingPage() {
             </div>
 
             {/* Media — scales within remaining column height */}
-            <div className="relative hidden sm:flex items-center justify-center min-h-0 h-full max-h-full py-1">
+            <div className="relative flex items-center justify-center min-h-0 h-full max-h-full py-2 mt-6 lg:mt-0">
               <div className="absolute inset-[8%] bg-accent/15 rounded-3xl blur-2xl pointer-events-none" />
               <img
                 src="/images/hero-shield.png"
                 alt="Shield protecting women and children, with scales of justice and secure database"
-                className="relative z-[1] rounded-2xl shadow-2xl border border-white/10 w-full h-auto max-h-[min(52dvh,28rem)] lg:max-h-[min(62dvh,34rem)] object-contain"
+                className="relative z-[1] rounded-2xl shadow-2xl border border-white/10 w-full h-auto max-h-[18rem] sm:max-h-[min(52dvh,28rem)] lg:max-h-[min(62dvh,34rem)] object-contain"
               />
             </div>
           </div>
@@ -117,8 +117,8 @@ function LandingPage() {
       </section>
 
       {/* ───────── DOORWAY ACCESS (below hero) ───────── */}
-      <section className="relative z-20 bg-background -mt-1 pt-6 sm:pt-8 pb-4 sm:pb-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative z-20 bg-background -mt-1 pt-6 sm:pt-10 pb-6 sm:pb-10">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 max-w-5xl mx-auto">
             {accessLevels.map((level) => (
               <Link
@@ -151,7 +151,7 @@ function LandingPage() {
 
       {/* ───────── LEGAL FRAMEWORK STRIP ───────── */}
       <section className="bg-background border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <p className="text-center text-sm tracking-wide text-muted font-semibold mb-5">
             Built on the Constitution & Statutory Framework
           </p>
@@ -171,7 +171,7 @@ function LandingPage() {
 
       {/* ───────── WHY NO PUBLIC SEARCH ───────── */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-sm font-semibold tracking-wide mb-5">
@@ -211,7 +211,7 @@ function LandingPage() {
 
       {/* ───────── ACCESS MODEL ───────── */}
       <section className="py-14 sm:py-16 lg:py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-12">
             <h2 className="section-title">Two levels of controlled access</h2>
             <p className="section-subtitle">Access is granted strictly by authorisation — police manage the register; organizations request clearance.</p>
@@ -251,7 +251,7 @@ function LandingPage() {
 
       {/* ───────── COLOUR-CODED CLASSIFICATION ───────── */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Colour-coded risk classification</h2>
             <p className="section-subtitle">Every tier corresponds to a real, constitutionally valid offence and maps to precise sections of law.</p>
@@ -295,7 +295,7 @@ function LandingPage() {
 
       {/* ───────── INSTITUTION VERIFICATION ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative">
               <img
@@ -339,7 +339,7 @@ function LandingPage() {
 
       {/* ───────── CAPABILITIES ───────── */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="section-title">Core safeguards</h2>
             <p className="section-subtitle">Designed to be operated, audited and defended in court — within the bounds of the Constitution.</p>
@@ -366,7 +366,7 @@ function LandingPage() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}></div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-white font-heading">System overview</h2>
             <p className="text-gray-400 text-lg mt-3">Illustrative snapshot from fictional test data for this prototype.</p>
@@ -393,7 +393,7 @@ function LandingPage() {
 
       {/* ───────── CTA SECTION ───────── */}
       <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="card p-10 md:p-14 text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-secondary to-primary"></div>
             <UserCheck className="h-12 w-12 text-secondary mx-auto mb-6" />

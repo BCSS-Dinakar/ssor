@@ -1,7 +1,7 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Menu, LogOut, UserCircle, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ROLE_META } from '../utils/data/portalData';
+import { ROLE_META, NAV } from '../utils/data/portalData';
 import { Button } from '../components/ui/Button';
 import {
   DropdownMenu,
@@ -22,6 +22,19 @@ function Header({ onMenu }) {
     navigate('/login');
   };
 
+  const location = useLocation();
+  const navItems = NAV[auth?.role] || [];
+  let currentNav = null;
+  if (location.pathname === '/portal') {
+    currentNav = navItems.find(item => item.path === '/portal');
+  } else {
+    currentNav = [...navItems]
+      .filter(item => item.path && location.pathname.startsWith(item.path))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+  }
+
+  const roleName = auth?.role === 'police' ? 'Police' : 'Organization';
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-3 shadow-panel sm:px-5">
       <div className="flex min-w-0 items-center gap-2.5">
@@ -35,9 +48,17 @@ function Header({ onMenu }) {
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
         <div className="min-w-0">
-          <div className="text-xs font-semibold leading-none text-muted">{meta.kicker}</div>
-          <div className="mt-0.5 truncate font-heading text-sm font-bold leading-none text-primary sm:text-base">
-            {meta.title}
+          <div className="text-[11px] uppercase tracking-wider font-bold leading-none text-muted flex items-center gap-1.5">
+            <span>{roleName}</span>
+            {currentNav && (
+              <>
+                <span className="text-slate-300">/</span>
+                <span className="text-secondary">{currentNav.label}</span>
+              </>
+            )}
+          </div>
+          <div className="mt-1.5 truncate font-heading text-sm font-bold leading-none text-primary sm:text-base">
+            {currentNav ? currentNav.label : meta.title}
           </div>
         </div>
       </div>

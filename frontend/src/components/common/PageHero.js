@@ -9,8 +9,8 @@ function PageHero({ children, compact = false }) {
     <section
       className={`relative flex overflow-x-hidden ${
         compact
-          ? 'min-h-[min(52svh,28rem)]'
-          : 'min-h-[calc(100svh-4rem)] lg:min-h-[min(70dvh,40rem)]'
+          ? 'min-h-[40svh] lg:min-h-[min(52svh,28rem)]'
+          : 'min-h-[60svh] lg:min-h-[min(70dvh,40rem)]'
       }`}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary" />
@@ -25,7 +25,7 @@ function PageHero({ children, compact = false }) {
         }}
       />
 
-      <div className="relative z-10 flex w-full flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14 lg:py-16 pb-20 sm:pb-24 lg:pb-28">
+      <div className="relative z-10 flex w-full flex-col justify-center max-w-7xl 2xl:max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14 lg:py-16 pb-20 sm:pb-24 lg:pb-28">
         {children}
       </div>
 
