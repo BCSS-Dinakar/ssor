@@ -1058,6 +1058,16 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                             <div className="text-xs text-slate-700 italic bg-red-50/50 p-2 rounded-lg border border-red-100">
                               ⚖️ {r.sectionsOfLaw}
                             </div>
+                            {r.caseDetails && (
+                              <div className="flex flex-wrap items-center justify-between text-[11px] bg-slate-50 border border-slate-200 p-2 rounded-lg mt-1">
+                                <div className="text-slate-700 font-bold flex items-center gap-1">
+                                  <span>📍</span> <span>{r.caseDetails.includes(',') ? r.caseDetails.split(',')[1].trim() : r.caseDetails}</span>
+                                </div>
+                                <div className="text-slate-500 font-mono">
+                                  📄 {r.caseDetails.includes(',') ? r.caseDetails.split(',')[0].trim() : 'N/A'}
+                                </div>
+                              </div>
+                            )}
                             {r.surveillanceOfficer && (
                               <div className="text-[11px] text-slate-500 font-mono text-right font-medium">
                                 Tracking: <span className="text-slate-700">{r.surveillanceOfficer}</span>
