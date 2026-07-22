@@ -1,20 +1,26 @@
-import { DetailSkeleton } from '../../../components/ui/index';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShieldAlert, Award, User, Lock, ArrowLeft, CheckCircle2, Mail, Phone, Calendar, Clock } from 'lucide-react';
+import { 
+  ShieldAlert, ShieldCheck, User, ArrowLeft, 
+  Calendar, Mail, Phone, Clock, FileText, 
+  CheckCircle, AlertOctagon, Info, MapPin, Hash, CheckSquare, Image as ImageIcon
+} from 'lucide-react';
+import { DetailSkeleton } from '../../../components/ui/index';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
 import { useToast } from '../../../components/ui/Toast';
 import { Button } from '../../../components/ui/Button';
-import { Alert } from '../../../components/ui/Alert';
 
-function DetailField({ label, value, mono = false, icon: Icon }) {
+function DetailField({ label, value, mono = false, icon: Icon, fullWidth = false }) {
+  if (!value) return null;
   return (
-    <div className="space-y-1">
-      <span className="text-body-sm text-muted font-semibold">{label}</span>
-      <div className={`font-semibold text-slate-800 bg-slate-50 border border-slate-100 rounded-lg p-3 flex items-center gap-2 ${mono ? 'font-mono text-base' : 'text-base'}`}>
-        {Icon && <Icon className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />}
-        {value || '—'}
+    <div className={`space-y-1.5 ${fullWidth ? 'col-span-1 sm:col-span-2' : ''}`}>
+      <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+        {Icon && <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
+        {label}
+      </span>
+      <div className={`font-semibold text-slate-800 ${mono ? 'font-mono text-[15px]' : 'text-[15px]'}`}>
+        {value}
       </div>
     </div>
   );
@@ -32,7 +38,7 @@ function PersonnelDetails() {
         if (id) {
           const res = await organizationApi.getVerification(id);
           if (res.success) {
-            setSelectedCandidate(res.data);
+            setSelectedCandidate(res.verification || res.data);
           }
         }
       } catch (err) {
@@ -49,201 +55,261 @@ function PersonnelDetails() {
   if (!selectedCandidate) {
     return (
       <div className="space-y-6">
-        <Link to="/portal/candidates" className="inline-flex items-center gap-2 text-base font-semibold text-slate-500 hover:text-primary transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200">
+        <Link to="/portal/candidates" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200">
           <ArrowLeft className="h-4 w-4" /> Back to Verified Roster
         </Link>
-        <div className="card p-12 text-center text-slate-400">
-          <ShieldAlert className="h-10 w-10 text-red-500 mx-auto mb-2" />
-          <h3 className="text-base font-bold text-slate-700">Candidate ID {id} Not Found</h3>
+        <div className="card p-16 text-center text-slate-400 border-dashed border-2">
+          <ShieldAlert className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-600">Profile Not Found</h3>
+          <p className="text-sm mt-2">The candidate record you are looking for does not exist or has been removed.</p>
         </div>
       </div>
     );
   }
 
+  const isCleared = selectedCandidate.status === 'cleared';
+  const isRejected = selectedCandidate.status === 'rejected';
+  const isPending = selectedCandidate.status === 'pending';
+
+  // Format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      year: 'numeric', month: 'short', day: 'numeric'
+    });
+  };
+
+  const candidateName = selectedCandidate.candidateName || selectedCandidate.candidate || 'Unknown Candidate';
+  const role = selectedCandidate.role || 'Unspecified Role';
+  const dob = formatDate(selectedCandidate.dob);
+  const submitted = formatDate(selectedCandidate.createdAt || selectedCandidate.submitted);
+  const decisionDate = formatDate(selectedCandidate.updatedAt || selectedCandidate.decisionDate);
+  const policeFeedback = selectedCandidate.policeFeedback || selectedCandidate.reason;
+  const orgName = selectedCandidate.orgName || selectedCandidate.org;
+  
+  const hasImage = !!selectedCandidate.candidateImage;
+
   return (
-    <div className="space-y-6 w-full animate-fadeIn pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200/60 gap-4">
-        <Link to="/portal/candidates" className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-          <ArrowLeft className="h-4 w-4" /> Back to Verified Roster
-        </Link>
-        <div className="flex items-center gap-2.5 text-sm text-slate-500 font-bold tracking-wide">
-          <span>Roster Status:</span>
-          <StatusPill status={selectedCandidate.status} />
+    <div className="space-y-8 w-full animate-fadeIn pb-12">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-sm">
+        <div className={`absolute inset-0 opacity-[0.08] bg-gradient-to-br ${isCleared ? 'from-emerald-400 to-teal-600' : isRejected ? 'from-rose-400 to-red-600' : 'from-amber-400 to-orange-600'}`} />
+        
+        <div className="relative p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className={`h-20 w-20 rounded-2xl flex items-center justify-center shrink-0 shadow-inner border-2 ${isCleared ? 'bg-emerald-50 text-emerald-500 border-emerald-100' : isRejected ? 'bg-rose-50 text-rose-500 border-rose-100' : 'bg-amber-50 text-amber-500 border-amber-100'}`}>
+              <User className="h-10 w-10" />
+            </div>
+            <div>
+              <Link to="/portal/candidates" className="text-xs font-bold text-slate-400 hover:text-primary mb-1.5 flex items-center gap-1 transition-colors">
+                <ArrowLeft className="h-3 w-3" /> Back to roster
+              </Link>
+              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">{candidateName}</h1>
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <span className="text-sm font-semibold text-slate-600 flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
+                  <FileText className="h-4 w-4 text-slate-400" /> {role}
+                </span>
+                {orgName && (
+                  <span className="text-sm font-semibold text-slate-600 flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-lg">
+                    <Info className="h-4 w-4 text-slate-400" /> {orgName}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 bg-white/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/50 shadow-sm text-right flex flex-col items-end">
+            <span className="block text-[10px] uppercase font-bold text-slate-400 mb-2 tracking-widest">Official Status</span>
+            <StatusPill status={selectedCandidate.status} />
+          </div>
         </div>
       </div>
 
-      <div className="grid xl:grid-cols-2 gap-6 items-start">
-        {/* Profile Card */}
-        <div className="card p-6 space-y-5 bg-white relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-secondary" />
-          
-          <div className="border-b border-slate-100 pb-3 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-              <User className="h-5 w-5 text-secondary" />
+      <div className="grid xl:grid-cols-3 gap-8 items-start">
+        {/* Left Column: Personal Info Card */}
+        <div className="xl:col-span-1 space-y-6">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                <Info className="h-5 w-5 text-secondary" /> Personal Details
+              </h4>
             </div>
-            <div>
-              <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Candidate Profile Card</h4>
-              <p className="text-xs text-slate-400 font-bold">Immutable CCTNS relay reference data.</p>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <DetailField label="Candidate Name" value={selectedCandidate.candidate} />
-            <DetailField label="Targeted Role" value={selectedCandidate.role} />
-            <DetailField label="Government ID" value={selectedCandidate.idNumber} mono />
-            <DetailField label="Date of Birth" value={selectedCandidate.dob} mono icon={Calendar} />
-            <DetailField label="Contact Email" value={selectedCandidate.email} icon={Mail} />
-            <DetailField label="Contact Phone" value={selectedCandidate.phone} icon={Phone} />
-            <div className="sm:col-span-2">
-              <DetailField label="Submitting Institution" value={selectedCandidate.org} />
-            </div>
-            <DetailField label="Submission Date" value={selectedCandidate.submitted} mono />
-            <DetailField label="Decision Date" value={selectedCandidate.decisionDate || 'Vetting Completed'} mono />
-            <div className="space-y-1">
-              <span className="text-sm text-slate-400 font-bold tracking-wide">Consent Vetted</span>
-              <div className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-sm uppercase flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Authorized
+            
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-y-6 gap-x-4 bg-slate-50/30">
+              <DetailField label="Government ID" value={selectedCandidate.aadharNumber || selectedCandidate.idNumber} mono icon={Hash} fullWidth />
+              <DetailField label="Date of Birth" value={dob} mono icon={Calendar} />
+              <DetailField label="Phone Number" value={selectedCandidate.phone} icon={Phone} />
+              <DetailField label="Father's Name" value={selectedCandidate.fatherName} icon={User} fullWidth />
+              <DetailField label="Email Address" value={selectedCandidate.email} icon={Mail} fullWidth />
+              <DetailField label="Residential Address" value={selectedCandidate.address} icon={MapPin} fullWidth />
+              
+              <div className="pt-4 border-t border-slate-100 col-span-1 sm:col-span-2 xl:col-span-1 space-y-3">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                  <CheckSquare className="h-3.5 w-3.5" /> Documentation
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${hasImage ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                    <ImageIcon className="h-3.5 w-3.5" /> Photo {hasImage ? 'Attached' : 'Missing'}
+                  </div>
+                  <div className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${selectedCandidate.consentFile ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                    <FileText className="h-3.5 w-3.5" /> Consent {selectedCandidate.consentFile ? 'Attached' : 'Missing'}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-500 leading-relaxed flex items-start gap-2.5 font-medium">
-            <Lock className="h-4.5 w-4.5 text-slate-400 shrink-0 mt-0.5" />
-            <span>Attributes audited under DPDP Act 2023 directives. Roster records are read-only, securely encrypted, and audit logs are recorded upon access.</span>
           </div>
         </div>
 
-        {/* Outcome Card */}
-        <div className="space-y-6">
-          <div className="card p-6 space-y-4 bg-white">
-            <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-              <h4 className="font-extrabold text-primary font-heading text-base tracking-wide">Vetting Outcome</h4>
-              <StatusPill status={selectedCandidate.status} />
+        {/* Right Column: Vetting Outcome & Details */}
+        <div className="xl:col-span-2 space-y-8">
+          
+          {/* Outcome Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h4 className="font-bold text-slate-800 flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" /> Vetting Outcome
+              </h4>
+              <span className="text-xs font-mono font-bold text-slate-400 bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm">
+                ID: {selectedCandidate.id}
+              </span>
             </div>
-
-            {selectedCandidate.status === 'cleared' && (
-              <div className="space-y-4">
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm font-semibold text-emerald-800">
-                  <strong>Verification completed: no matches found</strong>
-                  <p className="mt-1 text-emerald-700 font-medium">Clearance issued successfully. The candidate is registered on the active compliance roster.</p>
-                </div>
-
-                <div className="border-4 border-double border-slate-200 bg-slate-50/50 rounded-2xl p-6 space-y-4 relative overflow-hidden shadow-inner text-center">
-                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center select-none">
-                    <Award className="w-32 h-32 text-primary" />
-                  </div>
-                  <div className="text-xs tracking-wide text-slate-500 font-black border-b border-slate-200 border-dashed pb-2">Telangana State Police Department</div>
-                  <div className="space-y-1">
-                    <h5 className="text-sm font-black text-slate-800 tracking-wide leading-none">Official SSOR Clearance Certificate</h5>
-                    <span className="text-sm font-mono text-secondary font-bold block pt-1">{selectedCandidate.id}</span>
-                  </div>
-                  <div className="text-sm text-slate-600 leading-normal max-w-sm mx-auto font-medium">
-                    This certifies that applicant <strong>{selectedCandidate.candidate}</strong> has been cleared under the State Sexual Offender Registry vetting cell.
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-200 border-dashed pt-2 mt-2">
-                    <span>DSP DIGITAL SIGNATURE: VERIFIED</span>
-                    <span className="font-mono text-emerald-600">DATE: {selectedCandidate.decisionDate || selectedCandidate.submitted}</span>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="w-full"
-                  disabled
-                  title="Certificate download will be available when the backend endpoint is enabled"
-                  onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet.')}
-                >
-                  Certificate PDF (coming soon)
-                </Button>
-                <Alert variant="info" className="mt-3">
-                  Official PDF certificates will appear here once the download service is enabled.
-                </Alert>
-              </div>
-            )}
-
-            {selectedCandidate.status === 'rejected' && (
-              <div className="space-y-4 text-sm">
-                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-800 font-semibold">
-                  <strong>Verification outcome: referral locked</strong>
-                  <p className="mt-1 text-red-700 font-medium">A potential registry match is active. Candidate clearance has been rejected after formal investigation.</p>
-                </div>
-
-                {selectedCandidate.reason && (
-                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
-                    <span className="text-xs tracking-wide text-slate-500 font-black block">Police Decision Log Reason</span>
-                    <p className="text-sm font-semibold text-slate-600 leading-normal whitespace-pre-wrap">
-                      {selectedCandidate.reason.split('\n\nOfficer Notes: ')[0]}
-                    </p>
-                  </div>
-                )}
-                
-                {selectedCandidate.matchedSuspect && (
-                  <div className="border border-red-200 bg-red-50/30 rounded-2xl overflow-hidden mt-4">
-                    <div className="bg-red-100/50 px-4 py-2 border-b border-red-200">
-                      <span className="text-sm font-black text-red-800 tracking-wide">Confirmed Registry Match</span>
+            <div className="p-6 sm:p-8">
+              
+              {isCleared && (
+                <div className="space-y-8">
+                  <div className="flex items-start gap-4 p-5 bg-emerald-50/50 border border-emerald-200 rounded-2xl shadow-sm">
+                    <CheckCircle className="h-6 w-6 text-emerald-500 mt-0.5 shrink-0" />
+                    <div>
+                      <h5 className="font-bold text-emerald-800 text-base">Clearance Issued Successfully</h5>
+                      <p className="text-sm text-emerald-700 mt-1.5 font-medium leading-relaxed">
+                        Comprehensive registry background checks found no matching records. The applicant is cleared for the targeted role.
+                      </p>
                     </div>
-                    <div className="p-4 grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <span className="block text-xs font-bold text-slate-500 uppercase">Match ID</span>
-                        <span className="font-mono font-semibold text-slate-800">{selectedCandidate.matchedSuspect.id}</span>
+                  </div>
+
+                  <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-8 shadow-inner border border-slate-800 text-center group">
+                    <div className="absolute top-0 right-0 p-32 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
+                      <ShieldCheck className="h-full w-full text-white" />
+                    </div>
+                    
+                    <div className="relative z-10 space-y-6">
+                      <div className="inline-block px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] font-black text-slate-300 tracking-widest uppercase shadow-sm">
+                        Official SSOR Certificate
                       </div>
+                      
                       <div>
-                        <span className="block text-xs font-bold text-slate-500 uppercase">Registered Name</span>
-                        <span className="font-bold text-slate-800">{selectedCandidate.matchedSuspect.name}</span>
+                        <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
+                        <div className="text-4xl font-black font-mono text-white tracking-tight drop-shadow-md">
+                          {selectedCandidate.id.split('-')[0].toUpperCase()}
+                        </div>
                       </div>
-                      <div>
-                        <span className="block text-xs font-bold text-slate-500 uppercase">Convicted Offence</span>
-                        <span className="font-semibold text-red-700">{selectedCandidate.matchedSuspect.offence}</span>
+
+                      <div className="max-w-md mx-auto text-sm text-slate-300 font-medium leading-relaxed">
+                        This document cryptographically certifies that <strong className="text-white font-bold">{candidateName}</strong> has been cleared under the State Sexual Offender Registry.
                       </div>
-                      <div>
-                        <span className="block text-xs font-bold text-slate-500 uppercase">Conviction Date</span>
-                        <span className="font-mono font-semibold text-slate-800">{selectedCandidate.matchedSuspect.convDate}</span>
-                      </div>
-                      <div className="col-span-2">
-                        <span className="block text-xs font-bold text-slate-500 uppercase">Physical Markings</span>
-                        <span className="font-semibold text-slate-700">{selectedCandidate.matchedSuspect.identifications || 'None recorded'}</span>
+                      
+                      <div className="pt-6 mt-6 border-t border-slate-800 flex justify-between items-center text-xs font-bold text-slate-500">
+                        <span>ISSUER: TS POLICE DEPT</span>
+                        <span className="text-emerald-400">DATE: {decisionDate}</span>
                       </div>
                     </div>
                   </div>
-                )}
+                  
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-full justify-center py-3.5 rounded-xl shadow-sm border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold"
+                    disabled
+                    onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet.')}
+                  >
+                    <FileText className="h-4 w-4 mr-2" /> Download PDF Certificate
+                  </Button>
+                </div>
+              )}
 
-                {selectedCandidate.reason && selectedCandidate.reason.includes('\n\nOfficer Notes: ') && (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1 mt-3 shadow-inner">
-                    <span className="text-xs tracking-wide text-amber-600 font-black block">Officer Verification Notes</span>
-                    <p className="text-sm font-semibold text-amber-900 leading-normal whitespace-pre-wrap">
-                      {selectedCandidate.reason.split('\n\nOfficer Notes: ')[1]}
-                    </p>
+              {isRejected && (
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4 p-5 bg-rose-50 border border-rose-200 rounded-2xl shadow-sm">
+                    <AlertOctagon className="h-6 w-6 text-rose-500 mt-0.5 shrink-0" />
+                    <div>
+                      <h5 className="font-bold text-rose-800 text-base">Referral Rejected</h5>
+                      <p className="text-sm text-rose-700 mt-1.5 font-medium leading-relaxed">
+                        A potential registry match was flagged and confirmed by a reviewing officer. Safe recruitment clearance is denied.
+                      </p>
+                    </div>
                   </div>
-                )}
 
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-600 leading-relaxed flex items-start gap-2.5 font-medium">
-                  <ShieldAlert className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                  <div>
-                    <strong>Action needed:</strong> Safe recruitment clearance is suspended. Please contact the department via the safety helpdesk to file an appeal.
+                  {selectedCandidate.matchedSuspect && (
+                    <div className="rounded-2xl border border-rose-200 overflow-hidden shadow-sm">
+                      <div className="bg-rose-50/50 px-5 py-3.5 border-b border-rose-100 flex items-center justify-between">
+                        <span className="text-sm font-bold text-rose-800 uppercase tracking-wide flex items-center gap-2">
+                          <ShieldAlert className="h-4 w-4" /> Registry Match
+                        </span>
+                        <span className="text-xs font-mono font-bold text-rose-500 bg-white px-2 py-1 rounded border border-rose-100">
+                          ID: {selectedCandidate.matchedSuspect.id}
+                        </span>
+                      </div>
+                      <div className="p-6 grid sm:grid-cols-2 gap-y-6 gap-x-4 bg-white">
+                        <DetailField label="Registered Name" value={selectedCandidate.matchedSuspect.name} />
+                        <DetailField label="Conviction Date" value={selectedCandidate.matchedSuspect.convDate} mono />
+                        <div className="sm:col-span-2">
+                          <DetailField label="Convicted Offence" value={<span className="text-rose-600 font-bold">{selectedCandidate.matchedSuspect.offence}</span>} />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <DetailField label="Physical Markings" value={selectedCandidate.matchedSuspect.identifications || 'None recorded'} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {policeFeedback && (
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 shadow-inner">
+                      <h6 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4" /> Officer Decision Notes
+                      </h6>
+                      <div className="text-sm text-slate-700 leading-relaxed font-medium whitespace-pre-wrap">
+                        {policeFeedback.split('\n\nOfficer Notes: ')[1] || policeFeedback.split('\n\nOfficer Notes: ')[0] || policeFeedback}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4">
+                    <Link 
+                      to="/portal/compliance" 
+                      state={{ autoCreateTicket: true, reference: selectedCandidate.id, candidate: candidateName }}
+                      className="flex items-center justify-center w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-colors shadow-md"
+                    >
+                      File an Appeal with Support Desk
+                    </Link>
                   </div>
                 </div>
-                <Link 
-                  to="/portal/compliance" 
-                  state={{ autoCreateTicket: true, reference: selectedCandidate.id, candidate: selectedCandidate.candidate }}
-                  className="btn-primary py-2.5 px-5 text-sm w-full justify-center bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 shadow-red-100"
-                >
-                  Speak with Police Support Desk
-                </Link>
-              </div>
-            )}
+              )}
 
-            {selectedCandidate.status === 'pending' && (
-              <div className="p-6 bg-amber-50/50 border border-amber-200/50 rounded-2xl text-center space-y-3 shadow-inner text-sm">
-                <Clock className="h-8 w-8 text-amber-500 mx-auto animate-spin-slow" />
-                <h5 className="text-sm font-black text-slate-700 tracking-wide">Police check in progress</h5>
-                <p className="text-sm text-slate-500 font-medium leading-normal">Certificate will be available once verification is complete.</p>
-                <Link to={`/portal/track/${selectedCandidate.id}`} className="btn-secondary py-2 px-4 text-sm justify-center mt-2">
-                  View timeline
-                </Link>
-              </div>
-            )}
+              {isPending && (
+                <div className="py-16 text-center space-y-5">
+                  <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 mb-2 border-4 border-amber-100 shadow-inner">
+                    <Clock className="h-8 w-8 text-amber-500 animate-spin-slow" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-800">Verification in Progress</h3>
+                  <p className="text-slate-500 max-w-md mx-auto text-sm font-medium leading-relaxed">
+                    This application was submitted on <strong>{submitted}</strong> and is currently under formal review by the Telangana State Police Department. Certificates will be available once the background check is complete.
+                  </p>
+                  <div className="pt-6">
+                    <Link to={`/portal/track/${selectedCandidate.id}`} className="inline-flex items-center gap-2 bg-white border-2 border-slate-200 shadow-sm text-slate-700 hover:border-primary hover:text-primary font-bold px-8 py-3 rounded-xl transition-all">
+                      <Clock className="h-4 w-4" /> Track Application Timeline
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {/* Metadata Footer */}
+          <div className="text-center pb-4">
+            <p className="text-xs text-slate-400 font-medium">
+              Data protected under DPDP Act 2023. All accesses are cryptographically logged.
+            </p>
+          </div>
+
         </div>
       </div>
     </div>

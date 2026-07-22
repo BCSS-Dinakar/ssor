@@ -4,7 +4,6 @@ import { FileCheck, Scale, ClipboardList, ShieldCheck, ExternalLink } from 'luci
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
-import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { policeApi } from '../../../api/police.api';
 import { TIERS } from '../../../utils/data/portalData';
 import { PoliceDashboardSkeleton } from '../../../components/ui/Skeleton';
@@ -93,10 +92,6 @@ function PoliceDashboard() {
         title="Register Console"
         subtitle="State Sexual Offender Registry — clearance queues, registry metrics, and audit activity."
       />
-
-      <SecurityBanner>
-        Controlled-access session. Every record inquiry is written to the immutable cryptographic audit log (Puttaswamy privacy tests).
-      </SecurityBanner>
 
       {error && <Alert variant="danger" title="Dashboard error">{error}</Alert>}
 

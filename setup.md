@@ -5,6 +5,8 @@ Follow these steps to set up the entire SSOR (State Sexual Offender Registry) st
 ## Prerequisites
 - **Node.js** (v16 or higher)
 - **npm** (comes with Node.js)
+- **PostgreSQL** database server running locally
+- **Redis** server running locally (for OTP caching)
 
 ---
 
@@ -21,32 +23,31 @@ npm install
 ```
 
 ### Environment Variables
-Create a `.env` file in the `backend` directory with the following contents:
+Create a `.env` file in the `backend` directory with the following contents. Make sure to update the `DATABASE_URL` with your actual PostgreSQL credentials:
 ```env
-PORT=8000
-DATABASE_URL="file:./db/ssor.db"
+PORT=5001
+DATABASE_URL="postgresql://username:password@localhost:5432/ssor_db?schema=public"
 JWT_SECRET="your_super_secret_jwt_key_here"
 NODE_ENV="development"
 FRONTEND_URL="http://localhost:3000"
 ```
 
 ### Database Setup (Prisma)
-Generate the Prisma client and push the schema to create the SQLite database:
+Ensure your PostgreSQL server is running and the database specified in the URL exists. Generate the Prisma client and push the schema to create the tables:
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-### Create Test Accounts (Optional)
-Run the provided scripts to seed the database with a test Police Officer and a test Organization account:
+### Create Test Accounts & Seed Data (Optional)
+Run the provided npm script to seed the database with a test Police Officer, a test Organization account, and dynamic dummy clearance request data:
 ```bash
-node create-bcss-officer.js
-node create-bcss-org.js
+npm run db:seed-users
 ```
 *(Check `credentials.txt` in the backend folder for the login details).*
 
 ### Start the Server
-Start the backend development server (runs on `http://localhost:8000`):
+Start the backend development server:
 ```bash
 npm run dev
 ```
@@ -76,6 +77,7 @@ The frontend will automatically open in your browser at [http://localhost:3000](
 ---
 
 ## Troubleshooting
-- **CORS Issues**: Ensure the backend `.env` has `FRONTEND_URL="http://localhost:3000"` and that both servers are running on their default ports.
+- **CORS Issues**: Ensure the backend `.env` has `FRONTEND_URL="http://localhost:3000"`.
 - **Uploads Failing**: Ensure the backend has a `storage/documents` folder automatically created (or create it manually).
-- **Prisma Errors**: If you get Prisma errors, delete the `backend/prisma/db` folder and re-run `npx prisma db push`.
+- **OTP/Login Issues**: Make sure your local **Redis** server is running. If it crashes, the backend will automatically fallback to a `.fallback-cache.json` file.
+- **Prisma Errors**: If you get Prisma connection errors, double-check that your PostgreSQL server is active and the `DATABASE_URL` in `.env` is perfectly correct.

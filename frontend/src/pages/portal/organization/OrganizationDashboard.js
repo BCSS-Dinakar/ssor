@@ -30,7 +30,6 @@ import { useAuth } from '../../../context/AuthContext';
 import { organizationApi } from '../../../api/organization.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
-import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { OrgDashboardSkeleton } from '../../../components/ui/Skeleton';
 import { StatusBadge } from '../../../components/ui/Badge';
 import { Alert } from '../../../components/ui/Alert';
@@ -95,10 +94,6 @@ function OrganizationDashboard() {
           </Button>
         }
       />
-
-      <SecurityBanner>
-        Ensuring compliance with DPDP Act 2023 guidelines for data protection. All clearance outcomes are logged.
-      </SecurityBanner>
 
       {error && <Alert variant="danger" title="Dashboard error">{error}</Alert>}
 
