@@ -1,1 +1,10 @@
-{}
+{
+  "login-otp:bcss.admin": {
+    "value": "297144",
+    "expiresAt": 1784714417365
+  },
+  "otp:9087654321": {
+    "value": "447319",
+    "expiresAt": 1784714532556
+  }
+}
