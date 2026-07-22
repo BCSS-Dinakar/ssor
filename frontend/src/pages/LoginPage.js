@@ -15,6 +15,9 @@ import {
   ArrowLeft,
   Eye,
   EyeOff,
+  ShieldCheck,
+  KeyRound,
+  BadgeCheck,
 } from 'lucide-react';
 
 import {
@@ -635,6 +638,36 @@ function LoginPage() {
             <p className="text-blue-100/90 text-lg max-w-md leading-relaxed">
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
+
+            <div className="mt-10 space-y-5 max-w-md">
+              <div className="flex items-start gap-4">
+                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-blue-100" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-base">Role-based access</h3>
+                  <p className="text-blue-200/70 text-sm leading-relaxed">Organizations and officers get separate, scoped entry into the register.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <KeyRound className="h-5 w-5 text-blue-100" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-base">OTP-verified sign-in</h3>
+                  <p className="text-blue-200/70 text-sm leading-relaxed">Every login is confirmed with a one-time passcode for added security.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <BadgeCheck className="h-5 w-5 text-blue-100" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-base">Verified &amp; audited</h3>
+                  <p className="text-blue-200/70 text-sm leading-relaxed">Organizations are approved by police, and every action is logged.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex-none flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold mt-12">
