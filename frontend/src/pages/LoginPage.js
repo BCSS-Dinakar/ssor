@@ -520,8 +520,6 @@ function LoginPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(orgReg.officialEmail.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid official email address.' });
     if (!orgReg.officialPhone.trim()) return setRegAlert({ type: 'error', message: 'Official phone is required.' });
     if (!/^[\d\s()+-]{7,15}$/.test(orgReg.officialPhone.trim())) return setRegAlert({ type: 'error', message: 'Enter a valid official phone number.' });
-    if (!orgReg.altPhone.trim()) return setRegAlert({ type: 'error', message: 'Alternate phone is required.' });
-    if (!orgReg.website.trim()) return setRegAlert({ type: 'error', message: 'Website is required.' });
     return true;
   };
 
@@ -1082,10 +1080,10 @@ function LoginPage() {
                           <Field label="Official Phone" required>
                             <input className={getInputClass(orgReg.officialPhone, 'phone')} value={orgReg.officialPhone} onChange={(e) => setOrgReg({ ...orgReg, officialPhone: e.target.value })} placeholder="e.g. 9848xxxxxxxx" />
                           </Field>
-                          <Field label="Alternate Phone" required>
+                          <Field label="Alternate Phone">
                             <input className={getInputClass(orgReg.altPhone, 'phone')} value={orgReg.altPhone} onChange={(e) => setOrgReg({ ...orgReg, altPhone: e.target.value })} placeholder="e.g. 7848xxxxxx" />
                           </Field>
-                          <Field label="Website" required className="sm:col-span-2">
+                          <Field label="Website" className="sm:col-span-2">
                             <input className={inputClass} type="url" value={orgReg.website} onChange={(e) => setOrgReg({ ...orgReg, website: e.target.value })} placeholder="https://www.school.edu.in" />
                           </Field>
                         </div>

@@ -18,13 +18,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  BarChart,
-  Bar
+  ResponsiveContainer
 } from 'recharts';
 import { useAuth } from '../../../context/AuthContext';
 import { organizationApi } from '../../../api/organization.api';
