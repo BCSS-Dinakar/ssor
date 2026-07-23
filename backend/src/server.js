@@ -11,7 +11,7 @@ const pingRedis = async () => {
     const pong = await getRedis().ping();
     return pong === 'PONG' ? 'Connected' : `Reachable (${pong})`;
   } catch (err) {
-    return 'Disconnected';
+    return 'Disconnected — OTP/cache features degraded (non-fatal)';
   }
 };
 
