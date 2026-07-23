@@ -3,7 +3,7 @@ import api, { API_BASE_URL } from './api';
 export const policeApi = {
   getDocumentUrl: (filename) => {
     if (!filename) return '';
-    return `${API_BASE_URL}/police/documents/${filename.split('/').pop()}`;
+    return `${API_BASE_URL}/police/documents/${String(filename).split('/').pop()}`;
   },
   getLogs: async () => {
     const response = await api.get('/police/logs');
@@ -26,8 +26,16 @@ export const policeApi = {
   },
 
   getDocument: async (filename) => {
-    const response = await api.get(`/police/documents/${filename}`, { responseType: 'blob' });
+    const base = String(filename).split('/').pop();
+    const response = await api.get(`/police/documents/${base}`, { responseType: 'blob' });
     return response;
+  },
+
+  // Call the permanent link and get back a fresh, time-limited signed URL.
+  getSignedUrl: async (filename) => {
+    const base = String(filename).split('/').pop();
+    const { data } = await api.get(`/police/documents/${base}/url`);
+    return data.url;
   },
 
   getDashboardStats: async () => {

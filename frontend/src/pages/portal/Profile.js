@@ -107,19 +107,19 @@ function Profile() {
     mobile: o.mobile || 'N/A',
 
     docs: [
-      o.authLetterPath && getDocMeta(
-        o.authLetterPath, 
-        'Institution Authorization Letter', 
+      o.authLetterMediaId && getDocMeta(
+        o.authLetterMediaId,
+        'Institution Authorization Letter',
         'This letter formally authorizes the administrator to act as the primary licensee for the SSOR portal.'
       ),
-      o.govCertPath && getDocMeta(
-        o.govCertPath, 
-        'Government Registration Certificate', 
+      o.govCertMediaId && getDocMeta(
+        o.govCertMediaId,
+        'Government Registration Certificate',
         'This certificate verifies the organization is registered and recognized.'
       ),
-      o.supportingDocsPaths && o.supportingDocsPaths.length > 0 && getDocMeta(
-        o.supportingDocsPaths[0], 
-        'Supporting Document', 
+      o.supportingDocsMediaIds && o.supportingDocsMediaIds.length > 0 && getDocMeta(
+        o.supportingDocsMediaIds[0],
+        'Supporting Document',
         'Additional supporting compliance document.'
       )
     ].filter(Boolean)
@@ -143,7 +143,7 @@ function Profile() {
     state: p.state || 'N/A',
     country: p.country || 'N/A',
     clearanceLevel: p.clearanceLevel || 'N/A',
-    docs: (p.docsPaths || []).map((path) => getDocMeta(
+    docs: (p.docsMediaIds || []).map((path) => getDocMeta(
       path,
       'Uploaded Document',
       'This is an uploaded supporting document.'

@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS public."PoliceProfile" (
   "state" TEXT,
   "country" TEXT,
   "clearanceLevel" TEXT,
-  "docsPaths" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  "docsMediaIds" INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
   CONSTRAINT "PoliceProfile_pkey" PRIMARY KEY ("id")
 );
 
@@ -75,9 +75,9 @@ CREATE TABLE IF NOT EXISTS public."OrganizationProfile" (
   "empId" TEXT NOT NULL,
   "adminEmail" TEXT NOT NULL,
   "mobile" TEXT NOT NULL,
-  "authLetterPath" TEXT,
-  "govCertPath" TEXT,
-  "supportingDocsPaths" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+  "authLetterMediaId" INTEGER,
+  "govCertMediaId" INTEGER,
+  "supportingDocsMediaIds" INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
   CONSTRAINT "OrganizationProfile_pkey" PRIMARY KEY ("id")
 );
 
@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS public."CandidateVerification" (
   "phone" TEXT NOT NULL,
   "consent" BOOLEAN NOT NULL,
   "aadharNumber" TEXT,
-  "candidateImage" TEXT,
-  "consentFile" TEXT,
+  "candidateMediaId" INTEGER,
+  "consentMediaId" INTEGER,
   "status" TEXT NOT NULL DEFAULT 'pending',
   "policeFeedback" TEXT,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -156,6 +156,25 @@ CREATE TABLE IF NOT EXISTS public."EPettyCase" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "EPettyCase_caseNumber_key"
   ON public."EPettyCase"("caseNumber");
+
+CREATE TABLE IF NOT EXISTS public."Media" (
+  "id" SERIAL NOT NULL,
+  "bucketName" TEXT NOT NULL,
+  "objectKey" TEXT NOT NULL,
+  "originalName" TEXT NOT NULL,
+  "fileType" TEXT,
+  "fileSize" INTEGER,
+  "category" TEXT,
+  "uploadedBy" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Media_objectKey_key"
+  ON public."Media"("objectKey");
+
+CREATE INDEX IF NOT EXISTS "Media_category_idx"
+  ON public."Media"("category");
 
 DO $$
 BEGIN

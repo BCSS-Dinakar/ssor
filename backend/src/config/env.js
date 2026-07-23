@@ -52,4 +52,10 @@ export const env = {
   EPRISONS_RELEASES_URL: process.env.EPRISONS_RELEASES_URL || '',
   EPRISONS_USER_ID: process.env.EPRISONS_USER_ID || '',
   EPRISONS_PASSWORD: process.env.EPRISONS_PASSWORD || '',
+  MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || '127.0.0.1',
+  MINIO_PORT: Number(process.env.MINIO_PORT || 9000),
+  MINIO_USE_SSL: process.env.MINIO_USE_SSL === 'true',
+  MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+  MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin',
+  MINIO_BUCKET: process.env.MINIO_BUCKET || 'ssor-documents',
 };

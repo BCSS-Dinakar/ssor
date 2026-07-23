@@ -3,7 +3,22 @@ import api, { API_BASE_URL } from './api';
 export const organizationApi = {
   getDocumentUrl: (filename) => {
     if (!filename) return '';
-    return `${API_BASE_URL}/organization/documents/${filename.split('/').pop()}`;
+    return `${API_BASE_URL}/organization/documents/${String(filename).split('/').pop()}`;
+  },
+
+  // Fetch a document through the authenticated client (sends the cookie even
+  // cross-origin). Use for <img>/inline rendering where a raw src would 401.
+  getDocument: async (filename) => {
+    const base = String(filename).split('/').pop();
+    return api.get(`/organization/documents/${base}`, { responseType: 'blob' });
+  },
+
+  // Call the permanent link and get back a fresh, time-limited signed URL.
+  // Only the object key is stored in the DB; this URL is generated per request.
+  getSignedUrl: async (filename) => {
+    const base = String(filename).split('/').pop();
+    const { data } = await api.get(`/organization/documents/${base}/url`);
+    return data.url;
   },
   submitVerification: async (data) => {
     // If data is an instance of FormData, pass it directly. Otherwise, it sends JSON.

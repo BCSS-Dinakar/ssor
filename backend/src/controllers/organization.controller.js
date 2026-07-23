@@ -3,6 +3,8 @@ import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { streamDocument, statObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
+import { mediaFromFile, withVerificationUrls, withVerificationUrlsList, resolveObjectKey } from '../services/media.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,8 +23,14 @@ export const submitVerification = async (req, res) => {
     const candidateImageFile = req.files?.['candidateImage']?.[0];
     const consentDocFile = req.files?.['consentFile']?.[0];
 
-    const imagePath = candidateImageFile ? `/api/v1/police/documents/${candidateImageFile.filename}` : null;
-    const consentPath = consentDocFile ? `/api/v1/police/documents/${consentDocFile.filename}` : null;
+    // Register each upload in the central Media table and store its reference id.
+    // The columns hold a Media.id (int) — never a path or URL.
+    const candidateMediaId = candidateImageFile
+      ? await mediaFromFile(candidateImageFile, 'candidate_image', req.user.id)
+      : null;
+    const consentMediaId = consentDocFile
+      ? await mediaFromFile(consentDocFile, 'consent', req.user.id)
+      : null;
 
     // We must find the user's organization profile to get the orgName
     const orgProfile = await prisma.organizationProfile.findUnique({
@@ -46,8 +54,8 @@ export const submitVerification = async (req, res) => {
         consent: consent === 'true' || consent === true,
         aadharNumber: aadharNumber || null,
         address: address || null,
-        candidateImage: imagePath,
-        consentFile: consentPath
+        candidateMediaId,
+        consentMediaId
       }
     });
 
@@ -69,7 +77,7 @@ export const submitVerification = async (req, res) => {
 
 export const getVerifications = async (req, res) => {
   try {
-    const verifications = await prisma.candidateVerification.findMany({
+    const rows = await prisma.candidateVerification.findMany({
       where: {
         organizationId: req.user.id
       },
@@ -78,6 +86,7 @@ export const getVerifications = async (req, res) => {
       }
     });
 
+    const verifications = await withVerificationUrlsList(rows);
     res.status(200).json({ success: true, verifications });
   } catch (error) {
     console.error('[getVerifications Error]', error);
@@ -99,7 +108,7 @@ export const getVerificationById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Verification not found' });
     }
 
-    res.status(200).json({ success: true, verification });
+    res.status(200).json({ success: true, verification: await withVerificationUrls(verification) });
   } catch (error) {
     console.error('[getVerificationById Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
@@ -406,20 +415,48 @@ export const generateConsentTemplate = async (req, res) => {
 export const getDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filepath = path.join(process.cwd(), 'storage/documents', filename);
 
-    // Security check: ensure they don't escape the directory
-    if (!filepath.startsWith(path.join(process.cwd(), 'storage/documents'))) {
+    // Security check: reject path traversal in the reference
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
       return res.status(403).json({ success: false, message: 'Forbidden access' });
     }
 
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ success: false, message: 'File not found' });
-    }
-
-    res.sendFile(filepath);
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey) return res.status(404).json({ success: false, message: 'File not found' });
+    await streamDocument(res, objectKey);
   } catch (err) {
     console.error('[GetDocument Error]', err);
-    res.status(500).json({ success: false, message: 'Server error serving document' });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error serving document' });
+    }
+  }
+};
+
+/**
+ * The "permanent link" the frontend calls for a document. Validates auth (via
+ * route middleware) + the key, then returns a freshly generated, time-limited
+ * signed URL. The signed URL is never stored — only the permanent key is.
+ * Response: { success, url, expiresIn }
+ */
+export const getDocumentSignedUrl = async (req, res) => {
+  try {
+    const { filename } = req.params;
+
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
+    }
+
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey || !(await statObject(objectKey))) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
+  } catch (err) {
+    console.error('[getDocumentSignedUrl Error]', err);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error generating document link' });
+    }
   }
 };
