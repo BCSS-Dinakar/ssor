@@ -1,4 +1,5 @@
-import { getMinio, MINIO_BUCKET } from '../config/minio.js';
+import { getMinio, getMinioForSigning, MINIO_BUCKET } from '../config/minio.js';
+import logger from '../utils/logger.js';
 
 // Signed URLs are minted on demand and expire; they are never stored.
 export const SIGNED_URL_EXPIRY_SECONDS = 60 * 60; // 1 hour
@@ -15,7 +16,8 @@ export async function getPresignedUrl(key, expirySeconds = SIGNED_URL_EXPIRY_SEC
   const reqParams = downloadFileName
     ? { 'response-content-disposition': `inline; filename="${String(downloadFileName).replace(/"/g, '')}"` }
     : undefined;
-  return getMinio().presignedGetObject(MINIO_BUCKET, key, expirySeconds, reqParams);
+  // Sign with the PUBLIC-endpoint client so the URL is reachable by browsers.
+  return getMinioForSigning().presignedGetObject(MINIO_BUCKET, key, expirySeconds, reqParams);
 }
 
 /**
@@ -60,7 +62,7 @@ export async function removeObject(key) {
   try {
     await getMinio().removeObject(MINIO_BUCKET, key);
   } catch (err) {
-    console.warn(`⚠️  Failed to remove MinIO object ${key}:`, err.message);
+    logger.warn(`⚠️  Failed to remove MinIO object ${key}:`, err.message);
   }
 }
 
@@ -84,7 +86,7 @@ export async function streamDocument(res, filename, { notFoundMessage = 'File no
   const ext = filename.split('.').pop().toLowerCase();
   if (CONTENT_TYPES[ext]) res.setHeader('Content-Type', CONTENT_TYPES[ext]);
   stream.on('error', (err) => {
-    console.error('[streamDocument Error]', err);
+    logger.error('[streamDocument Error]', err);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Server error serving document' });
     } else {

@@ -58,4 +58,38 @@ export const env = {
   MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
   MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin',
   MINIO_BUCKET: process.env.MINIO_BUCKET || 'ssor-documents',
+  // Public (browser-reachable) endpoint used only to sign presigned URLs.
+  MINIO_PUBLIC_ENDPOINT: process.env.MINIO_PUBLIC_ENDPOINT || '',
+  MINIO_PUBLIC_PORT: process.env.MINIO_PUBLIC_PORT ? Number(process.env.MINIO_PUBLIC_PORT) : undefined,
+  MINIO_PUBLIC_USE_SSL: (process.env.MINIO_PUBLIC_USE_SSL ?? process.env.MINIO_USE_SSL) === 'true',
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info',
 };
+
+/**
+ * Fail fast on unsafe/missing configuration in production. Called at startup.
+ * Prevents booting prod with dev fallbacks (default JWT secret, default MinIO
+ * creds, missing DB) that would be silent security holes.
+ */
+export function validateEnv() {
+  if (env.NODE_ENV !== 'production') return;
+  const problems = [];
+
+  if (!process.env.JWT_SECRET || env.JWT_SECRET === 'fallback_secret_key') {
+    problems.push('JWT_SECRET must be set to a strong secret (the dev fallback is insecure).');
+  }
+  if (!env.DATABASE_URL) problems.push('DATABASE_URL (or POSTGRES_* settings) must be configured.');
+  if (env.MINIO_ACCESS_KEY === 'minioadmin' || env.MINIO_SECRET_KEY === 'minioadmin') {
+    problems.push('MINIO_ACCESS_KEY / MINIO_SECRET_KEY must not use the default minioadmin credentials.');
+  }
+  if (!env.MINIO_PUBLIC_ENDPOINT) {
+    problems.push('MINIO_PUBLIC_ENDPOINT must be set so presigned URLs are reachable by browsers.');
+  }
+  if (!process.env.FRONTEND_URL) {
+    problems.push('FRONTEND_URL must be set (CORS is locked to it in production).');
+  }
+
+  if (problems.length) {
+    const message = 'Invalid production configuration:\n  - ' + problems.join('\n  - ');
+    throw new Error(message);
+  }
+}

@@ -1,5 +1,6 @@
-import { env } from './config/env.js';
+import { env, validateEnv } from './config/env.js';
 import app from './app.js';
+import logger from './utils/logger.js';
 import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
 import { ensureBucket, MINIO_BUCKET } from './config/minio.js';
@@ -41,6 +42,9 @@ const listenWithPortFallback = (preferredPort, retryLimit) => new Promise((resol
 });
 
 const startServer = async () => {
+  // 0. Fail fast on unsafe/missing production configuration.
+  validateEnv();
+
   // 1. Ensure DB exists. Schema push is opt-in via AUTO_DB_PUSH.
   await autoSetup();
 

@@ -3,8 +3,9 @@ import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { streamDocument, statObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
-import { mediaFromFile, withVerificationUrls, withVerificationUrlsList, resolveObjectKey } from '../services/media.service.js';
+import { streamDocument, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
+import { mediaFromFile, withVerificationUrls, withVerificationUrlsList, guardDocumentAccess } from '../services/media.service.js';
+import logger from '../utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,7 +71,7 @@ export const submitVerification = async (req, res) => {
 
     res.status(201).json({ success: true, verification });
   } catch (error) {
-    console.error('[submitVerification Error]', error);
+    logger.error('[submitVerification Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -89,7 +90,7 @@ export const getVerifications = async (req, res) => {
     const verifications = await withVerificationUrlsList(rows);
     res.status(200).json({ success: true, verifications });
   } catch (error) {
-    console.error('[getVerifications Error]', error);
+    logger.error('[getVerifications Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -110,7 +111,7 @@ export const getVerificationById = async (req, res) => {
 
     res.status(200).json({ success: true, verification: await withVerificationUrls(verification) });
   } catch (error) {
-    console.error('[getVerificationById Error]', error);
+    logger.error('[getVerificationById Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -183,7 +184,7 @@ export const getDashboardStats = async (req, res) => {
       recentVerifications: verifications.slice(0, 5)
     });
   } catch (error) {
-    console.error('[getDashboardStats Error]', error);
+    logger.error('[getDashboardStats Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -206,7 +207,7 @@ export const getTickets = async (req, res) => {
 
     res.status(200).json({ success: true, tickets });
   } catch (error) {
-    console.error('[getTickets Error]', error);
+    logger.error('[getTickets Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -247,7 +248,7 @@ export const createTicket = async (req, res) => {
 
     res.status(201).json({ success: true, ticket });
   } catch (error) {
-    console.error('[createTicket Error]', error);
+    logger.error('[createTicket Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -296,7 +297,7 @@ export const addTicketMessage = async (req, res) => {
 
     res.status(201).json({ success: true, message });
   } catch (error) {
-    console.error('[addTicketMessage Error]', error);
+    logger.error('[addTicketMessage Error]', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
@@ -332,7 +333,7 @@ export const generateConsentTemplate = async (req, res) => {
         doc.restore();
       }
     } catch (e) {
-      console.error('[Watermark Error]', e);
+      logger.error('[Watermark Error]', e);
     }
 
     // Header
@@ -405,7 +406,7 @@ export const generateConsentTemplate = async (req, res) => {
 
     doc.end();
   } catch (error) {
-    console.error('[generateConsentTemplate Error]', error);
+    logger.error('[generateConsentTemplate Error]', error);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Internal server error generating template' });
     }
@@ -414,18 +415,11 @@ export const generateConsentTemplate = async (req, res) => {
 
 export const getDocument = async (req, res) => {
   try {
-    const { filename } = req.params;
-
-    // Security check: reject path traversal in the reference
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey) return res.status(404).json({ success: false, message: 'File not found' });
-    await streamDocument(res, objectKey);
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
+    await streamDocument(res, guard.objectKey);
   } catch (err) {
-    console.error('[GetDocument Error]', err);
+    logger.error('[GetDocument]', err);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Server error serving document' });
     }
@@ -433,28 +427,20 @@ export const getDocument = async (req, res) => {
 };
 
 /**
- * The "permanent link" the frontend calls for a document. Validates auth (via
- * route middleware) + the key, then returns a freshly generated, time-limited
- * signed URL. The signed URL is never stored — only the permanent key is.
+ * The "permanent link" the frontend calls for a document. Authorizes the caller
+ * against the Media, then returns a freshly generated, time-limited signed URL.
+ * The signed URL is never stored — only the permanent reference id is.
  * Response: { success, url, expiresIn }
  */
 export const getDocumentSignedUrl = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
 
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey || !(await statObject(objectKey))) {
-      return res.status(404).json({ success: false, message: 'Document not found' });
-    }
-
-    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    const url = await getPresignedUrl(guard.objectKey, SIGNED_URL_EXPIRY_SECONDS, guard.objectKey);
     res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
   } catch (err) {
-    console.error('[getDocumentSignedUrl Error]', err);
+    logger.error('[getDocumentSignedUrl]', err);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Server error generating document link' });
     }

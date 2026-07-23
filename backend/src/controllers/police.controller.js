@@ -5,8 +5,9 @@ import fs from 'fs';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
 import { searchCctnsCandidate, shouldSkipEpettyAfterCctns } from '../services/cctns.service.js';
 import { generateClearanceReport } from '../services/gemini.service.js';
-import { streamDocument, statObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
-import { withVerificationUrls, withVerificationUrlsList, resolveObjectKey } from '../services/media.service.js';
+import { streamDocument, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
+import { withVerificationUrls, withVerificationUrlsList, guardDocumentAccess } from '../services/media.service.js';
+import logger from '../utils/logger.js';
 
 export const getLogs = async (req, res) => {
   try {
@@ -33,7 +34,7 @@ export const getLogs = async (req, res) => {
 
     res.status(200).json({ success: true, data: formattedLogs });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -45,7 +46,7 @@ export const getVerifications = async (req, res) => {
     const data = await withVerificationUrlsList(rows);
     res.status(200).json({ success: true, data });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -62,8 +63,8 @@ export const getVerificationById = async (req, res) => {
 
     res.status(200).json({ success: true, data: await withVerificationUrls(verification) });
   } catch (error) {
-    console.error('[getVerificationById Error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[getVerificationById Error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -88,8 +89,8 @@ export const updateVerificationStatus = async (req, res) => {
 
     res.status(200).json({ success: true, data: verification });
   } catch (error) {
-    console.error('[updateVerificationStatus Error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[updateVerificationStatus Error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -203,8 +204,8 @@ export const scanVerificationById = async (req, res) => {
       suspects
     });
   } catch (error) {
-    console.error('[scanVerificationById Error]', error);
-    res.status(500).json({ success: false, message: 'Server error during scan.', error: error.message });
+    logger.error('[scanVerificationById Error]', error);
+    res.status(500).json({ success: false, message: 'Server error during scan.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -225,8 +226,8 @@ export const generateVerificationReport = async (req, res) => {
     const report = await generateClearanceReport(verification, status, matchedSuspect);
     res.status(200).json({ success: true, report });
   } catch (error) {
-    console.error('[generateVerificationReport Error]', error);
-    res.status(500).json({ success: false, message: 'Server error generating report.', error: error.message });
+    logger.error('[generateVerificationReport Error]', error);
+    res.status(500).json({ success: false, message: 'Server error generating report.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -239,7 +240,7 @@ export const getOrganizations = async (req, res) => {
     });
     res.status(200).json({ success: true, data: orgs });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -257,7 +258,7 @@ export const getOrganizationById = async (req, res) => {
 
     res.status(200).json({ success: true, data: orgUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -290,25 +291,19 @@ export const updateOrganizationStatus = async (req, res) => {
 
     res.status(200).json({ success: true, data: updated, message: `Status updated to ${status}` });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
 export const getDocument = async (req, res) => {
   try {
-    const { filename } = req.params;
-
-    // Reject path traversal in the reference
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey) return res.status(404).json({ success: false, message: 'Document not found' });
-    await streamDocument(res, objectKey, { notFoundMessage: 'Document not found' });
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
+    await streamDocument(res, guard.objectKey, { notFoundMessage: 'Document not found' });
   } catch (error) {
+    logger.error('[police getDocument]', error);
     if (!res.headersSent) {
-      res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+      res.status(500).json({ success: false, message: 'Server error.' });
     }
   }
 };
@@ -320,21 +315,13 @@ export const getDocument = async (req, res) => {
  */
 export const getDocumentSignedUrl = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
 
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey || !(await statObject(objectKey))) {
-      return res.status(404).json({ success: false, message: 'Document not found' });
-    }
-
-    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    const url = await getPresignedUrl(guard.objectKey, SIGNED_URL_EXPIRY_SECONDS, guard.objectKey);
     res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
   } catch (error) {
-    console.error('[getDocumentSignedUrl Error]', error);
+    logger.error('[police getDocumentSignedUrl]', error);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Server error generating document link' });
     }
@@ -380,8 +367,8 @@ export const getDashboardStats = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('[getDashboardStats error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[getDashboardStats error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -396,8 +383,8 @@ export const getTickets = async (req, res) => {
     });
     res.status(200).json({ success: true, tickets });
   } catch (error) {
-    console.error('[getTickets error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[getTickets error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -415,8 +402,8 @@ export const updateTicketStatus = async (req, res) => {
     });
     res.status(200).json({ success: true, ticket });
   } catch (error) {
-    console.error('[updateTicketStatus error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[updateTicketStatus error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -444,8 +431,8 @@ export const addTicketMessage = async (req, res) => {
 
     res.status(201).json({ success: true, message });
   } catch (error) {
-    console.error('[addTicketMessage error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[addTicketMessage error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -501,8 +488,8 @@ export const getOffendersList = async (req, res) => {
       pagination: { total, page: pageNum, limit: limitNum } 
     });
   } catch (error) {
-    console.error('[getOffendersList error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[getOffendersList error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -575,7 +562,7 @@ export const getOffenderById = async (req, res) => {
 
     res.status(200).json({ success: true, data: offenderDetail });
   } catch (error) {
-    console.error('[getOffenderById error]', error);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    logger.error('[getOffenderById error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
