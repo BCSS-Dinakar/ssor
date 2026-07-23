@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
-import { submitVerification, getVerifications, getVerificationById, getTickets, createTicket, addTicketMessage, getDashboardStats, generateConsentTemplate, getDocument } from '../controllers/organization.controller.js';
+import { submitVerification, getVerifications, getVerificationById, generateClearanceCertificate, getTickets, createTicket, addTicketMessage, getDashboardStats, generateConsentTemplate, getDocument } from '../controllers/organization.controller.js';
 
 const router = express.Router();
 
@@ -18,6 +18,7 @@ router.post('/generate-consent-template', upload.single('candidateImage'), gener
 router.get('/documents/:filename', getDocument);
 router.get('/verifications', getVerifications);
 router.get('/verifications/:id', getVerificationById);
+router.get('/verifications/:id/certificate', generateClearanceCertificate);
 
 router.get('/tickets', getTickets);
 router.post('/tickets', createTicket);
