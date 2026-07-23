@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { 
   ShieldAlert, ShieldCheck, User, ArrowLeft, 
   Calendar, Mail, Phone, Clock, FileText, 
-  CheckCircle, AlertOctagon, Info, MapPin, Hash, CheckSquare, Image as ImageIcon
+  CheckCircle, AlertOctagon, Info, MapPin, Hash, CheckSquare, Image as ImageIcon, Download
 } from 'lucide-react';
 import { DetailSkeleton } from '../../../components/ui/index';
 import { StatusPill } from '../../../components/portal/Badges';
@@ -26,11 +26,23 @@ function DetailField({ label, value, mono = false, icon: Icon, fullWidth = false
   );
 }
 
+function CertField({ label, value, mono = false }) {
+  return (
+    <div className="bg-slate-900 p-4 text-left">
+      <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">{label}</div>
+      <div className={`text-sm font-semibold text-slate-100 break-words ${mono ? 'font-mono' : ''}`}>
+        {value || '—'}
+      </div>
+    </div>
+  );
+}
+
 function PersonnelDetails() {
   const { id } = useParams();
   const toast = useToast();
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -49,6 +61,28 @@ function PersonnelDetails() {
     };
     fetchDetails();
   }, [id]);
+
+  const handleDownloadCertificate = async () => {
+    try {
+      setDownloading(true);
+      const blob = await organizationApi.downloadCertificate(id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const nameForFile = (selectedCandidate?.candidateName || selectedCandidate?.candidate || id).replace(/\s+/g, '_');
+      link.setAttribute('download', `Clearance_Certificate_${nameForFile}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Certificate Downloaded', 'Clearance Certificate PDF downloaded successfully.');
+    } catch (err) {
+      console.error('Download certificate error:', err);
+      toast.error('Download Failed', 'Failed to download Clearance Certificate PDF.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   if (loading) return <DetailSkeleton />;
 
@@ -86,7 +120,9 @@ function PersonnelDetails() {
   const decisionDate = formatDate(selectedCandidate.updatedAt || selectedCandidate.decisionDate);
   const policeFeedback = selectedCandidate.policeFeedback || selectedCandidate.reason;
   const orgName = selectedCandidate.orgName || selectedCandidate.org;
-  
+  const govId = selectedCandidate.aadharNumber || selectedCandidate.idNumber;
+  const maskedGovId = govId ? `XXXX XXXX ${String(govId).slice(-4)}` : null;
+
   const hasImage = !!selectedCandidate.candidateImage;
 
   return (
@@ -186,43 +222,61 @@ function PersonnelDetails() {
                     </div>
                   </div>
 
-                  <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-8 shadow-inner border border-slate-800 text-center group">
+                  <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-8 shadow-inner border border-slate-800 group">
                     <div className="absolute top-0 right-0 p-32 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
                       <ShieldCheck className="h-full w-full text-white" />
                     </div>
-                    
+
                     <div className="relative z-10 space-y-6">
-                      <div className="inline-block px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] font-black text-slate-300 tracking-widest uppercase shadow-sm">
-                        Official SSOR Certificate
-                      </div>
-                      
-                      <div>
-                        <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
-                        <div className="text-4xl font-black font-mono text-white tracking-tight drop-shadow-md">
-                          {selectedCandidate.id.split('-')[0].toUpperCase()}
+                      <div className="text-center space-y-4">
+                        <div className="inline-block px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] font-black text-slate-300 tracking-widest uppercase shadow-sm">
+                          Official SSOR Certificate
+                        </div>
+
+                        <div>
+                          <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
+                          <div className="text-4xl font-black font-mono text-white tracking-tight drop-shadow-md">
+                            {selectedCandidate.id.split('-')[0].toUpperCase()}
+                          </div>
+                        </div>
+
+                        <div className="max-w-md mx-auto text-sm text-slate-300 font-medium leading-relaxed">
+                          This document cryptographically certifies that <strong className="text-white font-bold">{candidateName}</strong> has been cleared under the State Sexual Offender Registry.
                         </div>
                       </div>
 
-                      <div className="max-w-md mx-auto text-sm text-slate-300 font-medium leading-relaxed">
-                        This document cryptographically certifies that <strong className="text-white font-bold">{candidateName}</strong> has been cleared under the State Sexual Offender Registry.
+                      {/* Clear, structured certificate details */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-800 rounded-xl overflow-hidden border border-slate-800">
+                        <CertField label="Cleared For (Role)" value={role} />
+                        <CertField label="Organization" value={orgName} />
+                        <CertField label="Date of Birth" value={dob} mono />
+                        <CertField label="Government ID" value={maskedGovId} mono />
+                        <CertField label="Verification Date" value={decisionDate} mono />
+                        <CertField label="Full Reference No." value={selectedCandidate.id} mono />
                       </div>
-                      
-                      <div className="pt-6 mt-6 border-t border-slate-800 flex justify-between items-center text-xs font-bold text-slate-500">
-                        <span>ISSUER: TS POLICE DEPT</span>
-                        <span className="text-emerald-400">DATE: {decisionDate}</span>
+
+                      <div className="pt-5 border-t border-slate-800 flex flex-wrap gap-y-2 justify-between items-center text-xs font-bold text-slate-500">
+                        <span>ISSUER: TELANGANA STATE POLICE DEPT</span>
+                        <span className="text-emerald-400 flex items-center gap-1.5">
+                          <CheckCircle className="h-3.5 w-3.5" /> DIGITALLY SIGNED &amp; VERIFIED
+                        </span>
                       </div>
                     </div>
                   </div>
                   
                   <Button
                     type="button"
-                    variant="secondary"
-                    className="w-full justify-center py-3.5 rounded-xl shadow-sm border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold"
-                    disabled
-                    onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet.')}
+                    variant="primary"
+                    className="w-full justify-center py-3.5 rounded-xl shadow-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-2"
+                    onClick={handleDownloadCertificate}
+                    disabled={downloading}
                   >
-                    <FileText className="h-4 w-4 mr-2" /> Download PDF Certificate
+                    <Download className="h-4 w-4 mr-2" />
+                    {downloading ? 'Generating PDF...' : 'Download Official Certificate (PDF)'}
                   </Button>
+                  <p className="text-center text-xs font-semibold text-emerald-700 mt-3">
+                    Official PDF certificate is verified and ready for download.
+                  </p>
                 </div>
               )}
 

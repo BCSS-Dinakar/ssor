@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileCheck, Eye, Clock, CheckCircle2, AlertTriangle, Loader2, HelpCircle } from 'lucide-react';
+import { FileCheck, Eye, Clock, CheckCircle2, AlertTriangle, Loader2, HelpCircle, Download } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import StatCard from '../../../components/portal/StatCard';
 import DataTable from '../../../components/common/DataTable';
@@ -14,6 +14,7 @@ function VerificationRequests() {
   const toast = useToast();
   const [baseList, setBaseList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     organizationApi.getVerifications()
@@ -23,6 +24,27 @@ function VerificationRequests() {
       .catch(err => console.error("Failed to fetch verifications", err))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleDownloadCertificate = async (id, candidateName) => {
+    try {
+      setDownloadingId(id);
+      const blob = await organizationApi.downloadCertificate(id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Clearance_Certificate_${(candidateName || id).replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Certificate Downloaded', 'Clearance Certificate PDF downloaded successfully.');
+    } catch (err) {
+      console.error('Download certificate error:', err);
+      toast.error('Download Failed', 'Failed to download Clearance Certificate PDF.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const total = baseList.length;
   const cleared = baseList.filter((r) => r.status === 'cleared').length;
@@ -80,13 +102,14 @@ function VerificationRequests() {
           {row.status === 'cleared' && (
             <Button
               type="button"
-              variant="secondary"
+              variant="primary"
               size="sm"
-              disabled
-              title="Certificate download will be available when the backend endpoint is enabled"
-              onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet. Contact the police support desk if you need a copy.')}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 font-bold text-xs"
+              onClick={() => handleDownloadCertificate(row.id, row.candidateName)}
+              disabled={downloadingId === row.id}
             >
-              PDF (soon)
+              <Download className="h-3.5 w-3.5" />
+              {downloadingId === row.id ? 'Generating...' : 'Certificate PDF'}
             </Button>
           )}
 
