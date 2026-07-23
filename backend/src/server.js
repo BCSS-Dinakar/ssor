@@ -52,8 +52,11 @@ const startServer = async () => {
   await connectDB();
 
   // 3. Ensure the MinIO bucket for document storage exists (non-fatal).
+  //    When down, uploads fall back to local disk (reconciled later).
   const minioReady = await ensureBucket(MINIO_BUCKET);
-  const minioStatus = minioReady ? `Connected (bucket: ${MINIO_BUCKET})` : 'Disconnected';
+  const minioStatus = minioReady
+    ? `Connected (bucket: ${MINIO_BUCKET})`
+    : 'Disconnected — disk fallback active (run `npm run media:reconcile` once MinIO is back)';
 
   // 4. Check Redis (non-fatal)
   const redisStatus = await pingRedis();

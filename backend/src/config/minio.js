@@ -68,8 +68,8 @@ export async function ensureBucket(bucket = MINIO_BUCKET) {
     }
     return true;
   } catch (err) {
-    logger.warn(`⚠️  MinIO not reachable at startup (bucket: ${bucket}):`, err.message);
-    logger.warn('    File uploads/downloads will fail until MinIO is available.');
+    logger.warn(`⚠️  MinIO not reachable at startup (bucket: ${bucket})`, err.message);
+    logger.warn('    Uploads will fall back to local disk; reads of MinIO-only files will fail until MinIO is back.');
     return false;
   }
 }
