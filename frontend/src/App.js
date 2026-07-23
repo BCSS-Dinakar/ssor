@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+import VerifyCertificate from './pages/VerifyCertificate';
 
 import PortalIndex from './pages/portal/PortalIndex';
 import Profile from './pages/portal/Profile';
@@ -49,6 +50,9 @@ function App() {
         </Route>
 
         <Route path="/login" element={<LoginPage />} />
+
+        {/* Public certificate verification (QR scan target) */}
+        <Route path="/verify/:token" element={<VerifyCertificate />} />
 
         {/* Protected role-based portal */}
         <Route path="/portal" element={<PortalLayout />}>

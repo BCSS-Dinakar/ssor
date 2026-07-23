@@ -174,14 +174,21 @@ function VerificationVetting() {
 
   const getSuspectKey = (sus) => `${sus?.sourceType || sus?.source || 'match'}::${sus?.id}`;
 
-  const buildListDossier = (sus) => ({
+  const buildListDossier = (sus) => {
+    // ePetty case records carry no real date of birth — `sus.dob` is actually the
+    // case/registration date. For those, show the candidate's exact DOB as provided
+    // by the organization (record.dob). CCTNS records keep their own offender DOB.
+    const candidateDob = record?.dob
+      ? new Date(record.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '—';
+    return {
     offender_id: sus.id,
     person_details: {
       full_name: sus.name || '—',
       alias: sus.alias,
       age: sus.age,
       father_name: sus.fatherName,
-      date_of_birth: sus.dob,
+      date_of_birth: isCctnsSuspect(sus) ? sus.dob : candidateDob,
       phone_number: sus.phone,
       address: sus.address
     },
@@ -198,7 +205,8 @@ function VerificationVetting() {
     arrests: [],
     _listContext: sus,
     _sourceType: 'list'
-  });
+    };
+  };
 
   const handleConfirmMatch = (susOrInspect) => {
     const list = susOrInspect?._listContext || susOrInspect;
