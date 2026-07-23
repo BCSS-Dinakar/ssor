@@ -28,9 +28,9 @@ function DetailField({ label, value, mono = false, icon: Icon, fullWidth = false
 
 function CertField({ label, value, mono = false }) {
   return (
-    <div className="bg-slate-900 p-4 text-left">
-      <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">{label}</div>
-      <div className={`text-sm font-semibold text-slate-100 break-words ${mono ? 'font-mono' : ''}`}>
+    <div className="bg-white p-4 text-left">
+      <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{label}</div>
+      <div className={`text-sm font-semibold text-primary break-words ${mono ? 'font-mono' : ''}`}>
         {value || '—'}
       </div>
     </div>
@@ -222,31 +222,31 @@ function PersonnelDetails() {
                     </div>
                   </div>
 
-                  <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-8 shadow-inner border border-slate-800 group">
-                    <div className="absolute top-0 right-0 p-32 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none">
-                      <ShieldCheck className="h-full w-full text-white" />
+                  <div className="relative overflow-hidden bg-gradient-to-b from-white to-primary-50 rounded-2xl p-8 shadow-sm border-2 border-primary-100 group">
+                    <div className="absolute top-0 right-0 p-32 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none">
+                      <ShieldCheck className="h-full w-full text-primary" />
                     </div>
 
                     <div className="relative z-10 space-y-6">
                       <div className="text-center space-y-4">
-                        <div className="inline-block px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] font-black text-slate-300 tracking-widest uppercase shadow-sm">
+                        <div className="inline-block px-4 py-1.5 rounded-full border border-primary/25 text-primary text-[10px] font-black tracking-widest uppercase">
                           Official SSOR Certificate
                         </div>
 
                         <div>
-                          <div className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
-                          <div className="text-4xl font-black font-mono text-white tracking-tight drop-shadow-md">
+                          <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
+                          <div className="text-4xl font-black font-mono text-primary tracking-tight">
                             {selectedCandidate.id.split('-')[0].toUpperCase()}
                           </div>
                         </div>
 
-                        <div className="max-w-md mx-auto text-sm text-slate-300 font-medium leading-relaxed">
-                          This document cryptographically certifies that <strong className="text-white font-bold">{candidateName}</strong> has been cleared under the State Sexual Offender Registry.
+                        <div className="max-w-md mx-auto text-sm text-slate-600 font-medium leading-relaxed">
+                          This document cryptographically certifies that <strong className="text-primary font-bold">{candidateName}</strong> has been cleared under the State Sexual Offender Registry.
                         </div>
                       </div>
 
                       {/* Clear, structured certificate details */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-800 rounded-xl overflow-hidden border border-slate-800">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
                         <CertField label="Cleared For (Role)" value={role} />
                         <CertField label="Organization" value={orgName} />
                         <CertField label="Date of Birth" value={dob} mono />
@@ -255,9 +255,9 @@ function PersonnelDetails() {
                         <CertField label="Full Reference No." value={selectedCandidate.id} mono />
                       </div>
 
-                      <div className="pt-5 border-t border-slate-800 flex flex-wrap gap-y-2 justify-between items-center text-xs font-bold text-slate-500">
+                      <div className="pt-5 border-t border-slate-200 flex flex-wrap gap-y-2 justify-between items-center text-xs font-bold text-slate-500">
                         <span>ISSUER: TELANGANA STATE POLICE DEPT</span>
-                        <span className="text-emerald-400 flex items-center gap-1.5">
+                        <span className="text-success flex items-center gap-1.5">
                           <CheckCircle className="h-3.5 w-3.5" /> DIGITALLY SIGNED &amp; VERIFIED
                         </span>
                       </div>
