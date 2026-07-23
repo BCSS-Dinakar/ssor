@@ -52,7 +52,20 @@ Every uploaded file is registered in the central **`Media`** table, and the app 
 - **Inline resolution** — `resolveMediaUrl(id)` mints a signed URL on demand; `withVerificationUrls()` swaps the ids for URLs in API responses. The bucket stays private; an unsigned GET returns `403`.
 - The legacy `GET /api/*/documents/:ref` (stream) and `/:ref/url` (signed URL) endpoints accept a `Media.id` and resolve it via `resolveObjectKey()`.
 - **Applied via** `prisma/sql/2026_add_media_table.sql` (`prisma db execute`), **not** `prisma db push` — the Prisma schema only models a subset of this DB.
-- **Backfill** existing rows with `node scripts/backfill-media.js` (idempotent).
+- **Backfill** existing rows with `node scripts/backfill-media.js`, then `node scripts/backfill-media-metadata.js` (both idempotent).
+
+#### Access control (important)
+Media ids are sequential integers, so every document endpoint enforces ownership via `userCanAccessMedia()` / `guardDocumentAccess()`:
+- **organization** → only documents referenced by its own verifications / org profile,
+- **police** → any document (reviewers).
+
+Without this, ids would be trivially enumerable (IDOR). Covered by `npm test` (`test/media.test.js`).
+
+#### Production configuration
+- **`MINIO_PUBLIC_ENDPOINT`** must be set in production — presigned URLs point the browser directly at MinIO, which cannot reach the internal `MINIO_ENDPOINT`. `getMinioForSigning()` signs with the public host.
+- **`validateEnv()`** (called at startup) hard-fails a production boot on unsafe config: default `JWT_SECRET`, default MinIO creds, missing `DATABASE_URL`, missing `MINIO_PUBLIC_ENDPOINT`, or missing `FRONTEND_URL`.
+- Uploads are limited to PDF/JPG/PNG/WEBP (MIME + extension) at 5MB; failures return a clean `400`.
+- Errors are logged via `utils/logger.js` (structured JSON in prod) and never leak `error.message` to clients outside development.
 
 ### 4. Database Schema (Prisma)
 - **`User` Model**: The central authentication table holding the `loginId`, hashed password, and `role`.

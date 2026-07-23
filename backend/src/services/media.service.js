@@ -1,6 +1,7 @@
 import prisma from '../config/db.js';
 import { MINIO_BUCKET } from '../config/minio.js';
 import { getPresignedUrl, statObject, SIGNED_URL_EXPIRY_SECONDS } from './storage.service.js';
+import logger from '../utils/logger.js';
 
 // A reference is a Media id: an integer (or its numeric string form in a URL).
 const isMediaId = (v) => v != null && /^\d+$/.test(String(v));
@@ -30,6 +31,15 @@ export async function createMedia({ objectKey, originalName, fileType, fileSize,
   return media.id;
 }
 
+/** Remove the Media row for an object key (used to roll back a failed request). Never throws. */
+export async function deleteMediaByObjectKey(objectKey) {
+  try {
+    await prisma.media.deleteMany({ where: { objectKey } });
+  } catch (err) {
+    logger.error('[deleteMediaByObjectKey]', err);
+  }
+}
+
 /** Convenience: build a Media row from a multer file processed by persistUploads. */
 export function mediaFromFile(file, category, uploadedBy) {
   return createMedia({
@@ -40,6 +50,38 @@ export function mediaFromFile(file, category, uploadedBy) {
     category,
     uploadedBy,
   });
+}
+
+/**
+ * Authorization: can `user` access the Media with this id?
+ *  - police (reviewers) → any document
+ *  - organization       → only documents referenced by their OWN records
+ *                         (their candidate verifications + their org profile)
+ *
+ * Media ids are sequential integers, so this check is REQUIRED to prevent
+ * enumeration/IDOR — never serve a document without it.
+ */
+export async function userCanAccessMedia(user, ref) {
+  if (!user) return false;
+  if (user.role === 'police') return true;
+  if (user.role !== 'organization') return false;
+
+  const id = Number(ref);
+  if (!Number.isInteger(id)) return false;
+
+  const ownedByVerification = await prisma.candidateVerification.count({
+    where: { organizationId: user.id, OR: [{ candidateMediaId: id }, { consentMediaId: id }] },
+  });
+  if (ownedByVerification > 0) return true;
+
+  const org = await prisma.organizationProfile.findUnique({
+    where: { userId: user.id },
+    select: { authLetterMediaId: true, govCertMediaId: true, supportingDocsMediaIds: true },
+  });
+  if (org && (org.authLetterMediaId === id || org.govCertMediaId === id || (org.supportingDocsMediaIds || []).includes(id))) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -86,6 +128,25 @@ export async function resolveMediaUrl(ref) {
     console.error('[resolveMediaUrl Error]', err.message);
     return null;
   }
+}
+
+/**
+ * Shared guard for the document endpoints: reject traversal, authorize the
+ * user against the Media, and resolve to an object key that exists.
+ * @returns {Promise<{ objectKey: string } | { error: { status: number, message: string } }>}
+ */
+export async function guardDocumentAccess(user, ref) {
+  if (typeof ref !== 'string' || ref.includes('/') || ref.includes('\\') || ref.includes('..')) {
+    return { error: { status: 403, message: 'Forbidden access' } };
+  }
+  if (!(await userCanAccessMedia(user, ref))) {
+    return { error: { status: 403, message: 'You are not permitted to access this document.' } };
+  }
+  const objectKey = await resolveObjectKey(ref);
+  if (!objectKey || !(await statObject(objectKey))) {
+    return { error: { status: 404, message: 'Document not found' } };
+  }
+  return { objectKey };
 }
 
 /** Resolve an array of references to signed URLs (nulls dropped). */

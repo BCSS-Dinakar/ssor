@@ -13,6 +13,7 @@ import epettyRoutes from './routes/epetty.route.js';
 import eprisonsRoutes from './routes/eprisons.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from './utils/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -72,7 +73,15 @@ app.use((req, res, next) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('[Error]', err.stack);
+  // Upload errors (bad type / too large) → clean 400, not a 500.
+  if (err && (err.name === 'MulterError' || err.code === 'UNSUPPORTED_FILE_TYPE')) {
+    const message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'File too large. Maximum size is 5MB.'
+      : err.message || 'Invalid file upload.';
+    return res.status(400).json({ success: false, message });
+  }
+
+  logger.error('[UnhandledError]', err);
   res.status(500).json({
     success: false,
     message: 'Internal Server Error',

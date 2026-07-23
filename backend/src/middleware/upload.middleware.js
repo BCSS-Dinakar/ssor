@@ -1,13 +1,33 @@
 import multer from 'multer';
 import path from 'path';
 import { putBuffer, removeObject } from '../services/storage.service.js';
+import logger from '../utils/logger.js';
 
 // Buffer uploads in memory; the persistUploads middleware pushes them to MinIO.
 const storage = multer.memoryStorage();
 
-// Configure the upload middleware
+// Only allow the document/image types the app actually serves.
+const ALLOWED_MIME = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
+const ALLOWED_EXT = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp']);
+
+const fileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  if (ALLOWED_MIME.has(file.mimetype) && ALLOWED_EXT.has(ext)) return cb(null, true);
+  const err = new Error('Unsupported file type. Allowed: PDF, JPG, PNG, WEBP.');
+  err.code = 'UNSUPPORTED_FILE_TYPE';
+  cb(err);
+};
+
+// Configure the upload middleware. Multer errors (size/type) are turned into a
+// clean 400 by the global error handler in app.js.
 export const upload = multer({
   storage,
+  fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit per file
 });
 
@@ -50,7 +70,7 @@ export const persistUploads = async (req, res, next) => {
   } catch (err) {
     // MinIO unavailable. Roll back anything already stored and fail the request.
     await Promise.all(uploaded.map((k) => removeObject(k)));
-    console.error('[persistUploads Error]', err);
+    logger.error('[persistUploads Error]', err);
     res.status(503).json({
       success: false,
       message: 'File storage is currently unavailable. Please try again later.',

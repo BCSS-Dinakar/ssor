@@ -22,7 +22,7 @@ const settle = async (fn) => {
   try {
     return { status: await fn(), ok: true };
   } catch (error) {
-    return { status: 'Disconnected', ok: false, error: error.message };
+    return { status: 'Disconnected', ok: false, error: process.env.NODE_ENV === 'development' ? error.message : undefined };
   }
 };
 

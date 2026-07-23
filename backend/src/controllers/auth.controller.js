@@ -3,7 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { streamDocument, statObject, removeObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
-import { mediaFromFile, resolveObjectKey } from '../services/media.service.js';
+import { mediaFromFile, resolveObjectKey, guardDocumentAccess, deleteMediaByObjectKey } from '../services/media.service.js';
+import logger from '../utils/logger.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -12,14 +13,17 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
-// Remove already-persisted uploads from storage (used when registration fails
-// after files were pushed to MinIO by persistUploads). Fire-and-forget: never throws.
+// Remove already-persisted uploads (MinIO object + Media row) when registration
+// fails after files were pushed by persistUploads. Fire-and-forget: never throws.
 const cleanupFiles = (files) => {
   if (!files) return;
   Object.values(files).forEach((fileArray) => {
     fileArray.forEach((file) => {
       const key = file.filename || file.key;
-      if (key) removeObject(key);
+      if (key) {
+        removeObject(key);
+        deleteMediaByObjectKey(key);
+      }
     });
   });
 };
@@ -117,7 +121,7 @@ export const register = async (req, res) => {
     res.status(201).json({ success: true, message: 'User created successfully.', user: userProfile });
   } catch (error) {
     cleanupFiles(req.files);
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -161,7 +165,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({ success: true, user: userProfile });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -236,7 +240,7 @@ export const getMe = async (req, res) => {
 
     res.status(200).json({ success: true, user: userProfile });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -247,25 +251,19 @@ export const deleteAccount = async (req, res) => {
     res.clearCookie('token', COOKIE_OPTIONS);
     res.status(200).json({ success: true, message: 'Account deleted successfully.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
 export const getDocument = async (req, res) => {
   try {
-    const { filename } = req.params;
-
-    // Reject path traversal in the reference
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey) return res.status(404).json({ success: false, message: 'File not found' });
-    await streamDocument(res, objectKey);
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
+    await streamDocument(res, guard.objectKey);
   } catch (error) {
+    logger.error('[getDocument]', error);
     if (!res.headersSent) {
-      res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+      res.status(500).json({ success: false, message: 'Server error.' });
     }
   }
 };
@@ -277,21 +275,13 @@ export const getDocument = async (req, res) => {
  */
 export const getDocumentSignedUrl = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const guard = await guardDocumentAccess(req.user, req.params.filename);
+    if (guard.error) return res.status(guard.error.status).json({ success: false, message: guard.error.message });
 
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return res.status(403).json({ success: false, message: 'Forbidden access' });
-    }
-
-    const objectKey = await resolveObjectKey(filename);
-    if (!objectKey || !(await statObject(objectKey))) {
-      return res.status(404).json({ success: false, message: 'Document not found' });
-    }
-
-    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    const url = await getPresignedUrl(guard.objectKey, SIGNED_URL_EXPIRY_SECONDS, guard.objectKey);
     res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
   } catch (error) {
-    console.error('[getDocumentSignedUrl Error]', error);
+    logger.error('[getDocumentSignedUrl]', error);
     if (!res.headersSent) {
       res.status(500).json({ success: false, message: 'Server error generating document link' });
     }

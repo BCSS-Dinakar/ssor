@@ -50,7 +50,7 @@ export const searchEpettyCases = async (req, res) => {
     });
   } catch (error) {
     console.error('[searchEpettyCases Error]', error);
-    res.status(500).json({ success: false, message: 'Server error during ePetty search.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error during ePetty search.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
 
@@ -66,6 +66,6 @@ export const getEpettyCaseByNumber = async (req, res) => {
     res.status(200).json({ success: true, data: matches[0] });
   } catch (error) {
     console.error('[getEpettyCaseByNumber Error]', error);
-    res.status(500).json({ success: false, message: 'Server error during ePetty case lookup.', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error during ePetty case lookup.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
