@@ -63,6 +63,16 @@ export const env = {
   MINIO_PUBLIC_PORT: process.env.MINIO_PUBLIC_PORT ? Number(process.env.MINIO_PUBLIC_PORT) : undefined,
   MINIO_PUBLIC_USE_SSL: (process.env.MINIO_PUBLIC_USE_SSL ?? process.env.MINIO_USE_SSL) === 'true',
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+  // Public base URL of THIS backend (as reached by browsers). Used to build the
+  // token-signed streaming URL that serves disk-stored media during a MinIO outage.
+  API_PUBLIC_URL: (process.env.API_PUBLIC_URL || `http://localhost:${Number(process.env.PORT || 5000)}/api`).replace(/\/$/, ''),
+  // Secret for signing media streaming tokens (defaults to the JWT secret).
+  MEDIA_URL_SECRET: process.env.MEDIA_URL_SECRET || process.env.JWT_SECRET || 'fallback_secret_key',
+  // Placeholder returned when a referenced media object exists nowhere (orphaned).
+  MEDIA_PLACEHOLDER_URL: process.env.MEDIA_PLACEHOLDER_URL
+    || 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="#f1f5f9"/><text x="100" y="100" font-family="sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle" dominant-baseline="middle">Unavailable</text></svg>'
+    ),
 };
 
 /**

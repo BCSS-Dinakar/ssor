@@ -1,10 +1,39 @@
+import crypto from 'crypto';
 import prisma from '../config/db.js';
 import { MINIO_BUCKET } from '../config/minio.js';
+import { env } from '../config/env.js';
 import { getPresignedUrl, statObject, SIGNED_URL_EXPIRY_SECONDS } from './storage.service.js';
 import logger from '../utils/logger.js';
 
 // A reference is a Media id: an integer (or its numeric string form in a URL).
 const isMediaId = (v) => v != null && /^\d+$/.test(String(v));
+
+const IMAGE_CATEGORIES = new Set(['candidate_image', 'profile_image']);
+
+// --- Media stream tokens ---------------------------------------------------
+// Disk-stored objects can't be served by a MinIO presigned URL, so they're
+// served by a backend endpoint guarded with a short-lived HMAC token (a
+// self-hosted "presigned URL"): possession of a valid, unexpired token grants
+// read access, exactly like a presigned URL. Tokens are only ever embedded in
+// already-authorized responses.
+const signMediaToken = (id, expires) =>
+  crypto.createHmac('sha256', env.MEDIA_URL_SECRET).update(`${id}.${expires}`).digest('base64url');
+
+export function verifyMediaToken(id, expires, token) {
+  if (!id || !expires || !token) return false;
+  if (Number(expires) < Math.floor(Date.now() / 1000)) return false;
+  const expected = signMediaToken(id, expires);
+  const a = Buffer.from(token);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+const buildStreamUrl = (id, downloadName) => {
+  const expires = Math.floor(Date.now() / 1000) + SIGNED_URL_EXPIRY_SECONDS;
+  const token = signMediaToken(id, expires);
+  const name = downloadName ? `&name=${encodeURIComponent(downloadName)}` : '';
+  return `${env.API_PUBLIC_URL}/media/${id}/raw?expires=${expires}&token=${token}${name}`;
+};
 
 /** Basename of an object key / legacy path (strips any /api/v1/... prefix). */
 const basename = (v) => String(v).split('/').pop();
@@ -14,7 +43,7 @@ const basename = (v) => String(v).split('/').pop();
  * Idempotent on objectKey — re-registering the same object returns the existing id.
  * @returns {Promise<string>} Media.id to store on the owning row.
  */
-export async function createMedia({ objectKey, originalName, fileType, fileSize, category, uploadedBy }) {
+export async function createMedia({ objectKey, originalName, fileType, fileSize, category, uploadedBy, store }) {
   const media = await prisma.media.upsert({
     where: { objectKey },
     update: {},
@@ -25,6 +54,7 @@ export async function createMedia({ objectKey, originalName, fileType, fileSize,
       fileType: fileType || null,
       fileSize: fileSize ?? null,
       category: category || null,
+      store: store || 'minio',
       uploadedBy: uploadedBy || null,
     },
   });
@@ -49,6 +79,7 @@ export function mediaFromFile(file, category, uploadedBy) {
     fileSize: file.size,
     category,
     uploadedBy,
+    store: file.store || 'minio', // where persistUploads landed it (minio|disk)
   });
 }
 
@@ -99,33 +130,43 @@ export async function resolveObjectKey(ref) {
 }
 
 /**
- * Resolve a stored reference to a fresh, time-limited signed URL — or null.
- * Accepts either a Media id (preferred) or, for backward compatibility, a raw
- * object key / legacy path. Returns null if the reference or object is missing.
+ * Resolve a stored reference to a ready-to-use, time-limited URL — with fallback:
+ *   - object in MinIO  → presigned MinIO URL (browser fetches MinIO directly)
+ *   - object on disk   → token-signed backend stream URL (served by /api/media/:id/raw)
+ *   - object missing   → placeholder image URL for image categories, else null
+ * Accepts a Media id (preferred) or a legacy object key / path.
  */
 export async function resolveMediaUrl(ref) {
   if (!ref) return null;
   try {
+    let media = null;
     let objectKey;
     let downloadName;
 
     if (isMediaId(ref)) {
-      const media = await prisma.media.findUnique({ where: { id: Number(ref) } });
+      media = await prisma.media.findUnique({ where: { id: Number(ref) } });
       if (!media) return null;
       objectKey = media.objectKey;
       downloadName = media.originalName;
     } else {
-      // Legacy value: a raw key or "/api/v1/.../<key>" path.
-      objectKey = basename(ref);
+      objectKey = basename(ref); // legacy raw key / path
       downloadName = objectKey;
     }
 
-    const exists = await statObject(objectKey);
-    if (!exists) return null;
+    const stat = await statObject(objectKey); // { source: 'minio' | 'disk' } | null
 
-    return await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, downloadName);
+    if (stat?.source === 'minio') {
+      return await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, downloadName);
+    }
+    if (stat?.source === 'disk' && media) {
+      // Disk-stored (written during a MinIO outage): serve via the token endpoint.
+      return buildStreamUrl(media.id, downloadName);
+    }
+    // Object exists nowhere → placeholder for images, null otherwise.
+    if (media && IMAGE_CATEGORIES.has(media.category)) return env.MEDIA_PLACEHOLDER_URL;
+    return null;
   } catch (err) {
-    console.error('[resolveMediaUrl Error]', err.message);
+    logger.error('[resolveMediaUrl]', err);
     return null;
   }
 }

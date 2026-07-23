@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS public."Media" (
   "fileType" TEXT,
   "fileSize" INTEGER,
   "category" TEXT,
+  "store" TEXT NOT NULL DEFAULT 'minio',
   "uploadedBy" TEXT,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "Media_pkey" PRIMARY KEY ("id")

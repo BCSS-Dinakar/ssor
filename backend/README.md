@@ -61,6 +61,15 @@ Media ids are sequential integers, so every document endpoint enforces ownership
 
 Without this, ids would be trivially enumerable (IDOR). Covered by `npm test` (`test/media.test.js`).
 
+#### Fallback & resilience
+The media layer degrades gracefully instead of hard-failing:
+- **Write (MinIO down):** `putBuffer` falls back to the local disk dir (`MEDIA_DISK_DIR`, default `storage/media`); the upload succeeds and the `Media` row is marked `store = 'disk'`.
+- **Read:** `resolveMediaUrl` branches on where the object actually is —
+  - in MinIO → **presigned MinIO URL** (browser fetches MinIO directly),
+  - on disk → **token-signed backend stream URL** (`GET /api/media/:id/raw?expires=&token=`), since a disk file can't be presigned. The HMAC token *is* the authorization (a self-hosted presigned URL), so it works in a cross-origin `<img>`; it's only ever embedded in already-authorized responses.
+  - missing everywhere (orphaned) → **placeholder image** (`MEDIA_PLACEHOLDER_URL`) for image categories, else `null`.
+- **Reconcile:** once MinIO is back, `npm run media:reconcile` re-uploads disk files and flips `store` back to `'minio'`.
+
 #### Production configuration
 - **`MINIO_PUBLIC_ENDPOINT`** must be set in production — presigned URLs point the browser directly at MinIO, which cannot reach the internal `MINIO_ENDPOINT`. `getMinioForSigning()` signs with the public host.
 - **`validateEnv()`** (called at startup) hard-fails a production boot on unsafe config: default `JWT_SECRET`, default MinIO creds, missing `DATABASE_URL`, missing `MINIO_PUBLIC_ENDPOINT`, or missing `FRONTEND_URL`.
