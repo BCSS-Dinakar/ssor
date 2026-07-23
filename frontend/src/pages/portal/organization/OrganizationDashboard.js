@@ -18,13 +18,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  BarChart,
-  Bar
+  ResponsiveContainer
 } from 'recharts';
 import { useAuth } from '../../../context/AuthContext';
 import { organizationApi } from '../../../api/organization.api';
@@ -144,58 +138,6 @@ function OrganizationDashboard() {
         </CardContent>
       </Card>
 
-      {/* Side-by-Side Charts */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Role Distribution</CardTitle>
-            <CardDescription>Breakdown of clearance requests by job role.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px] w-full">
-              {data.roleDistribution?.length ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={data.roleDistribution} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={3} dataKey="value">
-                      {data.roleDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 600 }} />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '13px', fontWeight: 600 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted">No role data available</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Average Processing Times</CardTitle>
-            <CardDescription>Turnaround time (in days) over recent months.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px] w-full">
-              {data.processingTimes?.length ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.processingTimes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontWeight: 600 }} formatter={(value) => [value, 'Days']} />
-                    <Bar dataKey="days" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={80} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted">No processing data available</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Main Lists Section */}
       <div className="grid gap-6 xl:grid-cols-3">

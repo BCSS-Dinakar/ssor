@@ -7,6 +7,16 @@ export const authApi = {
     return response.data;
   },
 
+  loginOtpRequest: async (credentials) => {
+    const response = await api.post('/auth/login-otp-request', credentials);
+    return response.data;
+  },
+
+  loginOtpVerify: async (credentials) => {
+    const response = await api.post('/auth/login-otp-verify', credentials);
+    return response.data;
+  },
+
   logout: async () => {
     const response = await api.post('/auth/logout');
     return response.data;
@@ -29,5 +39,20 @@ export const authApi = {
   getDocument: async (filename) => {
     const response = await api.get(`/auth/documents/${filename}`, { responseType: 'blob' });
     return response;
+  },
+
+  recoverRequest: async (data) => {
+    const response = await api.post('/auth/recover-request', data);
+    return response.data;
+  },
+
+  recoverVerify: async (data) => {
+    const response = await api.post('/auth/recover-verify', data);
+    return response.data;
+  },
+
+  resetPassword: async (data) => {
+    const response = await api.post('/auth/reset-password', data);
+    return response.data;
   }
 };

@@ -33,11 +33,11 @@ const VERIFICATIONS = [
     aadharNumber: null,
   },
   {
-    candidateName: 'John Doe',
+    candidateName: 'Karthik Reddy',
     phone: '9848022319',
     role: 'Caretaker',
     orgType: 'School',
-    fatherName: 'Richard Doe',
+    fatherName: 'Srinivas Reddy',
     dob: '1992-01-15',
     status: 'rejected',
     policeFeedback: 'Low-priority phone match requires manual review. Clearance denied pending identity verification.',
@@ -132,7 +132,7 @@ async function main() {
     });
   }
 
-  const appealCandidate = verifications.find((v) => v.candidateName === 'John Doe');
+  const appealCandidate = verifications.find((v) => v.candidateName === 'Karthik Reddy');
   const ticket = await prisma.supportTicket.create({
     data: {
       organizationId: org.id,

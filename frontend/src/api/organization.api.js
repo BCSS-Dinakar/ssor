@@ -32,6 +32,13 @@ export const organizationApi = {
     return response.data;
   },
 
+  downloadCertificate: async (id) => {
+    const response = await api.get(`/organization/verifications/${id}/certificate`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
   getTickets: async () => {
     const response = await api.get('/organization/tickets');
     return response.data;
