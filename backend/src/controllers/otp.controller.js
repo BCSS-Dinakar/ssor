@@ -1,4 +1,5 @@
-import getRedis from '../config/redis.js';
+import { setOtp, getOtp, delOtp } from '../services/otp-store.service.js';
+import logger from '../utils/logger.js';
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -13,16 +14,15 @@ export const sendOtp = async (req, res) => {
   }
 
   const otp = generateOtp();
-  const redisKey = `otp:${mobile.trim()}`;
+  const key = `otp:${mobile.trim()}`;
 
   try {
-    const redis = getRedis();
-    // Store OTP in Redis with 60-second TTL
-    await redis.set(redisKey, otp, 'EX', 60);
+    // Store OTP with 60s TTL (Redis, or in-memory fallback if Redis is down).
+    await setOtp(key, otp, 60);
 
     // In production, integrate an SMS gateway here (Twilio, MSG91, etc.)
     // For development we log the OTP to the console
-    console.log(`📱 OTP for ${mobile}: ${otp}`);
+    logger.info(`📱 OTP for ${mobile}: ${otp}`);
 
     return res.status(200).json({
       success: true,
@@ -31,7 +31,7 @@ export const sendOtp = async (req, res) => {
       ...(process.env.NODE_ENV === 'development' && { devOtp: otp }),
     });
   } catch (err) {
-    console.error('Redis error during sendOtp:', err.message);
+    logger.error('sendOtp failed', err);
     return res.status(500).json({ success: false, message: 'Failed to send OTP. Please try again.' });
   }
 };
@@ -44,11 +44,10 @@ export const verifyOtp = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Mobile and OTP are required.' });
   }
 
-  const redisKey = `otp:${mobile.trim()}`;
+  const key = `otp:${mobile.trim()}`;
 
   try {
-    const redis = getRedis();
-    const storedOtp = await redis.get(redisKey);
+    const storedOtp = await getOtp(key);
 
     if (!storedOtp) {
       return res.status(400).json({ success: false, message: 'OTP expired or not sent. Please request a new OTP.' });
@@ -59,11 +58,11 @@ export const verifyOtp = async (req, res) => {
     }
 
     // OTP verified – delete it so it cannot be reused
-    await redis.del(redisKey);
+    await delOtp(key);
 
     return res.status(200).json({ success: true, message: 'OTP verified successfully.' });
   } catch (err) {
-    console.error('Redis error during verifyOtp:', err.message);
+    logger.error('verifyOtp failed', err);
     return res.status(500).json({ success: false, message: 'OTP verification failed. Please try again.' });
   }
 };
