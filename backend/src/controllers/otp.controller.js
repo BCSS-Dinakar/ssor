@@ -1,4 +1,4 @@
-import { setOtp, getOtp, delOtp } from '../services/otp-store.service.js';
+import { setCache, getCache, deleteCache } from '../config/redis.js';
 import logger from '../utils/logger.js';
 
 function generateOtp() {
@@ -17,8 +17,8 @@ export const sendOtp = async (req, res) => {
   const key = `otp:${mobile.trim()}`;
 
   try {
-    // Store OTP with 60s TTL (Redis, or in-memory fallback if Redis is down).
-    await setOtp(key, otp, 60);
+    // Store OTP with 60s TTL (Redis, or local file cache fallback if Redis is down).
+    await setCache(key, otp, 60);
 
     // In production, integrate an SMS gateway here (Twilio, MSG91, etc.)
     // For development we log the OTP to the console
@@ -47,7 +47,7 @@ export const verifyOtp = async (req, res) => {
   const key = `otp:${mobile.trim()}`;
 
   try {
-    const storedOtp = await getOtp(key);
+    const storedOtp = await getCache(key);
 
     if (!storedOtp) {
       return res.status(400).json({ success: false, message: 'OTP expired or not sent. Please request a new OTP.' });
@@ -58,7 +58,7 @@ export const verifyOtp = async (req, res) => {
     }
 
     // OTP verified – delete it so it cannot be reused
-    await delOtp(key);
+    await deleteCache(key);
 
     return res.status(200).json({ success: true, message: 'OTP verified successfully.' });
   } catch (err) {

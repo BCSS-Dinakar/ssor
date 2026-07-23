@@ -79,7 +79,7 @@ function Footer() {
           <p className="text-gray-600 text-sm text-center mt-4 max-w-3xl mx-auto leading-relaxed">
             DISCLAIMER: Unauthorized access to this system is prohibited and subject to prosecution. Information in
             this registry is provided strictly for public safety purposes and must not be used to harass or
-            discriminate against any individual. All records shown in this prototype are fictional test data.
+            discriminate against any individual. All records shown are for illustrative purposes.
           </p>
         </div>
       </div>

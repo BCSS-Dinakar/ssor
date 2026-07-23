@@ -128,7 +128,7 @@ function ContactPage() {
                   <p className="text-muted text-base leading-relaxed max-w-sm mx-auto mb-6">
                     Thank you for contacting us. We will respond within 2 working days. For urgent matters, please call the helplines listed above.
                   </p>
-                  <p className="text-sm text-muted italic">(This is a prototype — no message was actually sent.)</p>
+
                   <button
                     onClick={() => { setSubmitted(false); setForm({ name: '', email: '', phone: '', subject: '', category: '', message: '' }); }}
                     className="btn-secondary mt-6 mx-auto"
@@ -221,9 +221,7 @@ function ContactPage() {
                     Send Message
                   </button>
 
-                  <p className="text-center text-sm text-muted">
-                    This is a prototype. No data is transmitted or stored.
-                  </p>
+
                 </form>
               )}
             </div>

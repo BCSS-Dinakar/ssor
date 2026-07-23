@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, logout, getMe, deleteAccount, getDocument, getDocumentSignedUrl } from '../controllers/auth.controller.js';
+import { register, login, logout, getMe, deleteAccount, getDocument, getDocumentSignedUrl, requestLoginOtp, verifyLoginOtp, recoverRequest, recoverVerify, resetPassword } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { upload, persistUploads } from '../middleware/upload.middleware.js';
 
@@ -13,8 +13,16 @@ router.post('/register', upload.fields([
   { name: 'policeDocs', maxCount: 5 }
 ]), persistUploads, register);
 router.post('/login', login);
+router.post('/login-otp-request', requestLoginOtp);
+router.post('/login-otp-verify', verifyLoginOtp);
 router.post('/logout', logout);
 router.get('/me', requireAuth, getMe);
+
+// Account Recovery Routes
+router.post('/recover-request', recoverRequest);
+router.post('/recover-verify', recoverVerify);
+router.post('/reset-password', resetPassword);
+
 router.delete('/delete', requireAuth, deleteAccount);
 router.get('/documents/:filename/url', requireAuth, getDocumentSignedUrl);
 router.get('/documents/:filename', requireAuth, getDocument);

@@ -99,4 +99,24 @@ process.on('unhandledRejection', (err) => {
   process.exit(1);
 });
 
+// Graceful shutdown handling
+const gracefulShutdown = async (signal) => {
+  console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
+  if (global._ssorServer) {
+    global._ssorServer.close();
+  }
+  
+  const prisma = (await import('./config/db.js')).default;
+  if (prisma) {
+    await prisma.$disconnect();
+    console.log('⚡ Prisma Client Disconnected');
+  }
+  
+  process.exit(0);
+};
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // For nodemon restarts
+
 startServer();

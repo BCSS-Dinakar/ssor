@@ -34,6 +34,28 @@ function VerificationDetails() {
   const toast = useToast();
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadCertificate = async () => {
+    try {
+      setDownloading(true);
+      const blob = await organizationApi.downloadCertificate(id);
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Clearance_Certificate_${(selectedRequest?.candidate || id).replace(/\s+/g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Certificate Downloaded', 'Clearance Certificate PDF downloaded successfully.');
+    } catch (err) {
+      console.error('Download certificate error:', err);
+      toast.error('Download Failed', 'Failed to download Clearance Certificate PDF.');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchVerification = async () => {
@@ -261,16 +283,16 @@ function VerificationDetails() {
 
                 <Button
                   type="button"
-                  variant="secondary"
-                  className="w-full"
-                  disabled
-                  title="Certificate download will be available when the backend endpoint is enabled"
-                  onClick={() => toast.info('Certificate download unavailable', 'PDF certificate download is not enabled yet.')}
+                  variant="primary"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 font-bold py-3 shadow-md"
+                  onClick={handleDownloadCertificate}
+                  disabled={downloading}
                 >
-                  Certificate PDF (coming soon)
+                  <Download className="h-4 w-4" />
+                  {downloading ? 'Generating PDF...' : 'Download Official Certificate (PDF)'}
                 </Button>
-                <Alert variant="info" className="mt-3">
-                  Official PDF certificates will appear here once the download service is enabled.
+                <Alert variant="success" className="mt-3">
+                  Official PDF certificate is verified and ready for download.
                 </Alert>
               </div>
             )}
