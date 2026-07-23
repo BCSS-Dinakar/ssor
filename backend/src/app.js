@@ -11,6 +11,7 @@ import policeRoutes from './routes/police.route.js';
 import organizationRoutes from './routes/organization.route.js';
 import epettyRoutes from './routes/epetty.route.js';
 import eprisonsRoutes from './routes/eprisons.js';
+import verifyRoutes from './routes/verify.route.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -58,6 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/police', policeRoutes);
 app.use('/api/organization', organizationRoutes);
+app.use('/api/verify', verifyRoutes);
 app.use('/api/e-petty', epettyRoutes);
 app.use('/api/eprisons', eprisonsRoutes);
 app.use('/api/e-prisons', eprisonsRoutes);
