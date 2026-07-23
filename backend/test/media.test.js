@@ -21,7 +21,8 @@ const ctx = {};
 
 before(async () => {
   ctx.objectKey = `test_media_${stamp}.pdf`;
-  await putBuffer(ctx.objectKey, Buffer.from('%PDF-1.4 test'), 'application/pdf');
+  const put = await putBuffer(ctx.objectKey, Buffer.from('%PDF-1.4 test'), 'application/pdf');
+  ctx.minioUp = put.store === 'minio'; // false when MinIO is unreachable (upload fell back to disk)
 
   ctx.media = await prisma.media.create({
     data: { bucketName: MINIO_BUCKET, objectKey: ctx.objectKey, originalName: ctx.objectKey, category: 'candidate_image' },
@@ -101,7 +102,8 @@ test('unknown media id resolves to null', async () => {
 
 // --- Fallback behaviour ---
 
-test('MinIO-stored media resolves to a presigned MinIO URL', async () => {
+test('MinIO-stored media resolves to a presigned MinIO URL', async (t) => {
+  if (!ctx.minioUp) return t.skip('MinIO unavailable — object fell back to disk');
   const url = await resolveMediaUrl(ctx.media.id);
   assert.match(url, /^https?:\/\//);
   assert.match(url, /X-Amz-/);
