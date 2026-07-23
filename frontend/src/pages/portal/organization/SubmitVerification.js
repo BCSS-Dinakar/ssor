@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldAlert, CheckCircle2, ArrowRight, DownloadCloud } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, ArrowRight, DownloadCloud, Copy, Check, Clock, Search, BellRing, FileText } from 'lucide-react';
 import { Field, inputClass, FeedbackBanner } from '../../../components/portal/FormControls';
 import { organizationApi } from '../../../api/organization.api';
 import { ORG_TYPES } from '../../../utils/data/authData';
@@ -16,8 +16,17 @@ function SubmitVerification() {
   const [alert, setAlert] = useState(null);
   const [submittedRecord, setSubmittedRecord] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const copyReferenceId = async (id) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (_) { /* clipboard unavailable */ }
+  };
 
   const canDownloadConsent = Boolean(
     form.candidate.trim() &&
@@ -113,76 +122,154 @@ function SubmitVerification() {
   // Success Receipt State
   // -------------------------------------------------------------
   if (submittedRecord) {
-    return (
-      <div className="animate-fadeIn -mx-4 sm:-mx-6 lg:-mx-8 -my-6 min-h-[calc(100vh-80px)] bg-slate-50 flex items-center justify-center p-4 py-12 relative overflow-hidden">
-        
-        {/* Background ambient glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-full max-h-[600px] bg-emerald-500/15 blur-[100px] rounded-full pointer-events-none" />
+    const submittedAt = submittedRecord.createdAt
+      ? new Date(submittedRecord.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+      : 'Just now';
 
-        <div className="relative w-full max-w-2xl bg-white border border-slate-200/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-[2rem] overflow-hidden">
-          
-          {/* Top header area */}
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-8 py-10 text-center relative overflow-hidden">
-            {/* Decorative background circles */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-2xl" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-black/10 rounded-full blur-2xl" />
-            
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.3)] ring-4 ring-white/30">
-                <CheckCircle2 className="h-10 w-10 animate-[pulse_2s_ease-in-out_infinite]" />
-              </div>
-              <h3 className="text-3xl font-black text-white tracking-tight mb-2">Verification Request Initiated</h3>
-              <p className="text-emerald-50 max-w-md mx-auto text-sm font-medium leading-relaxed">
-                The candidate's details have been securely transmitted to the Telangana State Police registry for active background vetting.
+    const nextSteps = [
+      {
+        icon: CheckCircle2,
+        title: 'Request Submitted',
+        detail: `Received ${submittedAt}`,
+        state: 'done',
+      },
+      {
+        icon: Search,
+        title: 'Police Verification',
+        detail: 'Cross-checking against the Telangana State Sexual Offender Registry under controlled access.',
+        state: 'current',
+      },
+      {
+        icon: FileText,
+        title: 'Decision Issued',
+        detail: 'Clear / Reject outcome delivered to your dashboard, typically within 24–48 hours.',
+        state: 'pending',
+      },
+    ];
+
+    return (
+      <div className="space-y-6 w-full animate-fadeIn pb-10">
+
+        {/* Header Section — matches the form/page header pattern */}
+        <div className="mb-6 border-b border-slate-200 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 shrink-0 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800 font-heading">Verification Request Initiated</h2>
+              <p className="text-base text-slate-500 mt-0.5">
+                The candidate's details have been securely transmitted to the Telangana State Police registry for background vetting.
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Details body */}
-          <div className="p-8 sm:p-10">
-            {/* Primary Reference ID Block */}
-            <div className="bg-slate-900 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-inner">
-              <div>
-                <span className="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Official Reference ID</span>
-                <span className="block text-emerald-400 font-mono text-base sm:text-lg tracking-wide break-all">
-                  {submittedRecord.id}
-                </span>
-              </div>
-              <div className="shrink-0">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+        <div className="grid lg:grid-cols-5 gap-6 items-start">
+
+          {/* Left: request details */}
+          <div className="lg:col-span-3 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6 md:p-8 space-y-6">
+
+              {/* Reference ID */}
+              <div className="bg-slate-900 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Official Reference ID</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400 font-mono text-base tracking-wide break-all">
+                      {submittedRecord.id}
+                    </span>
+                    <button
+                      onClick={() => copyReferenceId(submittedRecord.id)}
+                      title="Copy reference ID"
+                      className="shrink-0 text-slate-400 hover:text-emerald-300 transition-colors p-1"
+                    >
+                      {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active
                 </span>
               </div>
-            </div>
 
-            {/* Grid of details */}
-            <div className="grid sm:grid-cols-2 gap-6 mb-10">
-              <div className="space-y-1">
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Candidate Name</span>
-                <p className="text-slate-800 font-bold text-lg">{submittedRecord.candidateName}</p>
+              {/* Details grid */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Candidate Name</span>
+                  <p className="text-slate-800 font-bold text-base">{submittedRecord.candidateName}</p>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Designated Role</span>
+                  <p className="text-slate-800 font-bold text-base">{submittedRecord.role}</p>
+                </div>
+                <div className="space-y-1 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                  <span className="flex items-center gap-1.5 text-amber-600/80 text-xs font-bold uppercase tracking-wider">
+                    <Clock className="h-3.5 w-3.5" /> Current Status
+                  </span>
+                  <p className="text-amber-600 font-bold text-base">Under Police Review</p>
+                </div>
+                <div className="space-y-1 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">Estimated Completion</span>
+                  <p className="text-slate-700 font-bold text-base">Within 24–48 Hours</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Designated Role</span>
-                <p className="text-slate-800 font-bold text-lg">{submittedRecord.role}</p>
-              </div>
-              <div className="space-y-1 p-4 bg-amber-50 rounded-xl border border-amber-100 flex flex-col justify-center">
-                <span className="text-amber-600/70 text-xs font-bold uppercase tracking-wider mb-1">Current Status</span>
-                <p className="text-amber-600 font-black text-lg">Under Police Review</p>
-              </div>
-              <div className="space-y-1 p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center">
-                <span className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Estimated Completion</span>
-                <p className="text-slate-700 font-bold text-lg">Within 24-48 Hours</p>
-              </div>
-            </div>
 
-            {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={() => navigate(`/portal/track/${submittedRecord.id}`)} className="flex-1 btn-primary py-4 justify-center shadow-xl shadow-primary/20 text-base rounded-xl transition-transform hover:-translate-y-1">
-                Track Live Status <ArrowRight className="h-5 w-5 ml-2" />
-              </button>
-              <button onClick={() => setSubmittedRecord(null)} className="flex-1 bg-white border-2 border-slate-200 text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all py-4 px-6 rounded-xl text-base text-center hover:-translate-y-1">
-                Submit Another Candidate
-              </button>
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <button onClick={() => navigate(`/portal/track/${submittedRecord.id}`)} className="btn-primary py-3 px-6 justify-center rounded-xl text-base">
+                  Track Live Status <ArrowRight className="h-5 w-5 ml-2" />
+                </button>
+                <button onClick={() => setSubmittedRecord(null)} className="bg-white border border-slate-200 shadow-sm text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-colors py-3 px-6 rounded-xl text-base text-center">
+                  Submit Another Candidate
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Right: what happens next */}
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6 md:p-8">
+              <h3 className="font-bold text-slate-800 text-lg mb-6">What happens next</h3>
+
+              <ol className="space-y-6">
+                {nextSteps.map((step, i) => {
+                  const Icon = step.icon;
+                  const isLast = i === nextSteps.length - 1;
+                  const styles = {
+                    done: 'bg-emerald-500 text-white border-emerald-500',
+                    current: 'bg-amber-50 text-amber-600 border-amber-300',
+                    pending: 'bg-slate-50 text-slate-400 border-slate-200',
+                  }[step.state];
+                  return (
+                    <li key={step.title} className="relative flex gap-4">
+                      {!isLast && (
+                        <span className="absolute left-[19px] top-10 bottom-[-24px] w-px bg-slate-200" aria-hidden="true" />
+                      )}
+                      <div className={`relative z-10 w-10 h-10 shrink-0 rounded-full border flex items-center justify-center ${styles}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="pt-1">
+                        <p className={`font-bold text-base ${step.state === 'pending' ? 'text-slate-500' : 'text-slate-800'}`}>
+                          {step.title}
+                          {step.state === 'current' && (
+                            <span className="ml-2 align-middle inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold uppercase tracking-wide">In progress</span>
+                          )}
+                        </p>
+                        <p className="text-sm text-slate-500 mt-1 leading-relaxed">{step.detail}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <div className="mt-8 pt-5 border-t border-slate-100 flex items-start gap-3">
+                <BellRing className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  You'll be notified on your dashboard the moment the status changes. No action is needed from you in the meantime.
+                </p>
+              </div>
             </div>
           </div>
 

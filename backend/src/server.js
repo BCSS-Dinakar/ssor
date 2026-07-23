@@ -2,6 +2,17 @@ import { env } from './config/env.js';
 import app from './app.js';
 import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
+import { ensureBucket, MINIO_BUCKET } from './config/minio.js';
+import getRedis from './config/redis.js';
+
+const pingRedis = async () => {
+  try {
+    const pong = await getRedis().ping();
+    return pong === 'PONG' ? 'Connected' : `Reachable (${pong})`;
+  } catch (err) {
+    return 'Disconnected';
+  }
+};
 
 const listenWithPortFallback = (preferredPort, retryLimit) => new Promise((resolve, reject) => {
   let port = preferredPort;
@@ -36,7 +47,14 @@ const startServer = async () => {
   // 2. Connect Prisma
   await connectDB();
 
-  // 3. Start Express Server
+  // 3. Ensure the MinIO bucket for document storage exists (non-fatal).
+  const minioReady = await ensureBucket(MINIO_BUCKET);
+  const minioStatus = minioReady ? `Connected (bucket: ${MINIO_BUCKET})` : 'Disconnected';
+
+  // 4. Check Redis (non-fatal)
+  const redisStatus = await pingRedis();
+
+  // 5. Start Express Server
   const { server, port } = await listenWithPortFallback(env.PORT, env.PORT_RETRY_LIMIT);
 
   console.log(`
@@ -45,6 +63,8 @@ const startServer = async () => {
 🌍 Environment : ${env.NODE_ENV}
 📡 Server      : http://localhost:${port}
 🗄️ Database    : Connected
+🧠 Redis       : ${redisStatus}
+🪣 MinIO       : ${minioStatus}
 ⚡ Prisma Client Ready
 ────────────────────────────────────
     `);

@@ -5,6 +5,8 @@ import fs from 'fs';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
 import { searchCctnsCandidate, shouldSkipEpettyAfterCctns } from '../services/cctns.service.js';
 import { generateClearanceReport } from '../services/gemini.service.js';
+import { streamDocument, statObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
+import { withVerificationUrls, withVerificationUrlsList, resolveObjectKey } from '../services/media.service.js';
 
 export const getLogs = async (req, res) => {
   try {
@@ -37,10 +39,11 @@ export const getLogs = async (req, res) => {
 
 export const getVerifications = async (req, res) => {
   try {
-    const verifications = await prisma.candidateVerification.findMany({
+    const rows = await prisma.candidateVerification.findMany({
       orderBy: { createdAt: 'desc' }
     });
-    res.status(200).json({ success: true, data: verifications });
+    const data = await withVerificationUrlsList(rows);
+    res.status(200).json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.', error: error.message });
   }
@@ -57,7 +60,7 @@ export const getVerificationById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Verification not found' });
     }
 
-    res.status(200).json({ success: true, data: verification });
+    res.status(200).json({ success: true, data: await withVerificationUrls(verification) });
   } catch (error) {
     console.error('[getVerificationById Error]', error);
     res.status(500).json({ success: false, message: 'Server error.', error: error.message });
@@ -294,16 +297,47 @@ export const updateOrganizationStatus = async (req, res) => {
 export const getDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    // Get absolute path to storage/documents dir
-    const filePath = path.resolve(process.cwd(), 'storage', 'documents', filename);
 
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).json({ success: false, message: 'Document not found' });
+    // Reject path traversal in the reference
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
     }
+
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey) return res.status(404).json({ success: false, message: 'Document not found' });
+    await streamDocument(res, objectKey, { notFoundMessage: 'Document not found' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    }
+  }
+};
+
+/**
+ * Permanent-link endpoint: returns a fresh, time-limited signed URL for a stored
+ * document key. Only the permanent key lives in the DB; the URL is transient.
+ * Response: { success, url, expiresIn }
+ */
+export const getDocumentSignedUrl = async (req, res) => {
+  try {
+    const { filename } = req.params;
+
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
+    }
+
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey || !(await statObject(objectKey))) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
+  } catch (error) {
+    console.error('[getDocumentSignedUrl Error]', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error generating document link' });
+    }
   }
 };
 

@@ -1,9 +1,9 @@
 import prisma from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
 import { env } from '../config/env.js';
+import { streamDocument, statObject, removeObject, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
+import { mediaFromFile, resolveObjectKey } from '../services/media.service.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -12,15 +12,14 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
+// Remove already-persisted uploads from storage (used when registration fails
+// after files were pushed to MinIO by persistUploads). Fire-and-forget: never throws.
 const cleanupFiles = (files) => {
   if (!files) return;
   Object.values(files).forEach((fileArray) => {
     fileArray.forEach((file) => {
-      try {
-        if (file.path) fs.unlinkSync(file.path);
-      } catch (err) {
-        console.error('Failed to cleanup file:', file.path, err);
-      }
+      const key = file.filename || file.key;
+      if (key) removeObject(key);
     });
   });
 };
@@ -61,13 +60,14 @@ export const register = async (req, res) => {
         cleanupFiles(req.files);
         return res.status(400).json({ success: false, message: 'Police name is required.' });
       }
-      let docsPaths = [];
+      let docsMediaIds = [];
       if (req.files && req.files.policeDocs) {
-        docsPaths = req.files.policeDocs.map(f => f.filename);
+        // Register each file in Media; store the reference ids (int).
+        docsMediaIds = await Promise.all(req.files.policeDocs.map(f => mediaFromFile(f, 'police_doc', null)));
       }
-      
+
       userData.policeProfile = {
-        create: { name, badgeId, rank, empId, department, wing, jurisdiction, joiningDate, email, mobile, altPhone, station, district, state, country, clearanceLevel, docsPaths }
+        create: { name, badgeId, rank, empId, department, wing, jurisdiction, joiningDate, email, mobile, altPhone, station, district, state, country, clearanceLevel, docsMediaIds }
       };
     } else if (role === 'organization') {
       const { orgName, orgType, country, state, district, city, address, pinCode, officialEmail, officialPhone, adminName, designation, empId, adminEmail, mobile, parentOrg, department, jurisdiction, altPhone, website } = req.body;
@@ -77,22 +77,23 @@ export const register = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Missing required organization fields.' });
       }
 
-      let authLetterPath = null;
-      let govCertPath = null;
-      let supportingDocsPaths = [];
+      let authLetterMediaId = null;
+      let govCertMediaId = null;
+      let supportingDocsMediaIds = [];
 
       if (req.files) {
-        if (req.files.authLetter) authLetterPath = req.files.authLetter[0].filename;
-        if (req.files.govCert) govCertPath = req.files.govCert[0].filename;
+        // Register each file in Media; store the reference ids (int).
+        if (req.files.authLetter) authLetterMediaId = await mediaFromFile(req.files.authLetter[0], 'auth_letter', null);
+        if (req.files.govCert) govCertMediaId = await mediaFromFile(req.files.govCert[0], 'gov_cert', null);
         if (req.files.supportingDocs) {
-          supportingDocsPaths = req.files.supportingDocs.map(f => f.filename);
+          supportingDocsMediaIds = await Promise.all(req.files.supportingDocs.map(f => mediaFromFile(f, 'supporting_doc', null)));
         }
       }
 
       userData.organizationProfile = {
         create: {
           orgName, orgType, parentOrg, department, jurisdiction, country, state, district, city, address, pinCode, officialEmail, officialPhone, altPhone, website, adminName, designation, empId, adminEmail, mobile,
-          authLetterPath, govCertPath, supportingDocsPaths
+          authLetterMediaId, govCertMediaId, supportingDocsMediaIds
         }
       };
     }
@@ -169,25 +170,29 @@ export const logout = (req, res) => {
   res.status(200).json({ success: true, message: 'Logged out successfully.' });
 };
 
-const getFileMetadata = (filename) => {
-  if (!filename) return null;
-  const filePath = path.resolve(process.cwd(), 'storage', 'documents', filename);
+// `ref` is a Media id (or legacy key). Resolves to the object key for metadata,
+// and includes a fresh signed `url` so the client can open it directly.
+const getFileMetadata = async (ref) => {
+  if (!ref) return null;
   try {
-    if (!fs.existsSync(filePath)) return null;
-    const stats = fs.statSync(filePath);
-    const sizeInMB = (stats.size / (1024 * 1024)).toFixed(2) + ' MB';
-    const ext = filename.split('.').pop().toLowerCase();
+    const objectKey = await resolveObjectKey(ref);
+    if (!objectKey) return null;
+    const stat = await statObject(objectKey);
+    if (!stat) return null;
+    const sizeInMB = (stat.size / (1024 * 1024)).toFixed(2) + ' MB';
+    const ext = objectKey.split('.').pop().toLowerCase();
     let type = 'Document';
     if (ext === 'pdf') type = 'PDF Document';
     if (['jpg', 'jpeg', 'png'].includes(ext)) type = 'Image File';
-    return { 
-      name: filename, 
-      size: sizeInMB, 
-      date: stats.mtime.toLocaleDateString(), 
-      type 
+    return {
+      name: objectKey,
+      size: sizeInMB,
+      date: stat.lastModified ? stat.lastModified.toLocaleDateString() : 'N/A',
+      type,
+      url: await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey),
     };
   } catch (e) {
-    return { name: filename, size: 'Unknown', date: 'N/A', type: 'File' };
+    return { name: ref, size: 'Unknown', date: 'N/A', type: 'File' };
   }
 };
 
@@ -207,29 +212,27 @@ export const getMe = async (req, res) => {
     
     // Attach document metadata
     userProfile.documentMetadata = {};
+    const docKeys = [];
     if (userProfile.organizationProfile) {
       const o = userProfile.organizationProfile;
       userProfile.name = o.adminName;
       userProfile.clearance = o.designation || 'Org Admin';
-      if (o.authLetterPath) userProfile.documentMetadata[o.authLetterPath] = getFileMetadata(o.authLetterPath);
-      if (o.govCertPath) userProfile.documentMetadata[o.govCertPath] = getFileMetadata(o.govCertPath);
-      if (o.supportingDocsPaths) {
-        o.supportingDocsPaths.forEach(p => {
-          userProfile.documentMetadata[p] = getFileMetadata(p);
-        });
-      }
+      if (o.authLetterMediaId) docKeys.push(o.authLetterMediaId);
+      if (o.govCertMediaId) docKeys.push(o.govCertMediaId);
+      if (o.supportingDocsMediaIds) docKeys.push(...o.supportingDocsMediaIds);
     }
-    
+
     if (userProfile.policeProfile) {
       const p = userProfile.policeProfile;
       userProfile.name = p.name;
       userProfile.clearance = p.clearanceLevel || p.rank || 'Police Officer';
-      if (p.docsPaths) {
-        p.docsPaths.forEach(p => {
-          userProfile.documentMetadata[p] = getFileMetadata(p);
-        });
-      }
+      if (p.docsMediaIds) docKeys.push(...p.docsMediaIds);
     }
+
+    // Resolve metadata for all document keys in parallel
+    await Promise.all(docKeys.map(async (key) => {
+      userProfile.documentMetadata[key] = await getFileMetadata(key);
+    }));
 
     res.status(200).json({ success: true, user: userProfile });
   } catch (error) {
@@ -251,14 +254,46 @@ export const deleteAccount = async (req, res) => {
 export const getDocument = async (req, res) => {
   try {
     const { filename } = req.params;
-    const filePath = path.resolve(process.cwd(), 'storage', 'documents', filename);
 
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).json({ success: false, message: 'File not found' });
+    // Reject path traversal in the reference
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
     }
+
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey) return res.status(404).json({ success: false, message: 'File not found' });
+    await streamDocument(res, objectKey);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error.', error: error.message });
+    }
+  }
+};
+
+/**
+ * Permanent-link endpoint: returns a fresh, time-limited signed URL for a stored
+ * document key. Only the permanent key lives in the DB; the URL is transient.
+ * Response: { success, url, expiresIn }
+ */
+export const getDocumentSignedUrl = async (req, res) => {
+  try {
+    const { filename } = req.params;
+
+    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
+    }
+
+    const objectKey = await resolveObjectKey(filename);
+    if (!objectKey || !(await statObject(objectKey))) {
+      return res.status(404).json({ success: false, message: 'Document not found' });
+    }
+
+    const url = await getPresignedUrl(objectKey, SIGNED_URL_EXPIRY_SECONDS, objectKey);
+    res.status(200).json({ success: true, url, expiresIn: SIGNED_URL_EXPIRY_SECONDS });
+  } catch (error) {
+    console.error('[getDocumentSignedUrl Error]', error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: 'Server error generating document link' });
+    }
   }
 };

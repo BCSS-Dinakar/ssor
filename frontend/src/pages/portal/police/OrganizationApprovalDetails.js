@@ -84,10 +84,10 @@ function OrganizationApprovalDetails() {
           const p = user.organizationProfile || {};
           
           let docs = [];
-          if (p.authLetterPath) docs.push({ name: p.authLetterPath, type: 'Authorization Letter' });
-          if (p.govCertPath) docs.push({ name: p.govCertPath, type: 'Gov Certificate' });
-          if (p.supportingDocsPaths) {
-            p.supportingDocsPaths.forEach(doc => docs.push({ name: doc, type: 'Supporting Document' }));
+          if (p.authLetterMediaId) docs.push({ name: p.authLetterMediaId, type: 'Authorization Letter' });
+          if (p.govCertMediaId) docs.push({ name: p.govCertMediaId, type: 'Gov Certificate' });
+          if (p.supportingDocsMediaIds) {
+            p.supportingDocsMediaIds.forEach(doc => docs.push({ name: doc, type: 'Supporting Document' }));
           }
 
           setOrg({

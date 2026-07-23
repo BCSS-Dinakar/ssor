@@ -51,7 +51,7 @@ model PoliceProfile {
   state          String?
   country        String?
   clearanceLevel String?
-  docsPaths      String[]
+  docsMediaIds   Int[]    // -> Media.id[]
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -78,9 +78,9 @@ model OrganizationProfile {
   empId               String
   adminEmail          String
   mobile              String
-  authLetterPath      String?
-  govCertPath         String?
-  supportingDocsPaths String[]
+  authLetterMediaId      Int?    // -> Media.id
+  govCertMediaId         Int?    // -> Media.id
+  supportingDocsMediaIds Int[]   // -> Media.id[]
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -97,8 +97,8 @@ model CandidateVerification {
   consent        Boolean
   aadharNumber   String?
   address        String?
-  candidateImage String?
-  consentFile    String?
+  candidateMediaId Int?    // -> Media.id
+  consentMediaId   Int?    // -> Media.id
   status         String   @default("pending")
   policeFeedback String?
   createdAt      DateTime @default(now())
@@ -133,6 +133,24 @@ model TicketMessage {
   text       String
   createdAt  DateTime      @default(now())
   ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+/// Central registry of every file stored in MinIO. Other tables reference a row
+/// here by its `id` (stored in their document columns) instead of holding a raw
+/// object key or URL. Signed URLs are generated on demand from `objectKey` and
+/// are never persisted.
+model Media {
+  id           Int      @id @default(autoincrement())
+  bucketName   String
+  objectKey    String   @unique
+  originalName String
+  fileType     String?
+  fileSize     Int?
+  category     String? // 'candidate_image' | 'consent' | 'auth_letter' | 'gov_cert' | 'supporting_doc' | 'police_doc'
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+
+  @@index([category])
 }
 
 model EPettyCase {

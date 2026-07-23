@@ -167,9 +167,10 @@ function VerificationDetails() {
               <div className="space-y-2">
                 <span className="text-sm text-slate-400 font-bold tracking-wide">Candidate Image</span>
                 <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                  <img 
-                    src={organizationApi.getDocumentUrl(selectedRequest.candidateImage)} 
-                    alt="Candidate" 
+                  {/* candidateImage is a ready-to-use, time-limited signed URL from the API */}
+                  <img
+                    src={selectedRequest.candidateImage}
+                    alt="Candidate"
                     className="w-full h-full object-cover"
                     onError={(e) => { e.target.src = '/images/placeholder.jpg'; }}
                   />
@@ -179,8 +180,8 @@ function VerificationDetails() {
             {selectedRequest.consentFile && (
               <div className="space-y-2">
                 <span className="text-sm text-slate-400 font-bold tracking-wide">Consent Declaration</span>
-                <a 
-                  href={organizationApi.getDocumentUrl(selectedRequest.consentFile)}
+                <a
+                  href={selectedRequest.consentFile}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-lg transition-colors"
