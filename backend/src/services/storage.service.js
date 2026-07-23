@@ -1,8 +1,15 @@
+import fs from 'fs';
+import path from 'path';
 import { getMinio, getMinioForSigning, MINIO_BUCKET } from '../config/minio.js';
 import logger from '../utils/logger.js';
 
 // Signed URLs are minted on demand and expire; they are never stored.
 export const SIGNED_URL_EXPIRY_SECONDS = 60 * 60; // 1 hour
+
+// Local fallback directory used when MinIO is unreachable at write time, and as
+// a read fallback. Reconciled back into MinIO by `npm run storage:migrate`.
+const DISK_DIR = process.env.MEDIA_DISK_DIR || path.join(process.cwd(), 'storage/media');
+const diskPath = (key) => path.join(DISK_DIR, path.basename(key));
 
 /**
  * Generate a temporary presigned GET URL for a stored object. The DB keeps only
@@ -21,49 +28,68 @@ export async function getPresignedUrl(key, expirySeconds = SIGNED_URL_EXPIRY_SEC
 }
 
 /**
- * Store a buffer under `key` in MinIO. Throws if MinIO is unavailable so the
- * caller can surface a 503 (see persistUploads).
- * @returns {Promise<{ key: string, store: 'minio' }>}
+ * Store a buffer. Tries MinIO first; if MinIO is unavailable, falls back to the
+ * local disk directory so uploads never hard-fail during an outage. The read
+ * path also falls back to disk, and `npm run storage:migrate` reconciles disk
+ * files back into MinIO.
+ * @returns {Promise<{ key: string, store: 'minio' | 'disk' }>}
  */
 export async function putBuffer(key, buffer, contentType) {
-  const minio = getMinio();
-  await minio.putObject(MINIO_BUCKET, key, buffer, buffer.length, {
-    'Content-Type': contentType || 'application/octet-stream',
-  });
-  return { key, store: 'minio' };
+  try {
+    const minio = getMinio();
+    await minio.putObject(MINIO_BUCKET, key, buffer, buffer.length, {
+      'Content-Type': contentType || 'application/octet-stream',
+    });
+    return { key, store: 'minio' };
+  } catch (err) {
+    logger.warn(`MinIO unavailable for ${key}; falling back to disk`, err.message);
+    fs.mkdirSync(DISK_DIR, { recursive: true });
+    fs.writeFileSync(diskPath(key), buffer);
+    return { key, store: 'disk' };
+  }
 }
 
 /**
- * Stat an object. Returns { size, lastModified, source: 'minio' } or null if absent.
+ * Stat an object. Returns { size, lastModified, source: 'minio' | 'disk' } or
+ * null if absent. Falls back to the local disk directory.
  */
 export async function statObject(key) {
   try {
     const stat = await getMinio().statObject(MINIO_BUCKET, key);
     return { size: stat.size, lastModified: stat.lastModified, source: 'minio' };
+  } catch (_) { /* fall through to disk */ }
+  try {
+    const s = fs.statSync(diskPath(key));
+    return { size: s.size, lastModified: s.mtime, source: 'disk' };
   } catch (_) {
     return null;
   }
 }
 
 /**
- * Get a readable stream for an object from MinIO.
+ * Get a readable stream for an object, trying MinIO first then local disk.
  * @returns {Promise<import('stream').Readable|null>}
  */
 export async function getStream(key) {
   try {
     return await getMinio().getObject(MINIO_BUCKET, key);
-  } catch (_) {
-    return null;
-  }
+  } catch (_) { /* fall through to disk */ }
+  const p = diskPath(key);
+  if (fs.existsSync(p)) return fs.createReadStream(p);
+  return null;
 }
 
-/** Remove an object from MinIO. Never throws. */
+/** Remove an object from MinIO and the local disk copy if present. Never throws. */
 export async function removeObject(key) {
   try {
     await getMinio().removeObject(MINIO_BUCKET, key);
   } catch (err) {
-    logger.warn(`⚠️  Failed to remove MinIO object ${key}:`, err.message);
+    logger.warn(`Failed to remove MinIO object ${key}`, err.message);
   }
+  try {
+    const p = diskPath(key);
+    if (fs.existsSync(p)) fs.unlinkSync(p);
+  } catch (_) { /* ignore */ }
 }
 
 const CONTENT_TYPES = {

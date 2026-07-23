@@ -10,6 +10,7 @@
     "db:reset-users": "node scripts/reset-users.js",
     "db:seed-users": "node scripts/create-bcss-officer.js && node scripts/create-bcss-org.js && node scripts/seed-user-linked-data.js",
     "storage:migrate": "node scripts/migrate-storage-to-minio.js",
+    "media:reconcile": "node scripts/reconcile-media.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",

@@ -147,10 +147,12 @@ model Media {
   fileType     String?
   fileSize     Int?
   category     String? // 'candidate_image' | 'consent' | 'auth_letter' | 'gov_cert' | 'supporting_doc' | 'police_doc'
+  store        String   @default("minio") // 'minio' | 'disk' (disk = written during a MinIO outage, pending reconcile)
   uploadedBy   String?
   createdAt    DateTime @default(now())
 
   @@index([category])
+  @@index([store])
 }
 
 model EPettyCase {

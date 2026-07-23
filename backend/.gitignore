@@ -7,3 +7,6 @@ logs
 .DS_Store
 
 /src/generated/prisma
+
+# Local media disk fallback (reconciled into MinIO)
+storage/
