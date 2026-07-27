@@ -385,7 +385,7 @@ function VerificationVetting() {
       { text: "Processing identity parameters...", delay: 1400 },
       { text: "Checking CCTNS accused records...", delay: 2100 },
       { text: "Checking ePetty case records...", delay: 2800 },
-      { text: "Analysis completing, expecting results in 30 seconds...", delay: 3500 },
+      { text: "Waiting for CCTNS and ePetty responses...", delay: 3500 },
     ];
 
     logSequence.forEach((item) => {
@@ -394,8 +394,9 @@ function VerificationVetting() {
       }, item.delay);
     });
 
-    // Vetting completion logic via live API scan
-    setTimeout(async () => {
+    // Fire the real scan immediately — the progress log above is cosmetic and
+    // plays while the request is in flight (no artificial delay).
+    (async () => {
       try {
         const scanRes = await policeApi.scanVerificationById(id);
         if (scanRes?.cctnsError) {
@@ -436,7 +437,7 @@ function VerificationVetting() {
       } finally {
         setCheckState('done');
       }
-    }, 4200);
+    })();
   };
 
   const handleClear = async () => {
@@ -1064,8 +1065,9 @@ function VerificationVetting() {
           )}
         </div>
 
-        {/* Action Decision Dashboard Column */}
-        <div className="space-y-6">
+        {/* Action Decision Dashboard Column — sticky so it stays visible while the
+            match list scrolls (only when columns are side by side at xl and up) */}
+        <div className="space-y-6 xl:sticky xl:top-6 xl:self-start xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8">
             <h3 className="font-extrabold text-primary font-heading text-sm tracking-wide mb-4 pb-3 border-b border-slate-100">Vetting Outcome</h3>
 
