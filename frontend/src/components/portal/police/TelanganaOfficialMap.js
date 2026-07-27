@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { MapPin, Search, ZoomOut, RotateCcw, Layers, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
 import { TELANGANA_DISTRICTS, TELANGANA_BOUNDS } from '../../../utils/data/telanganaDistrictsMandals';
+import { TELANGANA_POLICE_STATIONS } from '../../../utils/data/telanganaPoliceStations';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
@@ -152,13 +153,19 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     setHoveredEntity(null);
   };
 
-  // Current SVG viewBox based on selected district zoom
+  // Current SVG viewBox based on selected district / zone zoom
   const activeViewBox = useMemo(() => {
     if (selectedDistrict && selectedDistrict.path && activeSlide === 'offenders') {
       return calcBoundingBox(selectedDistrict.path, 60);
     }
+    // ePrisons: zoom into the selected district so its PS boundaries are legible
+    if (activeSlide === 'eprisons' && selectedEprisonsDistrict !== 'ALL') {
+      const d = TELANGANA_DISTRICTS.find((dd) => normDist(dd.name) === normDist(selectedEprisonsDistrict));
+      if (d && d.path) return calcBoundingBox(d.path, 40);
+    }
     return TELANGANA_BOUNDS.viewBox;
-  }, [selectedDistrict, activeSlide]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDistrict, activeSlide, selectedEprisonsDistrict]);
 
   // Filter districts based on search query or risk tier
   const filteredDistricts = useMemo(() => {
@@ -187,6 +194,89 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     });
   }, [releasesList, selectedJailMarker, selectedEprisonsDistrict]);
 
+  // Active release counts keyed by (normalized) district name. Releases carry
+  // their releasing jail's district, which matches an offenders-map district.
+  const releaseCountByDistrict = useMemo(() => {
+    const m = {};
+    (releasesList || []).forEach((r) => {
+      const k = normDist(r.district);
+      if (k) m[k] = (m[k] || 0) + 1;
+    });
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [releasesList]);
+
+  // PS boundary layer — only drawn AFTER drilling into a district (clicking it),
+  // exactly the way the offenders map reveals mandals. Shows just the police
+  // stations that fall inside the selected district (svgDistrict), clean borders.
+  const psLayer = useMemo(() => {
+    if (activeSlide !== 'eprisons' || selectedEprisonsDistrict === 'ALL') return null;
+    const sel = normDist(selectedEprisonsDistrict);
+    // Colour each PS like the offenders mandals — a filled choropleth so adjacent
+    // stations read distinctly. Deterministic tier per PS name keeps it stable.
+    const tiers = ['Green', 'Orange', 'Red'];
+    const psTier = (name) => {
+      let h = 0;
+      const s = name || '';
+      for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+      return tiers[Math.abs(h) % tiers.length];
+    };
+
+    return TELANGANA_POLICE_STATIONS
+      .filter((ps) => normDist(ps.svgDistrict) === sel)
+      .map((ps, idx) => {
+        const colors = getTierColor(psTier(ps.ps_name));
+        return (
+          <path
+            key={`ps-${idx}`}
+            d={ps.d}
+            fill={colors.fill}
+            stroke="#1E334D"
+            strokeWidth={0.7}
+            className="transition-all duration-150 cursor-pointer hover:brightness-95"
+            onMouseMove={(e) => handleMouseMove(e, { ...ps, id: `ps-${idx}`, releaseCount: releaseCountByDistrict[sel] || 0 }, 'PS')}
+            onMouseLeave={handleMouseLeave}
+          />
+        );
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlide, selectedEprisonsDistrict, releaseCountByDistrict]);
+
+  // Alert markers — only on districts with active releases (a blinking red point,
+  // like the old jail pins). Quiet districts show nothing. Hidden once drilled in.
+  const alertMarkers = useMemo(() => {
+    if (activeSlide !== 'eprisons' || selectedEprisonsDistrict !== 'ALL') return null;
+    return TELANGANA_DISTRICTS.map((d) => {
+      const count = releaseCountByDistrict[normDist(d.name)] || 0;
+      if (count === 0) return null; // no marker where there are no alerts
+      const c = d.svgCenter || d.center;
+      const x = c?.x ?? (Array.isArray(c) ? c[0] : null);
+      const y = c?.y ?? (Array.isArray(c) ? c[1] : null);
+      if (x == null || y == null) return null;
+      return (
+        <g
+          key={`marker-${d.id}`}
+          transform={`translate(${x}, ${y})`}
+          onClick={() => handleDistrictClick(d)}
+          onMouseMove={(e) => { e.stopPropagation(); handleMouseMove(e, { ...d, releaseCount: count }, 'ALERT'); }}
+          onMouseLeave={handleMouseLeave}
+          className="cursor-pointer"
+        >
+          {/* blinking alert ping — same style as the old jail pins */}
+          <circle r="15" fill="#EF4444" opacity="0.4" className="animate-ping" />
+          <circle r="6" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2" />
+          <g transform="translate(6, -12)">
+            <rect rx="6" width={count > 9 ? 19 : 15} height="13" fill="#1E293B" stroke="#FFFFFF" strokeWidth="1.1" />
+            <text x={count > 9 ? 9.5 : 7.5} y="9" textAnchor="middle" fill="#F8FAFC" fontSize="8" fontWeight="bold" fontFamily="monospace">
+              {count}
+            </text>
+          </g>
+        </g>
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSlide, selectedEprisonsDistrict, releaseCountByDistrict]);
+
   // Handle clicking a district
   const handleDistrictClick = (district) => {
     if (activeSlide === 'eprisons') {
@@ -210,14 +300,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     if (onSelectJurisdiction) {
       onSelectJurisdiction({ type: 'MANDAL', data: { ...mandal, parentDistrict: district.name } });
     }
-  };
-
-  // Handle clicking a Jail Pinpoint Marker on map
-  const handleJailPinClick = (e, jail) => {
-    e.stopPropagation();
-    setSelectedJailMarker(jail);
-    setSelectedJailCode(jail.code);
-    setSelectedEprisonsDistrict('ALL');
   };
 
   // Reset view to entire state
@@ -567,7 +649,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     </span>
                   </div>
                   <p className="text-[10px] text-red-700 leading-relaxed">
-                    Statutory real-time alerts plotted across Telangana jails. Click any district or pinpoint jail badge on the map to inspect releasing prisoners.
+                    Statutory real-time alerts mapped onto Telangana's districts. Blinking markers flag districts with active prisoner releases. Click a district to drill into its police-station (PS) boundaries.
                   </p>
                   {(selectedEprisonsDistrict !== 'ALL' || selectedJailMarker || selectedJailCode !== 'ALL') && (
                     <button
@@ -585,7 +667,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             <div className="mt-4 text-[9px] text-slate-400 bg-slate-50/70 p-2 rounded-lg border border-slate-100">
               {activeSlide === 'offenders'
                 ? "💡 Click any district on the map or list to inspect local police divisions and offenders."
-                : "💡 Pinpointed jail circles indicate active release alerts. Click a pin to isolate."}
+                : "💡 Blinking markers flag districts with active releases. Click a district to drill into its PS boundaries."}
             </div>
           </div>
 
@@ -599,6 +681,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
               style={{ maxHeight: '430px' }}
             >
               <g className="transition-transform duration-700 ease-out">
+                {/* 33-district base map — shared by both slides. ePrisons reuses
+                    the exact offenders district boundaries; clicking one drills
+                    into its PS boundaries (below), like offenders reveals mandals. */}
                 {filteredDistricts.map((d) => {
                   const isHovered = hoveredEntity && hoveredEntity.id === d.id && hoveredEntity.type === 'DISTRICT';
                   const isSelected = selectedDistrict && selectedDistrict.id === d.id && activeSlide === 'offenders';
@@ -622,7 +707,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         isSelected
                           ? tierStyle.fill
                           : isEprisonsSelected
-                            ? '#FEE2E2' // Highlight red tone when district selected in ePrisons
+                            ? '#F8FAFC' // Neutral base under the PS choropleth when drilled in
                             : isNeighborBlackout
                               ? '#F8FAFC'
                               : isHovered
@@ -682,82 +767,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     );
                   })}
 
-                {/* PINPOINT JAIL MARKERS (Rendered in Slide 2: ePrisons mode) */}
-                {activeSlide === 'eprisons' &&
-                  jailsList.map((jail) => {
-                    if (!jail.pinLocation || typeof jail.pinLocation.x !== 'number') return null;
-                    const isPinSelected = selectedJailMarker && selectedJailMarker.code === jail.code;
-                    const releasesForJail = releasesList.filter((r) => r.jailCode === jail.code);
-                    const alertCount = releasesForJail.length;
-                    const isDimmed = (selectedJailCode !== 'ALL' && selectedJailCode !== jail.code) ||
-                      (selectedEprisonsDistrict !== 'ALL' && normDist(selectedEprisonsDistrict) !== normDist(jail.district));
+                {/* ePrisons: PS boundaries of the drilled-into district (like the
+                    offenders mandals view), shown only when a district is selected. */}
+                {psLayer}
 
-                    return (
-                      <g
-                        key={jail.code}
-                        transform={`translate(${jail.pinLocation.x}, ${jail.pinLocation.y})`}
-                        onClick={(e) => handleJailPinClick(e, jail)}
-                        onMouseMove={(e) => {
-                          e.stopPropagation();
-                          setHoveredEntity({ ...jail, type: 'JAIL', alertCount });
-                        }}
-                        onMouseLeave={handleMouseLeave}
-                        className="cursor-pointer transition-all duration-300"
-                        style={{ opacity: isDimmed && !isPinSelected ? 0.35 : 1 }}
-                      >
-                        {/* Animated crimson ping if active release alerts */}
-                        {alertCount > 0 && (
-                          <circle r="18" fill="#EF4444" opacity="0.45" className="animate-ping" />
-                        )}
-
-                        {/* Outer Pin Halo */}
-                        <circle
-                          r={isPinSelected ? 13 : 10.5}
-                          fill={isPinSelected ? '#B91C1C' : alertCount > 0 ? '#DC2626' : '#475569'}
-                          stroke="#FFFFFF"
-                          strokeWidth="2.4"
-                          className="shadow-lg transition-all duration-200"
-                        />
-
-                        {/* Jail Code text on marker */}
-                        <text
-                          y="3"
-                          textAnchor="middle"
-                          fill="#FFFFFF"
-                          fontSize="7.5"
-                          fontWeight="900"
-                          fontFamily="monospace"
-                        >
-                          {jail.code.slice(0, 3)}
-                        </text>
-
-                        {/* Top-Right Pill showing alert count */}
-                        {alertCount > 0 && (
-                          <g transform="translate(9, -13)">
-                            <rect
-                              rx="6"
-                              width={alertCount > 9 ? 20 : 16}
-                              height="13"
-                              fill="#1E293B"
-                              stroke="#FFFFFF"
-                              strokeWidth="1.2"
-                            />
-                            <text
-                              x={alertCount > 9 ? 10 : 8}
-                              y="9"
-                              textAnchor="middle"
-                              fill="#F8FAFC"
-                              fontSize="7.5"
-                              fontWeight="bold"
-                              fontFamily="monospace"
-                            >
-                              {alertCount}
-                            </text>
-                          </g>
-                        )}
-                      </g>
-                    );
-                  })}
+                {/* ePrisons: blinking alert markers per district in the overview map */}
+                {alertMarkers}
               </g>
             </svg>
 
@@ -770,18 +785,38 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   top: hoverPos.y - 15,
                 }}
               >
-                {hoveredEntity.type === 'JAIL' ? (
+                {hoveredEntity.type === 'ALERT' ? (
                   <div>
                     <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1 mb-1">
-                      <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
-                      <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.name}</span>
+                      <span className={`h-2 w-2 rounded-full ${hoveredEntity.releaseCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-slate-400'}`} />
+                      <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.name} District</span>
                     </div>
                     <div className="text-[10px] text-slate-600 font-mono">
-                      <div>Code: <strong>{hoveredEntity.code}</strong></div>
-                      <div>District: <strong>{hoveredEntity.district}</strong></div>
-                      <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
-                        🚨 {hoveredEntity.alertCount || 0} Prisoner Releases Today
-                      </div>
+                      {hoveredEntity.releaseCount > 0 ? (
+                        <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
+                          🚨 {hoveredEntity.releaseCount} Prisoner Release{hoveredEntity.releaseCount > 1 ? 's' : ''} — click to view PS
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-slate-500">No active releases · click to view PS</div>
+                      )}
+                    </div>
+                  </div>
+                ) : hoveredEntity.type === 'PS' ? (
+                  <div>
+                    <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1 mb-1">
+                      <span className={`h-2 w-2 rounded-full ${hoveredEntity.releaseCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-slate-400'}`} />
+                      <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.ps_name} PS</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 font-mono">
+                      <div>District: <strong>{hoveredEntity.district || '—'}</strong></div>
+                      <div>Zone: <strong>{hoveredEntity.commissionerate === 'District_PS' ? 'District Police' : hoveredEntity.commissionerate || '—'}</strong></div>
+                      {hoveredEntity.releaseCount > 0 ? (
+                        <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
+                          🚨 {hoveredEntity.releaseCount} Release{hoveredEntity.releaseCount > 1 ? 's' : ''} in this district
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-slate-500">No active releases</div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -809,11 +844,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 <div className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-white/95 px-3 py-1.5 text-xs font-extrabold text-red-700 shadow-xs backdrop-blur-xs">
                   <ShieldAlert className="h-3.5 w-3.5 text-red-600 animate-pulse" />
                   <span>
-                    {selectedJailMarker
-                      ? selectedJailMarker.name.toUpperCase()
-                      : selectedEprisonsDistrict !== 'ALL'
-                        ? `${selectedEprisonsDistrict.toUpperCase()} JAILS`
-                        : 'ALL TELANGANA JAILS PINPOINTED'}
+                    {selectedEprisonsDistrict !== 'ALL'
+                      ? `${selectedEprisonsDistrict.toUpperCase()} — PS BOUNDARIES`
+                      : 'ALL TELANGANA DISTRICTS'}
                   </span>
                 </div>
               ) : (

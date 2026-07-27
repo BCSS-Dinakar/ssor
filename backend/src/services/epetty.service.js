@@ -200,6 +200,25 @@ const isNameMatch = (searchStr, recordStr) => {
   return true;
 };
 
+// The external ePetty API frequently returns the same case row multiple times.
+// Collapse exact duplicates so the UI never renders repeated records.
+const dedupeRecords = (records = []) => {
+  const seen = new Set();
+  return records.filter((record) => {
+    const key = [
+      record.recordId,
+      record.name,
+      record.phone,
+      record.fatherName,
+      record.incidentDate,
+      record.offence
+    ].map((v) => (v == null ? '' : String(v).trim().toLowerCase())).join('::');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const postFilterMatches = (matches, filters) => {
   return matches.filter(record => {
     // Ensure the record name strictly includes the requested search name, allowing initials to match full words
@@ -290,7 +309,7 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
     
     // The external API often returns very broad matches.
     // We post-filter locally to ensure the records strictly match the requested criteria (e.g. exactly 'sai kiran').
-    const strictMatches = postFilterMatches(matches, step.filters);
+    const strictMatches = dedupeRecords(postFilterMatches(matches, step.filters));
 
     if (strictMatches.length > 0) {
       return { matches: strictMatches, priorityLabel: step.label, matchedSource: 'ePetty Case' };
