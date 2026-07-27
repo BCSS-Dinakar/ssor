@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, CreditCard, MapPin, Download } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, ShieldAlert, Check, Eye, AlertOctagon, X, Fingerprint, Database, Search, CreditCard, MapPin, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
@@ -124,6 +124,29 @@ const isEpettySuspect = (sus) => {
   return source.includes('epetty') || source.includes('e-petty');
 };
 
+// Identity key for a suspect record. Includes name/phone/FIR because ePetty
+// case numbers (ecaseNo) are shared by every offender on the same case, so
+// `sourceType::id` alone is NOT unique.
+const suspectKeyOf = (sus) => [
+  sus?.sourceType || sus?.source || 'match',
+  sus?.id ?? '',
+  sus?.name ?? '',
+  sus?.phone ?? '',
+  sus?.firNo ?? '',
+  sus?.firDate ?? ''
+].join('::');
+
+// Collapse exact duplicate rows (the ePetty API often repeats the same record)
+const dedupeSuspects = (list = []) => {
+  const seen = new Set();
+  return list.filter((sus) => {
+    const key = suspectKeyOf(sus);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const confidenceTone = (score) => {
   if (score >= 90) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
   if (score >= 75) return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -165,6 +188,9 @@ function VerificationVetting() {
   const [scanMeta, setScanMeta] = useState(null);
   const [matchSourceTab, setMatchSourceTab] = useState('cctns'); // 'cctns' | 'epetty'
   const [cctnsCategoryTab, setCctnsCategoryTab] = useState('all');
+  // Separate pagination for each source so switching tabs keeps each list's own page
+  const [cctnsPage, setCctnsPage] = useState(1);
+  const [epettyPage, setEpettyPage] = useState(1);
   const [inspectSuspect, setInspectSuspect] = useState(null); // Selected suspect for detail modal
   const [confirmedSuspect, setConfirmedSuspect] = useState(null); // Suspect matched by officer
   const [discardedMatchKeys, setDiscardedMatchKeys] = useState([]); // false-positive match keys
@@ -172,7 +198,7 @@ function VerificationVetting() {
   const [officerFeedback, setOfficerFeedback] = useState('');
   const [inspectLoading, setInspectLoading] = useState(false);
 
-  const getSuspectKey = (sus) => `${sus?.sourceType || sus?.source || 'match'}::${sus?.id}`;
+  const getSuspectKey = suspectKeyOf;
 
   const buildListDossier = (sus) => {
     // ePetty case records carry no real date of birth — `sus.dob` is actually the
@@ -297,6 +323,39 @@ function VerificationVetting() {
     ? cctnsSuspects
     : cctnsSuspects.filter((s) => (s.matchCategory || 'fuzzy') === cctnsCategoryTab);
   const visibleSuspects = matchSourceTab === 'cctns' ? visibleCctnsSuspects : epettySuspects;
+
+  // Separate pagination for CCTNS and ePetty match lists
+  const MATCHES_PER_PAGE = 10;
+  const activePage = matchSourceTab === 'cctns' ? cctnsPage : epettyPage;
+  const setActivePage = matchSourceTab === 'cctns' ? setCctnsPage : setEpettyPage;
+  const totalPages = Math.max(1, Math.ceil(visibleSuspects.length / MATCHES_PER_PAGE));
+  const currentPage = Math.min(activePage, totalPages); // clamp when the list shrinks
+  const pagedSuspects = visibleSuspects.slice(
+    (currentPage - 1) * MATCHES_PER_PAGE,
+    currentPage * MATCHES_PER_PAGE
+  );
+  // Compact page window: first, last, and a few around the current page, with '…' gaps
+  const pageWindow = (() => {
+    const delta = 1;
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        pages.push(i);
+      }
+    }
+    const withDots = [];
+    let prev;
+    for (const p of pages) {
+      if (prev) {
+        if (p - prev === 2) withDots.push(prev + 1); // fill single gap with the number
+        else if (p - prev !== 1) withDots.push('…');
+      }
+      withDots.push(p);
+      prev = p;
+    }
+    return withDots;
+  })();
+
   const openSuspects = suspects.filter((s) => !discardedMatchKeys.includes(getSuspectKey(s)));
   const allMatchesDiscarded = hasHistory && openSuspects.length === 0 && !confirmedSuspect;
   const canIssueClearance = !hasHistory || allMatchesDiscarded;
@@ -315,6 +374,8 @@ function VerificationVetting() {
     setScanMeta(null);
     setMatchSourceTab('cctns');
     setCctnsCategoryTab('all');
+    setCctnsPage(1);
+    setEpettyPage(1);
     setConfirmedSuspect(null);
     setDiscardedMatchKeys([]);
 
@@ -344,11 +405,17 @@ function VerificationVetting() {
           toast.error('ePetty lookup issue', scanRes.epettyError);
         }
         const nextSuspects = scanRes?.suspects || [];
-        // Use backend-provided separate arrays — these are already cleanly tagged
-        // This avoids any render-time filtering ambiguity that caused the tab-switch bug
-        const nextCctns = scanRes?.cctnsMatches || nextSuspects.filter(isCctnsSuspect);
-        const nextEpetty = scanRes?.epettyMatches || nextSuspects.filter(isEpettySuspect);
-        setSuspects(nextSuspects);
+        // Prefer backend-provided separate arrays, but ALWAYS re-apply the strict
+        // source filter + dedupe here. This guarantees an ePetty-tagged record can
+        // never appear under the CCTNS tab (and vice versa), and kills the repeated
+        // rows the ePetty API returns for the same case.
+        const nextCctns = dedupeSuspects(
+          (scanRes?.cctnsMatches || nextSuspects).filter(isCctnsSuspect)
+        );
+        const nextEpetty = dedupeSuspects(
+          (scanRes?.epettyMatches || nextSuspects).filter(isEpettySuspect)
+        );
+        setSuspects([...nextCctns, ...nextEpetty]);
         setCctnsSuspectsState(nextCctns);
         setEpettySuspectsState(nextEpetty);
         setScanMeta({
@@ -571,7 +638,7 @@ function VerificationVetting() {
                         <div className="flex flex-wrap gap-2">
                           <button
                             type="button"
-                            onClick={() => setCctnsCategoryTab('all')}
+                            onClick={() => { setCctnsCategoryTab('all'); setCctnsPage(1); }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${cctnsCategoryTab === 'all'
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -587,7 +654,7 @@ function VerificationVetting() {
                                 key={cat.key}
                                 type="button"
                                 disabled={count === 0}
-                                onClick={() => setCctnsCategoryTab(cat.key)}
+                                onClick={() => { setCctnsCategoryTab(cat.key); setCctnsPage(1); }}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${active
                                   ? 'bg-blue-600 text-white border-blue-600'
                                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
@@ -611,7 +678,7 @@ function VerificationVetting() {
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {visibleSuspects.map((sus) => {
+                        {pagedSuspects.map((sus, rowIdx) => {
                           const tierColors = {
                             Red: 'bg-red-50 text-red-700 border-red-200',
                             Orange: 'bg-orange-50 text-orange-700 border-orange-200',
@@ -629,7 +696,7 @@ function VerificationVetting() {
 
                           return (
                             <div
-                              key={suspectKey}
+                              key={`${matchSourceTab}::${suspectKey}::${rowIdx}`}
                               className={`group relative bg-white border rounded-2xl shadow-sm transition-all duration-300 overflow-hidden ${isConfirmed
                                 ? 'border-red-300 hover:border-red-400'
                                 : isDiscarded
@@ -753,6 +820,56 @@ function VerificationVetting() {
                             </div>
                           );
                         })}
+
+                        {totalPages > 1 && (
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                            <span className="text-xs font-bold text-slate-500">
+                              Showing {(currentPage - 1) * MATCHES_PER_PAGE + 1}
+                              –{Math.min(currentPage * MATCHES_PER_PAGE, visibleSuspects.length)} of {visibleSuspects.length}
+                              {' '}{matchSourceTab === 'cctns' ? 'CCTNS' : 'E-Petty'} matches
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setActivePage(Math.max(1, currentPage - 1))}
+                                disabled={currentPage <= 1}
+                                aria-label="Previous page"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                              </button>
+                              {pageWindow.map((page, idx) => (
+                                page === '…' ? (
+                                  <span key={`dots-${idx}`} className="px-1 text-xs font-black text-slate-400 select-none">…</span>
+                                ) : (
+                                  <button
+                                    key={page}
+                                    type="button"
+                                    onClick={() => setActivePage(page)}
+                                    className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-black border transition-all ${page === currentPage
+                                      ? 'bg-primary text-white border-primary shadow-sm'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                                      }`}
+                                  >
+                                    {page}
+                                  </button>
+                                )
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => setActivePage(Math.min(totalPages, currentPage + 1))}
+                                disabled={currentPage >= totalPages}
+                                aria-label="Next page"
+                                className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                              </button>
+                              <span className="ml-1.5 text-xs font-bold text-slate-500 whitespace-nowrap">
+                                Page {currentPage} of {totalPages}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

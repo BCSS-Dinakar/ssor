@@ -8,7 +8,9 @@ const router = express.Router();
 router.use(requireAuth);
 router.use(requirePolice);
 
-const PRIVATE_KEY = env.PRIVATE_KEY || process.env.PRIVATE_KEY || "!gan#*tel)!Pol&^";
+// AES payload key for the NIC ePrisons releases API — must be provided via
+// .env (PRIVATE_KEY). No hardcoded fallback: live fetches are skipped when unset.
+const PRIVATE_KEY = env.PRIVATE_KEY;
 const TOKEN_API_URL = env.EPRISONS_TOKEN_URL || process.env.EPRISONS_TOKEN_URL || "https://eprisons.nic.in/ePrisonsAPI/api/Token";
 const RELEASES_API_URL = env.EPRISONS_RELEASES_URL || process.env.EPRISONS_RELEASES_URL || "https://eprisons.nic.in/eprisonsapi/api/ePrisons/PrisonerAdmissionReleaseDetails";
 
@@ -71,8 +73,8 @@ router.get('/jails', (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const userId = req.body?.userId || env.EPRISONS_USER_ID || process.env.EPRISONS_USER_ID;
-    const password = req.body?.password || env.EPRISONS_PASSWORD || process.env.EPRISONS_PASSWORD;
+    const userId = req.body?.userId || env.EPRISONS_USER_ID;
+    const password = req.body?.password || env.EPRISONS_PASSWORD;
     if (!userId || !password) {
         return res.status(400).json({ status: false, message: 'userId and password are required' });
     }
@@ -85,8 +87,10 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/releases', async (req, res) => {
-    const userId = req.body?.userId || env.EPRISONS_USER_ID || process.env.EPRISONS_USER_ID || "TG_POLICE_SSOR";
-    const password = req.body?.password || env.EPRISONS_PASSWORD || process.env.EPRISONS_PASSWORD || "eprisons@2026";
+    // Credentials come from .env only (EPRISONS_USER_ID / EPRISONS_PASSWORD) —
+    // no hardcoded fallback. When unset, the live NIC fetch is skipped below.
+    const userId = req.body?.userId || env.EPRISONS_USER_ID;
+    const password = req.body?.password || env.EPRISONS_PASSWORD;
     const {
         jailCode = 'ALL',
         fromDate,
@@ -152,16 +156,18 @@ router.post('/releases', async (req, res) => {
 
     try {
         let token = null;
-        try {
-            token = await fetchToken(userId, password);
-        } catch (tokenErr) {
-            // Graceful fallback when not connected to NIC intranet or during offline demo
+        if (userId && password) {
+            try {
+                token = await fetchToken(userId, password);
+            } catch (tokenErr) {
+                // Graceful fallback when not connected to NIC intranet or during offline demo
+            }
         }
 
         let allRecords = [];
 
         // Attempt fetching from live NIC API if single jail and token received
-        if (token && targetJails.length === 1 && targetJails[0].code !== 'ALL') {
+        if (token && PRIVATE_KEY && targetJails.length === 1 && targetJails[0].code !== 'ALL') {
             try {
                 const jCode = targetJails[0].code;
                 const dataPayload = {
