@@ -97,7 +97,11 @@ export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
     const response = await fetch(env.EPETTY_API_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      // Fail fast when the ePetty server hangs (accepts TCP but never answers).
+      // Without this, the whole vetting scan blocks indefinitely and the officer
+      // never receives the CCTNS results or the "ePetty unavailable" error.
+      signal: AbortSignal.timeout(15000)
     });
 
     if (!response.ok) {
