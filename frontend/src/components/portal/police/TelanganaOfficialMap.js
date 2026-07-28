@@ -555,7 +555,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
               /* Slide 2: ePrisons Date Range & Jail Search Control Bar */
               <div className="space-y-4">
                 <div className="pb-2.5 border-b border-slate-100">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 font-mono flex items-center gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping" />
                     NIC ePrisons Live Gateway (.env)
                   </span>
@@ -566,7 +566,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-500 font-mono block mb-1">
+                    <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
                       Select Jail / Facility Code
                     </label>
                     <select
@@ -588,7 +588,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-500 font-mono block mb-1 flex items-center justify-between">
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1 flex items-center justify-between">
                         <span>From Date</span>
                         <Calendar className="h-3 w-3 text-red-600" />
                       </label>
@@ -596,11 +596,11 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         type="date"
                         value={fromDate}
                         onChange={(e) => setFromDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none font-mono cursor-pointer"
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none cursor-pointer"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-500 font-mono block mb-1 flex items-center justify-between">
+                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1 flex items-center justify-between">
                         <span>To Date</span>
                         <Calendar className="h-3 w-3 text-red-600" />
                       </label>
@@ -608,7 +608,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                         type="date"
                         value={toDate}
                         onChange={(e) => setToDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none font-mono cursor-pointer"
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none cursor-pointer"
                       />
                     </div>
                   </div>
@@ -644,7 +644,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 <div className="rounded-xl border border-red-100 bg-red-50/60 p-3 space-y-2">
                   <div className="text-[11px] font-extrabold text-red-900 flex items-center justify-between">
                     <span>Active Release Alerts</span>
-                    <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-mono">
+                    <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-semibold">
                       {filteredReleases.length} Plotted
                     </span>
                   </div>
@@ -716,9 +716,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                                   ? '#FEF2F2' // Subtle crimson wash for jail districts
                                   : activeSlide === 'eprisons'
                                     ? '#F1F5F9'
-                                    : tierFilter !== 'ALL'
-                                      ? tierStyle.fill
-                                      : '#DBEAFE'
+                                    : tierStyle.fill
                       }
                       stroke={
                         isSelected || isEprisonsSelected
@@ -733,7 +731,14 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       opacity={isNeighborBlackout ? 0.45 : 1}
                       className="transition-all duration-300 cursor-pointer"
                       onClick={() => handleDistrictClick(d)}
-                      onMouseMove={(e) => handleMouseMove(e, d, 'DISTRICT')}
+                      onMouseMove={(e) => {
+                        if (activeSlide === 'eprisons') {
+                          const count = releaseCountByDistrict[normDist(d.name)] || 0;
+                          handleMouseMove(e, { ...d, releaseCount: count }, 'ALERT');
+                        } else {
+                          handleMouseMove(e, d, 'DISTRICT');
+                        }
+                      }}
                       onMouseLeave={handleMouseLeave}
                     />
                   );
@@ -792,6 +797,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.name} District</span>
                     </div>
                     <div className="text-[10px] text-slate-600 font-mono">
+                      <div className="mb-1">Offenders: <strong>{hoveredEntity.totalOffenders || 0} ({hoveredEntity.riskTier || 'N/A'})</strong></div>
                       {hoveredEntity.releaseCount > 0 ? (
                         <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
                           🚨 {hoveredEntity.releaseCount} Prisoner Release{hoveredEntity.releaseCount > 1 ? 's' : ''} — click to view PS
@@ -1012,12 +1018,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
               <div className="space-y-3 flex flex-col h-full justify-between">
                 <div>
                   <div className="pb-2 border-b border-slate-100">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <span className="text-xs font-bold uppercase tracking-wider text-red-600 font-mono">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">
                           Statutory Release Feed
                         </span>
-                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 leading-snug break-words">
+                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 leading-snug truncate">
                           {selectedJailMarker
                             ? selectedJailMarker.name
                             : selectedEprisonsDistrict !== 'ALL'
@@ -1025,29 +1031,17 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                               : 'State-wide Prisoner Alerts'}
                         </h3>
                         {/* Active date range indicator */}
-                        <div className="mt-1 flex items-center gap-1 text-[10px] font-mono text-slate-500">
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
                           <Calendar className="h-3 w-3 text-red-500" />
                           <span className="font-semibold text-red-700">{fromDate}</span>
                           <span>→</span>
                           <span className="font-semibold text-red-700">{toDate}</span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className="font-mono text-sm font-black text-red-600 bg-red-50 px-3 py-1 rounded-lg border border-red-200 shadow-xs">
+                      <div className="shrink-0 flex items-center">
+                        <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 shadow-2xs">
                           {filteredReleases.length}
                         </span>
-                        {/* Reset to today button in feed header */}
-                        {(fromDate !== getTodayFormatted() || toDate !== getTodayFormatted() || selectedJailCode !== 'ALL' || selectedEprisonsDistrict !== 'ALL' || selectedJailMarker) && (
-                          <button
-                            type="button"
-                            onClick={handleResetToToday}
-                            title="Reset filters & go back to today's data"
-                            className="flex items-center gap-1 text-[10px] font-bold text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-0.5 rounded-md border border-secondary/20 transition-all cursor-pointer"
-                          >
-                            <RotateCcw className="h-2.5 w-2.5" />
-                            Reset View
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1065,45 +1059,66 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     ) : (
                       filteredReleases.map((r) => {
                         const tierColor = r.riskTier === 'Red'
-                          ? 'bg-red-100 text-red-800 border-red-300'
+                          ? 'bg-red-50 text-red-700 border-red-200'
                           : r.riskTier === 'Orange'
-                            ? 'bg-orange-100 text-orange-800 border-orange-300'
-                            : 'bg-green-100 text-green-800 border-green-300';
+                            ? 'bg-orange-50 text-orange-700 border-orange-200'
+                            : 'bg-green-50 text-green-700 border-green-200';
 
                         return (
                           <div
                             key={r.id}
-                            className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50/90 p-3.5 transition-all hover:border-red-300 space-y-2 shadow-sm"
+                            className="rounded-xl border border-slate-200/80 bg-slate-50/40 p-3 transition-all hover:bg-white hover:border-red-300 shadow-2xs hover:shadow-xs space-y-2 text-xs"
                           >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-extrabold text-sm text-slate-900">{r.prisonerName}</span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border shrink-0 ${tierColor}`}>
-                                {r.riskTier || 'High Risk'}
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-600 font-mono">
-                              Father: <strong className="text-slate-800">{r.fatherName || 'N/A'}</strong> ({r.age || 30} Yrs)
-                            </div>
-                            <div className="text-xs font-bold text-slate-700 flex flex-wrap items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200 gap-1">
-                              <span>🏛️ {r.jailName || r.jailCode}</span>
-                              <span className="text-red-600 font-mono font-extrabold">Released: {r.releaseDate}</span>
-                            </div>
-                            <div className="text-xs text-slate-700 italic bg-red-50/50 p-2 rounded-lg border border-red-100">
-                              ⚖️ {r.sectionsOfLaw}
-                            </div>
-                            {r.caseDetails && (
-                              <div className="flex flex-wrap items-center justify-between text-[11px] bg-slate-50 border border-slate-200 p-2 rounded-lg mt-1">
-                                <div className="text-slate-700 font-bold flex items-center gap-1">
-                                  <span>📍</span> <span>{r.caseDetails.includes(',') ? r.caseDetails.split(',')[1].trim() : r.caseDetails}</span>
-                                </div>
-                                <div className="text-slate-500 font-mono">
-                                  📄 {r.caseDetails.includes(',') ? r.caseDetails.split(',')[0].trim() : 'N/A'}
-                                </div>
+                            {/* Top row: Name, Tier Badge, and Release Date */}
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="font-extrabold text-slate-900 truncate leading-snug text-[13px]">{r.prisonerName}</div>
                               </div>
-                            )}
+                              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase border ${tierColor}`}>
+                                  {r.riskTier || 'High Risk'}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Demographics & Release Date */}
+                            <div className="text-[11px] text-slate-500 flex flex-wrap justify-between gap-1 border-b border-slate-100 pb-1.5">
+                              <span>Father: <span className="text-slate-700 font-semibold">{r.fatherName || 'N/A'}</span> ({r.age || 30} Yrs)</span>
+                              <span className="text-red-600 font-bold">Released: {r.releaseDate}</span>
+                            </div>
+
+                            {/* Details Rows */}
+                            <div className="space-y-1.5 text-[11px] text-slate-700">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-slate-400 shrink-0">🏛️</span>
+                                <span className="font-semibold text-slate-800 truncate">{r.jailName || r.jailCode}</span>
+                              </div>
+
+                              <div className="flex items-start gap-1.5">
+                                <span className="text-slate-400 shrink-0 mt-0.5">⚖️</span>
+                                <span className="text-slate-600 leading-normal">{r.sectionsOfLaw}</span>
+                              </div>
+
+                              {r.caseDetails && (
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-slate-500 pt-0.5">
+                                  <span className="font-semibold text-slate-700 flex items-center gap-1 shrink-0">
+                                    <span>📍</span> <span>{r.caseDetails.includes(',') ? r.caseDetails.split(',')[1].trim() : r.caseDetails}</span>
+                                  </span>
+                                  <span className="text-slate-300">•</span>
+                                  <span>
+                                    Cr.No. {r.caseDetails.includes(',') ? r.caseDetails.split(',')[0].trim() : 'N/A'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Tracking Officer details */}
                             {r.surveillanceOfficer && (
-                              <div className="text-[11px] text-slate-500 font-mono text-right font-medium">
-                                Tracking: <span className="text-slate-700">{r.surveillanceOfficer}</span>
+                              <div className="text-[10px] text-slate-500 border-t border-slate-200/60 pt-2 flex items-center gap-1.5">
+                                <span className="shrink-0">🕵️</span>
+                                <span className="truncate">
+                                  Tracking: <strong className="text-slate-700 font-semibold">{r.surveillanceOfficer}</strong>
+                                </span>
                               </div>
                             )}
                           </div>
@@ -1113,17 +1128,17 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   </div>
                 </div>
 
-                <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] font-mono text-slate-400">
+                <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-400">
                   <span>NIC ePrisons Live API</span>
                   <span>Auto-sync active</span>
                 </div>
               </div>
             )}
 
-            {/* Reset view / back button at bottom (for Slide 1) */}
-            {activeSlide === 'offenders' && (
-              <div className="mt-4 border-t border-slate-100 pt-3 flex flex-col justify-end">
-                {(selectedDistrict || searchQuery || tierFilter !== 'ALL') ? (
+            {/* Reset view / back button at bottom */}
+            <div className="mt-4 border-t border-slate-100 pt-3 flex flex-col justify-end">
+              {activeSlide === 'offenders' ? (
+                (selectedDistrict || searchQuery || tierFilter !== 'ALL') ? (
                   <Button
                     size="sm"
                     variant="outline"
@@ -1136,9 +1151,24 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   <div className="text-[10px] text-center text-slate-400 font-mono">
                     SSOR Portal Core v3.8
                   </div>
-                )}
-              </div>
-            )}
+                )
+              ) : (
+                (fromDate !== getTodayFormatted() || toDate !== getTodayFormatted() || selectedJailCode !== 'ALL' || selectedEprisonsDistrict !== 'ALL' || selectedJailMarker) ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleResetToToday}
+                    className="w-full font-bold border-red-200 text-red-700 hover:bg-red-50 text-xs py-1 h-8.5 cursor-pointer transition-all animate-fadeIn"
+                  >
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Reset ePrisons View
+                  </Button>
+                ) : (
+                  <div className="text-[10px] text-center text-slate-400 font-mono">
+                    NIC ePrisons Live API
+                  </div>
+                )
+              )}
+            </div>
           </div>
 
         </div>
