@@ -1,0 +1,17 @@
+{
+  "ssor_login_otp": {
+    "name": "ssor_login_otp",
+    "language": "en",
+    "category": "authentication",
+    "description": "Approved AUTHENTICATION template that delivers the login OTP with a copy-code button.",
+    "buttonSubType": "url"
+  },
+  "ssor_login_alert": {
+    "name": "ssor_login_alert",
+    "language": "en",
+    "category": "utility",
+    "description": "Approved UTILITY template sent after a successful login. Uses named parameters.",
+    "namedParams": true,
+    "variables": ["user_name", "login_time"]
+  }
+}
