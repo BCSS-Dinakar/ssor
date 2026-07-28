@@ -1,5 +1,6 @@
 import { setCache, getCache, deleteCache } from '../config/redis.js';
 import logger from '../utils/logger.js';
+import { sendAuthTemplate, normalizePhone } from '../services/whatsapp.service.js';
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000));
@@ -20,9 +21,18 @@ export const sendOtp = async (req, res) => {
     // Store OTP with 60s TTL (Redis, or local file cache fallback if Redis is down).
     await setCache(key, otp, 60);
 
-    // In production, integrate an SMS gateway here (Twilio, MSG91, etc.)
-    // For development we log the OTP to the console
-    logger.info(`📱 OTP for ${mobile}: ${otp}`);
+    const waPhone = normalizePhone(mobile);
+    try {
+      await sendAuthTemplate(waPhone, "ssor_login_otp", otp);
+      logger.info(`📱 WhatsApp OTP sent to ${mobile}: ${otp}`);
+    } catch (waErr) {
+      logger.error('WhatsApp OTP sending failed', waErr);
+      // Depending on strictness, we might want to return an error here instead.
+      // But we will allow the flow to continue in dev if we want, or fail in prod.
+      if (process.env.NODE_ENV !== 'development') {
+        throw new Error('Failed to send OTP via WhatsApp.');
+      }
+    }
 
     return res.status(200).json({
       success: true,
