@@ -20,21 +20,28 @@ API_BASE_URL="${API_BASE_URL:-http://${APP_HOST}:${BACKEND_PORT}/api}"
 # Redis (OTP / cache) — local server expected on this host.
 REDIS_HOST="${REDIS_HOST:-127.0.0.1}"
 REDIS_PORT="${REDIS_PORT:-6379}"
+ENSURE_REDIS="${ENSURE_REDIS:-1}"
+INSTALL_REDIS="${INSTALL_REDIS:-1}"
 
 # MinIO (document storage) — local Docker Compose service.
+# Access/secret MUST already be set in backend/.env (non-default). Deploy will not
+# invent minioadmin credentials (production validateEnv rejects them).
 MINIO_ENDPOINT="${MINIO_ENDPOINT:-127.0.0.1}"
 MINIO_PORT="${MINIO_PORT:-9000}"
 MINIO_USE_SSL="${MINIO_USE_SSL:-false}"
-MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:-minioadmin}"
-MINIO_SECRET_KEY="${MINIO_SECRET_KEY:-minioadmin}"
 MINIO_BUCKET="${MINIO_BUCKET:-ssor-documents}"
 # Browser-reachable host for presigned URLs (required in production).
 MINIO_PUBLIC_ENDPOINT="${MINIO_PUBLIC_ENDPOINT:-${APP_HOST}}"
 MINIO_PUBLIC_PORT="${MINIO_PUBLIC_PORT:-${MINIO_PORT}}"
 MINIO_PUBLIC_USE_SSL="${MINIO_PUBLIC_USE_SSL:-false}"
 MINIO_COMPOSE_FILE="${MINIO_COMPOSE_FILE:-$ROOT_DIR/docker-compose.minio.yml}"
-ENSURE_REDIS="${ENSURE_REDIS:-1}"
+MINIO_VOLUME_NAME="${MINIO_VOLUME_NAME:-ssor_minio_data}"
 ENSURE_MINIO="${ENSURE_MINIO:-1}"
+# If MinIO is up but .env keys don't match the volume root user, recreate volume.
+# DANGEROUS: deletes all MinIO objects. Default off; set 1 only when safe to wipe.
+MINIO_RESET_ON_AUTH_FAIL="${MINIO_RESET_ON_AUTH_FAIL:-0}"
+REQUIRE_REDIS="${REQUIRE_REDIS:-0}"
+REQUIRE_MINIO="${REQUIRE_MINIO:-1}"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$*"
@@ -42,6 +49,11 @@ log() {
 
 warn() {
   printf '\n[%s] WARNING: %s\n' "$(date '+%H:%M:%S')" "$*" >&2
+}
+
+die() {
+  printf '\n[%s] ERROR: %s\n' "$(date '+%H:%M:%S')" "$*" >&2
+  exit 1
 }
 
 set_env() {
@@ -54,7 +66,10 @@ set_env() {
   fi
 
   if grep -q "^${key}=" "$file"; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$file"
+    # Use | as sed delimiter; escape | \ & in value for safe replacement.
+    local escaped
+    escaped="$(printf '%s' "$value" | sed -e 's/[\\|&]/\\&/g')"
+    sed -i "s|^${key}=.*|${key}=${escaped}|" "$file"
   else
     echo "${key}=${value}" >> "$file"
   fi
@@ -73,14 +88,36 @@ get_env() {
 }
 
 redis_ping() {
+  command -v redis-cli >/dev/null 2>&1 || return 1
   redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping 2>/dev/null | grep -qx PONG
+}
+
+install_redis_if_needed() {
+  if command -v redis-cli >/dev/null 2>&1 && command -v redis-server >/dev/null 2>&1; then
+    return 0
+  fi
+  if [[ "$INSTALL_REDIS" != "1" ]]; then
+    return 1
+  fi
+  if ! command -v apt-get >/dev/null 2>&1; then
+    warn "Cannot auto-install Redis (apt-get not available)."
+    return 1
+  fi
+  log "Installing redis-server via apt"
+  sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server
 }
 
 ensure_redis() {
   log "Ensuring Redis is reachable at ${REDIS_HOST}:${REDIS_PORT}"
 
+  install_redis_if_needed || true
+
   if ! command -v redis-cli >/dev/null 2>&1; then
-    warn "redis-cli not found. Install redis-server (OTP/cache will use file fallback)."
+    if [[ "$REQUIRE_REDIS" == "1" ]]; then
+      die "redis-cli not found. Install redis-server or set REQUIRE_REDIS=0."
+    fi
+    warn "redis-cli not found — OTP/cache will use file fallback."
     return 0
   fi
 
@@ -91,17 +128,18 @@ ensure_redis() {
 
   if command -v systemctl >/dev/null 2>&1; then
     if systemctl list-unit-files redis-server.service >/dev/null 2>&1; then
-      log "Starting redis-server via systemctl"
-      sudo systemctl start redis-server || true
+      log "Enabling + starting redis-server"
+      sudo systemctl enable --now redis-server || sudo systemctl start redis-server || true
     elif systemctl list-unit-files redis.service >/dev/null 2>&1; then
-      log "Starting redis via systemctl"
-      sudo systemctl start redis || true
+      log "Enabling + starting redis"
+      sudo systemctl enable --now redis || sudo systemctl start redis || true
     fi
+  elif command -v service >/dev/null 2>&1; then
+    sudo service redis-server start || sudo service redis start || true
   fi
 
-  # Brief wait for bind.
   local i
-  for i in 1 2 3 4 5; do
+  for i in 1 2 3 4 5 6 7 8 9 10; do
     if redis_ping; then
       log "Redis OK"
       return 0
@@ -109,64 +147,130 @@ ensure_redis() {
     sleep 1
   done
 
-  warn "Redis not reachable at ${REDIS_HOST}:${REDIS_PORT} — OTP/cache features will degrade (non-fatal)."
+  if [[ "$REQUIRE_REDIS" == "1" ]]; then
+    die "Redis not reachable at ${REDIS_HOST}:${REDIS_PORT}."
+  fi
+  warn "Redis not reachable at ${REDIS_HOST}:${REDIS_PORT} — OTP/cache will use file fallback."
 }
 
 minio_ready() {
   curl -sf --connect-timeout 2 "http://${MINIO_ENDPOINT}:${MINIO_PORT}/minio/health/live" >/dev/null 2>&1
 }
 
-ensure_minio() {
-  log "Ensuring MinIO is reachable at ${MINIO_ENDPOINT}:${MINIO_PORT} (bucket: ${MINIO_BUCKET})"
+# Health live does not prove .env credentials match the volume root user.
+minio_credentials_ok() {
+  local access="$1"
+  local secret="$2"
+  command -v docker >/dev/null 2>&1 || return 1
+  docker info >/dev/null 2>&1 || return 1
 
-  if minio_ready; then
-    log "MinIO OK"
-    return 0
-  fi
+  # Use a one-shot mc client on host network against the S3 API.
+  docker run --rm --network host --entrypoint /bin/sh minio/mc -c \
+    "mc alias set local http://${MINIO_ENDPOINT}:${MINIO_PORT} '${access}' '${secret}' >/dev/null && mc ls local >/dev/null" \
+    >/dev/null 2>&1
+}
 
-  if ! command -v docker >/dev/null 2>&1; then
-    warn "docker not found. Cannot start MinIO — uploads will use disk fallback."
-    return 0
-  fi
-
-  if ! docker info >/dev/null 2>&1; then
-    warn "Docker daemon not running. Start Docker, then re-run deploy (or: docker compose -f docker-compose.minio.yml up -d)."
-    return 0
-  fi
-
-  if [[ ! -f "$MINIO_COMPOSE_FILE" ]]; then
-    warn "Missing ${MINIO_COMPOSE_FILE} — cannot start MinIO."
-    return 0
-  fi
-
-  log "Starting MinIO via docker compose (${MINIO_COMPOSE_FILE})"
-  # Prefer credentials already in backend/.env so the API and container match.
-  local access secret
-  access="$(get_env "$ROOT_DIR/backend/.env" "MINIO_ACCESS_KEY" "$MINIO_ACCESS_KEY")"
-  secret="$(get_env "$ROOT_DIR/backend/.env" "MINIO_SECRET_KEY" "$MINIO_SECRET_KEY")"
+start_minio_compose() {
+  local access="$1"
+  local secret="$2"
 
   if ! MINIO_ROOT_USER="$access" MINIO_ROOT_PASSWORD="$secret" \
     docker compose -f "$MINIO_COMPOSE_FILE" up -d; then
-    warn "docker compose failed to start MinIO — disk fallback will be active."
-    return 0
+    return 1
   fi
 
   local i
-  for i in 1 2 3 4 5 6 7 8 9 10; do
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
     if minio_ready; then
-      log "MinIO OK"
       return 0
     fi
     sleep 1
   done
+  return 1
+}
 
-  warn "MinIO did not become healthy on :${MINIO_PORT} — disk fallback will be active until it is."
+reset_minio_volume() {
+  local access="$1"
+  local secret="$2"
+
+  log "Recreating MinIO volume ${MINIO_VOLUME_NAME} with credentials from backend/.env"
+  docker compose -f "$MINIO_COMPOSE_FILE" down || true
+  docker volume rm "$MINIO_VOLUME_NAME" 2>/dev/null || true
+  start_minio_compose "$access" "$secret"
+}
+
+ensure_minio() {
+  local access secret
+  access="$(get_env "$ROOT_DIR/backend/.env" "MINIO_ACCESS_KEY" "")"
+  secret="$(get_env "$ROOT_DIR/backend/.env" "MINIO_SECRET_KEY" "")"
+
+  log "Ensuring MinIO at ${MINIO_ENDPOINT}:${MINIO_PORT} (bucket: ${MINIO_BUCKET})"
+
+  if [[ -z "$access" || -z "$secret" ]]; then
+    die "MINIO_ACCESS_KEY / MINIO_SECRET_KEY missing in backend/.env. Set non-default credentials before deploy."
+  fi
+  if [[ "$access" == "minioadmin" || "$secret" == "minioadmin" ]]; then
+    die "MINIO_ACCESS_KEY / MINIO_SECRET_KEY must not be minioadmin (production reject). Update backend/.env."
+  fi
+
+  if ! command -v docker >/dev/null 2>&1; then
+    if [[ "$REQUIRE_MINIO" == "1" ]]; then
+      die "docker not found. Cannot start MinIO."
+    fi
+    warn "docker not found — uploads will use disk fallback."
+    return 0
+  fi
+
+  if ! docker info >/dev/null 2>&1; then
+    if [[ "$REQUIRE_MINIO" == "1" ]]; then
+      die "Docker daemon not running. Start Docker and re-run deploy."
+    fi
+    warn "Docker daemon not running — uploads will use disk fallback."
+    return 0
+  fi
+
+  if [[ ! -f "$MINIO_COMPOSE_FILE" ]]; then
+    die "Missing ${MINIO_COMPOSE_FILE}."
+  fi
+
+  # Always reconcile compose so container env/restart policy stay applied.
+  # Note: changing ROOT user on an existing volume does NOT rotate credentials;
+  # auth check + optional reset handles that case.
+  if ! start_minio_compose "$access" "$secret"; then
+    if [[ "$REQUIRE_MINIO" == "1" ]]; then
+      die "MinIO did not become healthy on :${MINIO_PORT}."
+    fi
+    warn "MinIO did not become healthy — disk fallback will be active."
+    return 0
+  fi
+
+  if minio_credentials_ok "$access" "$secret"; then
+    log "MinIO OK (reachable + credentials match backend/.env)"
+    return 0
+  fi
+
+  warn "MinIO is up but backend/.env credentials do not authenticate (volume likely initialized with different root keys)."
+
+  if [[ "$MINIO_RESET_ON_AUTH_FAIL" == "1" ]]; then
+    if ! reset_minio_volume "$access" "$secret"; then
+      die "MinIO volume reset failed."
+    fi
+    if minio_credentials_ok "$access" "$secret"; then
+      log "MinIO OK after volume recreate"
+      return 0
+    fi
+    die "MinIO still rejecting credentials after volume recreate."
+  fi
+
+  if [[ "$REQUIRE_MINIO" == "1" ]]; then
+    die "Fix MinIO credentials or re-run with MINIO_RESET_ON_AUTH_FAIL=1 (wipes MinIO data)."
+  fi
+  warn "Continuing with mismatched MinIO credentials — uploads will fall back to disk."
 }
 
 ensure_backend_service_env() {
   local env_file="$ROOT_DIR/backend/.env"
 
-  # Keep deploy defaults, but do not clobber custom credentials already in .env.
   if [[ -z "$(get_env "$env_file" "REDIS_HOST")" ]]; then
     set_env "$env_file" "REDIS_HOST" "$REDIS_HOST"
   fi
@@ -183,20 +287,63 @@ ensure_backend_service_env() {
   if [[ -z "$(get_env "$env_file" "MINIO_USE_SSL")" ]]; then
     set_env "$env_file" "MINIO_USE_SSL" "$MINIO_USE_SSL"
   fi
-  if [[ -z "$(get_env "$env_file" "MINIO_ACCESS_KEY")" ]]; then
-    set_env "$env_file" "MINIO_ACCESS_KEY" "$MINIO_ACCESS_KEY"
-  fi
-  if [[ -z "$(get_env "$env_file" "MINIO_SECRET_KEY")" ]]; then
-    set_env "$env_file" "MINIO_SECRET_KEY" "$MINIO_SECRET_KEY"
-  fi
   if [[ -z "$(get_env "$env_file" "MINIO_BUCKET")" ]]; then
     set_env "$env_file" "MINIO_BUCKET" "$MINIO_BUCKET"
   fi
 
+  # Do NOT auto-write access/secret — must be set manually to non-default values.
+  if [[ -z "$(get_env "$env_file" "MINIO_ACCESS_KEY")" || -z "$(get_env "$env_file" "MINIO_SECRET_KEY")" ]]; then
+    die "Set MINIO_ACCESS_KEY and MINIO_SECRET_KEY in backend/.env before deploying (non-default)."
+  fi
+
   # Always refresh public signing endpoint for this host (production requirement).
-  set_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "$MINIO_PUBLIC_ENDPOINT"
-  set_env "$env_file" "MINIO_PUBLIC_PORT" "$MINIO_PUBLIC_PORT"
-  set_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$MINIO_PUBLIC_USE_SSL"
+  local pub
+  pub="$(get_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "")"
+  if [[ -z "$pub" ]]; then
+    pub="$MINIO_PUBLIC_ENDPOINT"
+  fi
+  # Prefer explicit override from .deploy.local / env; else keep existing; else APP_HOST.
+  if [[ -n "${MINIO_PUBLIC_ENDPOINT}" ]]; then
+    pub="$MINIO_PUBLIC_ENDPOINT"
+  fi
+  set_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "$pub"
+  set_env "$env_file" "MINIO_PUBLIC_PORT" "$(get_env "$env_file" "MINIO_PUBLIC_PORT" "$MINIO_PUBLIC_PORT")"
+  set_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$(get_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$MINIO_PUBLIC_USE_SSL")"
+}
+
+validate_production_backend_env() {
+  local env_file="$ROOT_DIR/backend/.env"
+  local access secret pub
+  access="$(get_env "$env_file" "MINIO_ACCESS_KEY" "")"
+  secret="$(get_env "$env_file" "MINIO_SECRET_KEY" "")"
+  pub="$(get_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "")"
+
+  log "Validating production backend/.env (Redis / MinIO requirements)"
+
+  if [[ -z "$access" || -z "$secret" ]]; then
+    die "MINIO_ACCESS_KEY / MINIO_SECRET_KEY required in backend/.env."
+  fi
+  if [[ "$access" == "minioadmin" || "$secret" == "minioadmin" ]]; then
+    die "Refuse to deploy with default minioadmin credentials."
+  fi
+  if [[ -z "$pub" ]]; then
+    die "MINIO_PUBLIC_ENDPOINT required in production (e.g. ${APP_HOST})."
+  fi
+}
+
+wait_for_backend() {
+  local url="http://127.0.0.1:${BACKEND_PORT}/api/health"
+  local i code
+  log "Waiting for backend health at ${url}"
+  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 "$url" || true)"
+    if [[ "$code" == "200" ]]; then
+      log "Backend health OK"
+      return 0
+    fi
+    sleep 1
+  done
+  warn "Backend health not OK yet (last HTTP ${code:-000}). Check: pm2 logs ssor-backend --lines 50"
 }
 
 load_nvm() {
@@ -237,15 +384,15 @@ set_env "$ROOT_DIR/frontend/.env" "REACT_APP_API_BASE_URL" "$API_BASE_URL"
 
 log "Ensuring Redis / MinIO backend env defaults"
 ensure_backend_service_env
+validate_production_backend_env
 
-# Refresh locals from .env so compose / health checks use the same credentials.
+# Refresh locals from .env so compose / health checks use the same values.
 REDIS_HOST="$(get_env "$ROOT_DIR/backend/.env" "REDIS_HOST" "$REDIS_HOST")"
 REDIS_PORT="$(get_env "$ROOT_DIR/backend/.env" "REDIS_PORT" "$REDIS_PORT")"
 MINIO_ENDPOINT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_ENDPOINT" "$MINIO_ENDPOINT")"
 MINIO_PORT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_PORT" "$MINIO_PORT")"
-MINIO_ACCESS_KEY="$(get_env "$ROOT_DIR/backend/.env" "MINIO_ACCESS_KEY" "$MINIO_ACCESS_KEY")"
-MINIO_SECRET_KEY="$(get_env "$ROOT_DIR/backend/.env" "MINIO_SECRET_KEY" "$MINIO_SECRET_KEY")"
 MINIO_BUCKET="$(get_env "$ROOT_DIR/backend/.env" "MINIO_BUCKET" "$MINIO_BUCKET")"
+MINIO_PUBLIC_ENDPOINT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_PUBLIC_ENDPOINT" "$MINIO_PUBLIC_ENDPOINT")"
 
 if [[ "$ENSURE_REDIS" == "1" ]]; then
   ensure_redis
@@ -277,10 +424,14 @@ log "Starting or reloading PM2 processes"
 if pm2 describe ssor-backend >/dev/null 2>&1; then
   pm2 reload "$ROOT_DIR/ecosystem.config.cjs" --update-env
 else
-  pm2 start "$ROOT_DIR/ecosystem.config.cjs"
+  pm2 start "$ROOT_DIR/ecosystem.config.cjs" --update-env
 fi
+# Ensure .env-driven process picks up Redis/MinIO that may have come up mid-deploy.
+pm2 restart ssor-backend --update-env
 
 pm2 save
+
+wait_for_backend
 
 log "Deployment complete"
 pm2 status
@@ -290,4 +441,7 @@ echo "Backend  : http://${APP_HOST}:${BACKEND_PORT}"
 echo "Health   : http://${APP_HOST}:${BACKEND_PORT}/api/health"
 echo "Redis    : ${REDIS_HOST}:${REDIS_PORT}$(redis_ping && echo ' (up)' || echo ' (down — file fallback)')"
 echo "MinIO    : ${MINIO_ENDPOINT}:${MINIO_PORT}$(minio_ready && echo ' (up)' || echo ' (down — disk fallback)')"
-echo "MinIO UI : http://${APP_HOST}:9001"
+echo "MinIO UI : http://${MINIO_PUBLIC_ENDPOINT}:9001"
+echo
+echo "Tip: if MinIO auth fails next time after rotating keys, redeploy with:"
+echo "  MINIO_RESET_ON_AUTH_FAIL=1 ./deploy.sh"
