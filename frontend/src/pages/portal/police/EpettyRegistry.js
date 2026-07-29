@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Database, ShieldAlert, Clock, IndianRupee, Filter, LayoutDashboard } from 'lucide-react';
-import PageHeader from '../../../components/portal/PageHeader';
-import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { policeApi } from '../../../api/police.api';
 
 function StatCard({ title, value, icon: Icon, colorClass }) {
