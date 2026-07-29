@@ -9,3 +9,14 @@ GIT_BRANCH=main
 # Optional overrides (auto-derived from APP_HOST and ports when omitted)
 # FRONTEND_URL=http://10.121.9.177:3000
 # API_BASE_URL=http://10.121.9.177:5000/api
+
+# --- Redis / MinIO (deploy.sh ensures these) ---
+# ENSURE_REDIS=1
+# INSTALL_REDIS=1          # apt-install redis-server if missing
+# REQUIRE_REDIS=0          # set 1 to fail deploy when Redis is down
+# ENSURE_MINIO=1
+# REQUIRE_MINIO=1          # fail deploy if MinIO is down / creds mismatch
+# MINIO_PUBLIC_ENDPOINT=10.121.9.177
+# MINIO_PUBLIC_PORT=9000
+# MINIO_PUBLIC_USE_SSL=false
+# MINIO_RESET_ON_AUTH_FAIL=0   # set 1 only when safe to WIPE MinIO volume
