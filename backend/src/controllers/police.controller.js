@@ -54,7 +54,7 @@ export const getVerificationById = async (req, res) => {
   try {
     const { id } = req.params;
     const verification = await prisma.candidateVerification.findUnique({
-      where: { id }
+      where: { id: parseInt(id, 10) }
     });
 
     if (!verification) {
@@ -74,7 +74,7 @@ export const updateVerificationStatus = async (req, res) => {
     const { status, policeFeedback } = req.body;
 
     const verification = await prisma.candidateVerification.update({
-      where: { id },
+      where: { id: parseInt(id, 10) },
       data: { status, policeFeedback }
     });
 
@@ -97,14 +97,14 @@ export const updateVerificationStatus = async (req, res) => {
 export const scanVerificationById = async (req, res) => {
   try {
     const { id } = req.params;
-    const verification = await prisma.candidateVerification.findUnique({ where: { id } });
+    const verification = await prisma.candidateVerification.findUnique({ where: { id: parseInt(id, 10) } });
     if (!verification) {
       return res.status(404).json({ success: false, message: 'Verification record not found.' });
     }
 
-    // Mark status as verifying
+    // Update to mark as processing
     await prisma.candidateVerification.update({
-      where: { id },
+      where: { id: parseInt(id, 10) },
       data: { status: 'verifying' }
     });
 
@@ -218,7 +218,7 @@ export const generateVerificationReport = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid status for report generation' });
     }
 
-    const verification = await prisma.candidateVerification.findUnique({ where: { id } });
+    const verification = await prisma.candidateVerification.findUnique({ where: { id: parseInt(id, 10) } });
     if (!verification) {
       return res.status(404).json({ success: false, message: 'Verification record not found' });
     }
@@ -248,7 +248,7 @@ export const getOrganizationById = async (req, res) => {
   try {
     const { id } = req.params;
     const orgUser = await prisma.user.findUnique({
-      where: { id },
+      where: { id: parseInt(id, 10) },
       include: { organizationProfile: true }
     });
 
@@ -271,11 +271,11 @@ export const updateOrganizationStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
 
-    const orgUser = await prisma.user.findUnique({ where: { id }, include: { organizationProfile: true } });
+    const orgUser = await prisma.user.findUnique({ where: { id: parseInt(id, 10) }, include: { organizationProfile: true } });
     if (!orgUser) return res.status(404).json({ success: false, message: 'Organization not found' });
 
     const updated = await prisma.user.update({
-      where: { id },
+      where: { id: parseInt(id, 10) },
       data: { status }
     });
 
@@ -397,7 +397,7 @@ export const updateTicketStatus = async (req, res) => {
     const assignee = policeProfile ? policeProfile.name : 'Police Officer';
 
     const ticket = await prisma.supportTicket.update({
-      where: { id },
+      where: { id: parseInt(id, 10) },
       data: { status, assignee }
     });
     res.status(200).json({ success: true, ticket });
