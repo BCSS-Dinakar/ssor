@@ -566,3 +566,113 @@ export const getOffenderById = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
+
+export const getEpettyRegistryList = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '', unit = '', disposal = '' } = req.query;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause = Prisma.sql`WHERE 1=1`;
+    if (search) {
+      const searchParam = `%${search}%`;
+      whereClause = Prisma.sql`${whereClause} AND (case_number ILIKE ${searchParam} OR offender_name ILIKE ${searchParam} OR ps_name ILIKE ${searchParam})`;
+    }
+
+    if (unit) {
+      whereClause = Prisma.sql`${whereClause} AND unit_name ILIKE ${unit}`;
+    }
+
+    if (disposal) {
+      if (disposal === 'Pending') {
+        whereClause = Prisma.sql`${whereClause} AND (disposal_type IS NULL OR disposal_type = '')`;
+      } else if (disposal === 'Fine') {
+        whereClause = Prisma.sql`${whereClause} AND (disposal_type = 'ONLY FINE' OR disposal_type = 'IMPRISON AND FINE')`;
+      } else if (disposal === 'Imprisonment') {
+        whereClause = Prisma.sql`${whereClause} AND (disposal_type = 'ONLY IMPRISON' OR disposal_type = 'IMPRISON AND FINE')`;
+      } else if (disposal === 'Acquittal') {
+        whereClause = Prisma.sql`${whereClause} AND disposal_type = 'ACQUITTAL'`;
+      }
+    }
+
+    const rawData = await prisma.$queryRaw`
+      SELECT * FROM public.mv_e_cases_details
+      ${whereClause}
+      ORDER BY offence_date DESC
+      LIMIT ${limitNum} OFFSET ${offset}
+    `;
+
+    const countResult = await prisma.$queryRaw`
+      SELECT count(*) as total FROM public.mv_e_cases_details
+      ${whereClause}
+    `;
+    const total = Number(countResult[0]?.total || 0);
+
+    const mappedData = rawData.map(row => ({
+      id: row.case_number,
+      name: row.offender_name,
+      area: row.ps_name || 'Unknown',
+      offence: row.act_section || '—',
+      date: row.offence_date || '—',
+      disposal: row.disposal_type || 'Pending'
+    }));
+    
+    res.status(200).json({ 
+      success: true, 
+      data: mappedData, 
+      pagination: { total, page: pageNum, limit: limitNum } 
+    });
+  } catch (error) {
+    logger.error('[getEpettyRegistryList error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  }
+};
+
+export const getEpettyRegistryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const rawData = await prisma.$queryRaw`
+      SELECT * FROM public.mv_e_cases_details
+      WHERE case_number = ${id}
+      LIMIT 1
+    `;
+
+    if (!rawData || rawData.length === 0) {
+      return res.status(404).json({ success: false, message: 'Case not found' });
+    }
+
+    res.status(200).json({ success: true, data: rawData[0] });
+  } catch (error) {
+    logger.error('[getEpettyRegistryById error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  }
+};
+
+export const getEpettyRegistryStats = async (req, res) => {
+  try {
+    const rawData = await prisma.$queryRaw`
+      SELECT 
+        COUNT(*) as total, 
+        SUM(CASE WHEN disposal_type = 'ONLY FINE' OR disposal_type = 'IMPRISON AND FINE' THEN 1 ELSE 0 END) as total_fines,
+        SUM(CASE WHEN disposal_type IS NULL OR disposal_type = '' THEN 1 ELSE 0 END) as pending_cases,
+        SUM(CASE WHEN disposal_type = 'ONLY IMPRISON' OR disposal_type = 'IMPRISON AND FINE' THEN 1 ELSE 0 END) as imprisonment
+      FROM public.mv_e_cases_details;
+    `;
+    const stats = rawData[0] || { total: 0, total_fines: 0, pending_cases: 0, imprisonment: 0 };
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        total: Number(stats.total || 0),
+        fines: Number(stats.total_fines || 0),
+        pending: Number(stats.pending_cases || 0),
+        imprisonment: Number(stats.imprisonment || 0)
+      }
+    });
+  } catch (error) {
+    logger.error('[getEpettyRegistryStats error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  }
+};

@@ -13,6 +13,8 @@ import PortalIndex from './pages/portal/PortalIndex';
 import Profile from './pages/portal/Profile';
 
 import RegistryDatabase from './pages/portal/police/RegistryDatabase';
+import EpettyRegistry from './pages/portal/police/EpettyRegistry';
+import EpettyDetail from './pages/portal/police/EpettyDetail';
 import RiskTierGuide from './pages/portal/RiskTierGuide';
 import PendingVerifications from './pages/portal/police/PendingVerifications';
 import VerificationHistory from './pages/portal/police/VerificationHistory';
@@ -65,6 +67,8 @@ function App() {
           <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
             <Route path="register" element={<RegistryDatabase />} />
             <Route path="register/:id" element={<OffenderDetail />} />
+            <Route path="epetty-register" element={<EpettyRegistry />} />
+            <Route path="epetty-register/:id" element={<EpettyDetail />} />
             <Route path="clearances" element={<PendingVerifications />} />
             <Route path="clearances/:id" element={<VerificationVetting />} />
             <Route path="clearance-history" element={<VerificationHistory />} />
