@@ -34,23 +34,16 @@ function RegistryDatabase() {
   // Input State (what the user is currently editing)
   const [query, setQuery] = useState('');
   const [selectedTiers, setSelectedTiers] = useState([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Applied State (what actually gets sent to the API on "Search" click)
   const [appliedQuery, setAppliedQuery] = useState('');
   const [appliedTiers, setAppliedTiers] = useState([]);
-
-  const toggleTier = (t) => {
-    setSelectedTiers(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
-  };
 
   const handleSearch = () => {
     setAppliedQuery(query);
     setAppliedTiers(selectedTiers);
     setPage(1); // Always reset to page 1 on new search
   };
-
-  const activeFiltersCount = selectedTiers.length;
 
   const fetchOffenders = useCallback(async () => {
     setLoading(true);
@@ -120,70 +113,48 @@ function RegistryDatabase() {
         <StatCard title="Absconding" value={stats.absconding} icon={UserMinus} colorClass="bg-amber-500" />
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="p-5 bg-white shadow-sm border border-slate-200 rounded-2xl">
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative flex-grow w-full">
-            <Search className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3.5 text-base focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-semibold text-slate-700 placeholder-slate-400"
-              placeholder="Search offender name, area or record ID..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSearch();
-              }}
-            />
-          </div>
-
-          <div className="flex gap-3 w-full sm:w-auto shrink-0">
-            <button
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex items-center gap-2 border rounded-xl px-5 py-3.5 text-base font-bold transition-all active:scale-95 ${isFilterOpen ? 'bg-slate-100 border-slate-300 text-slate-800 shadow-inner' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'}`}
-            >
-              <Filter className={`w-4 h-4 ${isFilterOpen ? 'text-secondary' : 'text-slate-500'}`} />
-              Filters
-              {activeFiltersCount > 0 && (
-                <span className="text-sm px-2 py-0.5 rounded-full ml-1 bg-secondary text-white shadow-sm">
-                  {activeFiltersCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={handleSearch}
-              className="flex items-center gap-2 bg-gradient-to-r from-secondary to-indigo-900 hover:from-indigo-800 hover:to-indigo-950 text-white rounded-xl px-8 py-3.5 text-base font-bold transition-all shadow-md active:scale-95"
-            >
-              Search
-            </button>
-          </div>
+      {/* Search and Filters */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative flex-grow w-full">
+          <Search className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-bold text-slate-700 placeholder-slate-400"
+            placeholder="Search offender name, area or record ID..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+          />
         </div>
-
-        {/* Expandable Filters Section */}
-        {isFilterOpen && (
-          <div className="mt-5 pt-5 border-t border-slate-100 animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-black tracking-wide text-slate-400 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
-                Risk Tier
-              </h3>
-              {selectedTiers.length > 0 && (
-                <button onClick={() => setSelectedTiers([])} className="text-sm text-secondary font-bold hover:underline transition-all">Clear Selection</button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
-              {Object.keys(TIERS).map((t) => (
-                <label key={t} className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${selectedTiers.includes(t) ? 'bg-secondary/5 border-secondary' : 'bg-white border-slate-100 hover:border-slate-300 hover:bg-slate-50'}`}>
-                  <input type="checkbox" className="hidden" checked={selectedTiers.includes(t)} onChange={() => toggleTier(t)} />
-                  <div className={`w-5 h-5 rounded-[6px] border-2 flex items-center justify-center transition-all duration-200 ${selectedTiers.includes(t) ? 'bg-secondary border-secondary text-white' : 'border-slate-300 bg-white'}`}>
-                    {selectedTiers.includes(t) && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-                  </div>
-                  <span className="text-sm font-bold text-slate-700 tracking-wide">{TIERS[t].name}</span>
-                </label>
-              ))}
-            </div>
+        
+        <div className="flex gap-3 w-full md:w-auto shrink-0">
+          {/* Tier Filter */}
+          <div className="relative flex-grow md:flex-grow-0">
+            <Filter className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <select
+              value={appliedTiers.length > 0 ? appliedTiers[0] : ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setAppliedTiers(val ? [val] : []);
+                setPage(1);
+              }}
+              className="bg-white border border-slate-200 text-slate-700 font-bold rounded-xl pl-9 pr-8 py-3 appearance-none focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 cursor-pointer shadow-sm w-full md:w-40"
+            >
+              <option value="">All Tiers</option>
+              <option value="RED">High Risk</option>
+              <option value="BLUE">Medium Risk</option>
+              <option value="BLACK">Monitor List</option>
+            </select>
           </div>
-        )}
+          
+          <button
+            onClick={handleSearch}
+            className="bg-primary hover:bg-secondary text-white px-6 py-3 rounded-xl font-bold transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 w-full md:w-auto whitespace-nowrap"
+          >
+            Search
+          </button>
+        </div>
       </div>
 
       {/* Roster Table Card */}
