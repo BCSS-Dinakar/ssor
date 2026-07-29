@@ -72,8 +72,8 @@ export const policeApi = {
     return response.data;
   },
 
-  getOffendersStats: async () => {
-    const response = await api.get('/police/offenders/stats');
+  getOffendersStats: async (params) => {
+    const response = await api.get('/police/offenders/stats', { params });
     return response.data;
   },
 
@@ -97,8 +97,8 @@ export const policeApi = {
     return response.data;
   },
 
-  getEpettyRegistryStats: async () => {
-    const response = await api.get('/police/epetty-registry/stats');
+  getEpettyRegistryStats: async (params) => {
+    const response = await api.get('/police/epetty-registry/stats', { params });
     return response.data;
   },
 
