@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Filter, Check } from 'lucide-react';
+import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Filter, Check, ShieldAlert } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { TierChip, StatusPill } from '../../../components/portal/Badges';
@@ -66,18 +66,20 @@ function RegistryDatabase() {
 
   return (
     <div className="space-y-6 animate-fadeIn pb-10">
-      <PageHeader
-        crumbs={[
-          { label: 'Police', to: '/portal' },
-          { label: 'Registry Database' },
-        ]}
-        title="Registry Database"
-        subtitle="Search and filter conviction records. Open a file for the full dossier."
-      />
-
-      <SecurityBanner>
-        Disclosable entries are conviction-based only. Accused persons are never held in this register.
-      </SecurityBanner>
+      {/* Compact Header & Banner */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+        <div className="shrink-0">
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight font-heading">Registry Database</h1>
+          <p className="text-sm font-bold text-slate-500 mt-1">Search and filter conviction records. Open a file for the full dossier.</p>
+        </div>
+        
+        <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
+          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
+          <p className="text-sm font-bold text-amber-700 whitespace-nowrap">
+            Disclosable entries are conviction-based only. Accused persons are not held here.
+          </p>
+        </div>
+      </div>
 
       {/* Filter and Search Bar */}
       <div className="p-5 bg-white shadow-sm border border-slate-200 rounded-2xl">
