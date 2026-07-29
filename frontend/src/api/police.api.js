@@ -72,6 +72,11 @@ export const policeApi = {
     return response.data;
   },
 
+  getOffendersStats: async () => {
+    const response = await api.get('/police/offenders/stats');
+    return response.data;
+  },
+
   getOffenderById: async (id) => {
     const response = await api.get(`/police/offenders/${id}`);
     return response.data;

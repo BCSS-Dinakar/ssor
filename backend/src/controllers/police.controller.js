@@ -676,3 +676,31 @@ export const getEpettyRegistryStats = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
   }
 };
+
+export const getOffendersStats = async (req, res) => {
+  try {
+    const rawData = await prisma.$queryRaw`
+      SELECT 
+        COUNT(*) as total, 
+        SUM(CASE WHEN risk_tier = 'RED' THEN 1 ELSE 0 END) as red_tier,
+        SUM(CASE WHEN risk_tier = 'BLUE' THEN 1 ELSE 0 END) as blue_tier,
+        SUM(CASE WHEN risk_tier = 'BLACK' THEN 1 ELSE 0 END) as black_tier,
+        SUM(CASE WHEN current_status ILIKE '%absconding%' THEN 1 ELSE 0 END) as absconding
+      FROM public.mv_offenders_list;
+    `;
+    const stats = rawData[0] || { total: 0, red_tier: 0, black_tier: 0, absconding: 0 };
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        total: Number(stats.total || 0),
+        highRisk: Number(stats.red_tier || 0),
+        monitorList: Number(stats.black_tier || 0),
+        absconding: Number(stats.absconding || 0)
+      }
+    });
+  } catch (error) {
+    logger.error('[getOffendersStats error]', error);
+    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
+  }
+};

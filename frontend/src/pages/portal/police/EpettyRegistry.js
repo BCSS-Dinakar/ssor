@@ -293,7 +293,7 @@ function EpettyRegistry() {
               Rows:
               <select
                 value={limit}
-                onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                onChange={(e) => setLimit(Number(e.target.value))}
                 className="bg-white border border-slate-200 rounded-lg py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-secondary/20 focus:border-secondary font-bold text-slate-800 cursor-pointer shadow-sm transition-all"
               >
                 <option value={10}>10</option>

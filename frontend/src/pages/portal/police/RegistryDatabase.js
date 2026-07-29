@@ -1,9 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Filter, Check, ShieldAlert } from 'lucide-react';
+import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Filter, Check, ShieldAlert, Database, AlertTriangle, UserMinus } from 'lucide-react';
 import { TierChip, StatusPill } from '../../../components/portal/Badges';
 import { TIERS } from '../../../utils/data/portalData';
 import { policeApi } from '../../../api/police.api';
+
+function StatCard({ title, value, icon: Icon, colorClass }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+      <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500 ${colorClass}`} />
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-slate-500 font-bold text-sm tracking-wide">{title}</h3>
+        <div className={`p-2 rounded-xl bg-slate-50 ${colorClass.replace('bg-', 'text-')}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      <div className="text-3xl font-black text-slate-800 font-heading">
+        {value.toLocaleString()}
+      </div>
+    </div>
+  );
+}
 
 function RegistryDatabase() {
   // Datatable State
@@ -12,6 +29,7 @@ function RegistryDatabase() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState({ total: 0, highRisk: 0, monitorList: 0, absconding: 0 });
 
   // Input State (what the user is currently editing)
   const [query, setQuery] = useState('');
@@ -56,9 +74,24 @@ function RegistryDatabase() {
     }
   }, [page, limit, appliedQuery, appliedTiers]);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await policeApi.getOffendersStats();
+      if (res && res.success) {
+        setStats(res.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchOffenders();
   }, [fetchOffenders]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -77,6 +110,14 @@ function RegistryDatabase() {
             Disclosable entries are conviction-based only. Accused persons are not held here.
           </p>
         </div>
+      </div>
+
+      {/* Stats Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <StatCard title="Total Profiles" value={stats.total} icon={Database} colorClass="bg-blue-500" />
+        <StatCard title="High Risk" value={stats.highRisk} icon={ShieldAlert} colorClass="bg-red-500" />
+        <StatCard title="Monitor List" value={stats.monitorList} icon={AlertTriangle} colorClass="bg-slate-800" />
+        <StatCard title="Absconding" value={stats.absconding} icon={UserMinus} colorClass="bg-amber-500" />
       </div>
 
       {/* Filter and Search Bar */}
