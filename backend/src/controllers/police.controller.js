@@ -438,7 +438,7 @@ export const addTicketMessage = async (req, res) => {
 
 export const getOffendersList = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '', tier = '' } = req.query;
+    const { page = 1, limit = 10, search = '', tier = '', status = '', crime = '' } = req.query;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     const offset = (pageNum - 1) * limitNum;
@@ -453,6 +453,22 @@ export const getOffendersList = async (req, res) => {
       if (tiers.length > 0) {
         const tierConditions = tiers.map(t => Prisma.sql`risk_tier ILIKE ${t}`);
         whereClause = Prisma.sql`${whereClause} AND (${Prisma.join(tierConditions, ' OR ')})`;
+      }
+    }
+    
+    if (status) {
+      const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
+      if (statuses.length > 0) {
+        const statusConditions = statuses.map(s => Prisma.sql`current_status ILIKE ${'%' + s + '%'}`);
+        whereClause = Prisma.sql`${whereClause} AND (${Prisma.join(statusConditions, ' OR ')})`;
+      }
+    }
+
+    if (crime) {
+      const crimes = crime.split(',').map(c => c.trim()).filter(Boolean);
+      if (crimes.length > 0) {
+        const crimeConditions = crimes.map(c => Prisma.sql`primary_offence ILIKE ${'%' + c + '%'}`);
+        whereClause = Prisma.sql`${whereClause} AND (${Prisma.join(crimeConditions, ' OR ')})`;
       }
     }
 
@@ -581,25 +597,36 @@ export const getEpettyRegistryList = async (req, res) => {
     }
 
     if (unit) {
-      whereClause = Prisma.sql`${whereClause} AND unit_name ILIKE ${unit}`;
+      const unitsArray = unit.split(',').map(u => u.trim()).filter(Boolean);
+      if (unitsArray.length > 0) {
+        whereClause = Prisma.sql`${whereClause} AND unit_name IN (${Prisma.join(unitsArray)})`;
+      }
     }
 
     if (disposal) {
-      if (disposal === 'Pending') {
-        whereClause = Prisma.sql`${whereClause} AND (disposal_type IS NULL OR disposal_type = '')`;
-      } else if (disposal === 'Fine') {
-        whereClause = Prisma.sql`${whereClause} AND (disposal_type = 'ONLY FINE' OR disposal_type = 'IMPRISON AND FINE')`;
-      } else if (disposal === 'Imprisonment') {
-        whereClause = Prisma.sql`${whereClause} AND (disposal_type = 'ONLY IMPRISON' OR disposal_type = 'IMPRISON AND FINE')`;
-      } else if (disposal === 'Acquittal') {
-        whereClause = Prisma.sql`${whereClause} AND disposal_type = 'ACQUITTAL'`;
+      const disposalArr = disposal.split(',').map(d => d.trim()).filter(Boolean);
+      const disposalConditions = [];
+      if (disposalArr.includes('Pending')) {
+        disposalConditions.push(Prisma.sql`(disposal_type IS NULL OR disposal_type = '')`);
+      }
+      if (disposalArr.includes('Fine')) {
+        disposalConditions.push(Prisma.sql`(disposal_type = 'ONLY FINE' OR disposal_type = 'IMPRISON AND FINE')`);
+      }
+      if (disposalArr.includes('Imprisonment')) {
+        disposalConditions.push(Prisma.sql`(disposal_type = 'ONLY IMPRISON' OR disposal_type = 'IMPRISON AND FINE')`);
+      }
+      if (disposalArr.includes('Acquittal')) {
+        disposalConditions.push(Prisma.sql`disposal_type = 'ACQUITTAL'`);
+      }
+      if (disposalConditions.length > 0) {
+        whereClause = Prisma.sql`${whereClause} AND (${Prisma.join(disposalConditions, ' OR ')})`;
       }
     }
 
     const rawData = await prisma.$queryRaw`
       SELECT * FROM public.mv_e_cases_details
       ${whereClause}
-      ORDER BY offence_date DESC
+      ORDER BY offence_date DESC NULLS LAST
       LIMIT ${limitNum} OFFSET ${offset}
     `;
 
