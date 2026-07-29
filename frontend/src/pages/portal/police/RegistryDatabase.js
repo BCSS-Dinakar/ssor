@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Filter, Check, ShieldAlert } from 'lucide-react';
-import PageHeader from '../../../components/portal/PageHeader';
-import SecurityBanner from '../../../components/portal/SecurityBanner';
 import { TierChip, StatusPill } from '../../../components/portal/Badges';
 import { TIERS } from '../../../utils/data/portalData';
 import { policeApi } from '../../../api/police.api';
