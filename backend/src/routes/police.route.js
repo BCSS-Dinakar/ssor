@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requirePolice } from '../middleware/auth.middleware.js';
-import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDocumentSignedUrl, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, generateVerificationReport, getEpettyRegistryList, getEpettyRegistryById, getEpettyRegistryStats } from '../controllers/police.controller.js';
+import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDocumentSignedUrl, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, getOffendersStats, generateVerificationReport, getEpettyRegistryList, getEpettyRegistryById, getEpettyRegistryStats } from '../controllers/police.controller.js';
 
 const router = Router();
 
@@ -9,6 +9,7 @@ router.use(requirePolice);
 
 router.get('/dashboard', getDashboardStats);
 router.get('/offenders', getOffendersList);
+router.get('/offenders/stats', getOffendersStats);
 router.get('/offenders/:id', getOffenderById);
 router.get('/epetty-registry/stats', getEpettyRegistryStats);
 router.get('/epetty-registry', getEpettyRegistryList);
