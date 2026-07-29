@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, ExternalLink, ChevronLeft, ChevronRight, Loader2, Database, ShieldAlert, Clock, IndianRupee, Filter, LayoutDashboard } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import SecurityBanner from '../../../components/portal/SecurityBanner';
@@ -26,20 +26,21 @@ function EpettyRegistry() {
   // Datatable State
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState({ total: 0, fines: 0, imprisonment: 0, pending: 0 });
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Input State
-  const [query, setQuery] = useState('');
-  const [unit, setUnit] = useState('');
-  const [disposal, setDisposal] = useState('');
+  // Derived state from URL
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || '10', 10);
+  const appliedQuery = searchParams.get('search') || '';
+  const appliedUnit = searchParams.get('unit') || '';
+  const appliedDisposal = searchParams.get('disposal') || '';
 
-  // Applied State for Fetching
-  const [appliedQuery, setAppliedQuery] = useState('');
-  const [appliedUnit, setAppliedUnit] = useState('');
-  const [appliedDisposal, setAppliedDisposal] = useState('');
+  // Input State (initialize from URL so it shows correctly on back)
+  const [query, setQuery] = useState(appliedQuery);
+  const [unit, setUnit] = useState(appliedUnit);
+  const [disposal, setDisposal] = useState(appliedDisposal);
 
   const fetchStats = async () => {
     try {
@@ -84,38 +85,57 @@ function EpettyRegistry() {
   }, [fetchCases]);
 
   const handleSearch = () => {
-    setAppliedQuery(query);
-    setAppliedUnit(unit);
-    setAppliedDisposal(disposal);
-    setPage(1);
+    setSearchParams({
+      page: '1',
+      limit: limit.toString(),
+      search: query,
+      unit: unit,
+      disposal: disposal
+    });
   };
 
   const handleClear = () => {
     setQuery('');
     setUnit('');
     setDisposal('');
-    setAppliedQuery('');
-    setAppliedUnit('');
-    setAppliedDisposal('');
-    setPage(1);
+    setSearchParams({});
+  };
+
+  const setPage = (newPage) => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      p.set('page', typeof newPage === 'function' ? newPage(page).toString() : newPage.toString());
+      return p;
+    });
+  };
+
+  const setLimit = (newLimit) => {
+    setSearchParams(prev => {
+      const p = new URLSearchParams(prev);
+      p.set('limit', newLimit.toString());
+      p.set('page', '1');
+      return p;
+    });
   };
 
   const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="space-y-6 animate-fadeIn pb-10">
-      <PageHeader
-        crumbs={[
-          { label: 'Police', to: '/portal' },
-          { label: 'E-petty Registry' },
-        ]}
-        title="E-petty Dashboard"
-        subtitle="Comprehensive database of electronic petty cases and disposal records."
-      />
-
-      <SecurityBanner>
-        This database contains electronic petty cases (e-petty). Data is synchronized directly from the central E-petty repository.
-      </SecurityBanner>
+      {/* Compact Header & Banner */}
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight font-heading">E-petty Dashboard</h1>
+          <p className="text-sm font-bold text-slate-500 mt-1">Comprehensive database of electronic petty cases and disposal records.</p>
+        </div>
+        
+        <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-start gap-3 shadow-sm max-w-2xl">
+          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-sm font-bold text-amber-700 leading-relaxed">
+            This database contains electronic petty cases (e-petty). Data is synchronized directly from the central repository.
+          </p>
+        </div>
+      </div>
 
       {/* Stats Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -133,7 +153,7 @@ function EpettyRegistry() {
             <Search className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 py-3.5 text-base focus:outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10 transition-all font-semibold text-slate-700 placeholder-slate-400"
-              placeholder="Search offender name, police station or case number..."
+              placeholder="Search offender name, phone number, PS, or case number..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}

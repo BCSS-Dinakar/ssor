@@ -1,6 +1,6 @@
 import { DetailSkeleton } from '../../../components/ui/index';
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Database, MapPin } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import { policeApi } from '../../../api/police.api';
@@ -46,6 +46,7 @@ function DynamicDataGrid({ data }) {
 
 function EpettyDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -124,13 +125,13 @@ function EpettyDetail() {
         crumb={`Administration / E-petty Registry / ${record.case_number}`}
         title="E-petty Dossier"
         actions={
-          <Link
-            to="/portal/epetty-register"
-            className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm active:scale-95"
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-extrabold text-slate-500 hover:text-primary transition-all bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm active:scale-95 cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Registry
-          </Link>
+          </button>
         }
       />
 

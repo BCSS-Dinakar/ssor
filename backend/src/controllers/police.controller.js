@@ -577,7 +577,7 @@ export const getEpettyRegistryList = async (req, res) => {
     let whereClause = Prisma.sql`WHERE 1=1`;
     if (search) {
       const searchParam = `%${search}%`;
-      whereClause = Prisma.sql`${whereClause} AND (case_number ILIKE ${searchParam} OR offender_name ILIKE ${searchParam} OR ps_name ILIKE ${searchParam})`;
+      whereClause = Prisma.sql`${whereClause} AND (case_number ILIKE ${searchParam} OR offender_name ILIKE ${searchParam} OR ps_name ILIKE ${searchParam} OR offender_mobile ILIKE ${searchParam})`;
     }
 
     if (unit) {
