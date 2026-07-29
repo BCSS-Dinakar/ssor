@@ -124,15 +124,15 @@ function EpettyRegistry() {
     <div className="space-y-6 animate-fadeIn pb-10">
       {/* Compact Header & Banner */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-        <div>
+        <div className="shrink-0">
           <h1 className="text-2xl font-black text-slate-800 tracking-tight font-heading">E-petty Dashboard</h1>
           <p className="text-sm font-bold text-slate-500 mt-1">Comprehensive database of electronic petty cases and disposal records.</p>
         </div>
         
-        <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-start gap-3 shadow-sm max-w-2xl">
-          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-sm font-bold text-amber-700 leading-relaxed">
-            This database contains electronic petty cases (e-petty). Data is synchronized directly from the central repository.
+        <div className="bg-amber-50/50 border border-amber-200/60 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
+          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
+          <p className="text-sm font-bold text-amber-700 whitespace-nowrap">
+            Contains electronic petty cases (e-petty) synchronized directly from the central repository.
           </p>
         </div>
       </div>
