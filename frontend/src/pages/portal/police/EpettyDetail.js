@@ -1,7 +1,7 @@
 import { DetailSkeleton } from '../../../components/ui/index';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, User, FileText, Database, MapPin } from 'lucide-react';
+import { ArrowLeft, User, Database, MapPin } from 'lucide-react';
 import PageHeader from '../../../components/portal/PageHeader';
 import { policeApi } from '../../../api/police.api';
 
