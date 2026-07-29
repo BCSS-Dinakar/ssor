@@ -85,5 +85,20 @@ export const policeApi = {
   getEprisonsReleases: async (payload) => {
     const response = await api.post('/eprisons/releases', payload);
     return response.data;
+  },
+
+  getEpettyRegistryList: async (params) => {
+    const response = await api.get('/police/epetty-registry', { params });
+    return response.data;
+  },
+
+  getEpettyRegistryStats: async () => {
+    const response = await api.get('/police/epetty-registry/stats');
+    return response.data;
+  },
+
+  getEpettyRegistryById: async (id) => {
+    const response = await api.get(`/police/epetty-registry/${id}`);
+    return response.data;
   }
 };
