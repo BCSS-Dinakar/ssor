@@ -1,5 +1,4 @@
-import { env } from '../config/env.js';
-import { Prisma } from '@prisma/client';
+
 import prisma from '../config/db.js';
 
 let epettyMvReady = false;
@@ -56,16 +55,6 @@ export const fetchEpettyFromDb = async (filters) => {
   }));
 };
 
-const normalizeApiResponse = (data) => {
-  if (!data) return [];
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data.data)) return data.data;
-  if (Array.isArray(data.results)) return data.results;
-  if (Array.isArray(data.personDetails)) return data.personDetails;
-  if (typeof data === 'object' && Object.keys(data).length > 0 && data.ecaseNo) return [data];
-  return [];
-};
-
 export const standardizeEpettyRecord = (record) => {
   if (!record) return null;
   const rawDate = record.createdDt || record.incidentDate || record.firDate || '';
@@ -99,31 +88,12 @@ export const standardizeEpettyRecord = (record) => {
   };
 };
 
-const describeLookupError = (error) => {
-  const cause = error.cause;
-  const details = [
-    error.message,
-    cause?.code,
-    cause?.address && cause?.port ? `${cause.address}:${cause.port}` : null,
-    cause?.message && cause.message !== error.message ? cause.message : null
-  ].filter(Boolean);
-
-  return [...new Set(details)].join(' | ');
-};
-
 const normalizeEpettyText = (value = '') => (value || '').trim().toUpperCase();
 
 const normalizePhone = (value = '') => {
   let digits = (value || '').replace(/\D/g, '');
   if (digits.length > 10) digits = digits.slice(-10);
   return digits;
-};
-
-const getApiSearchName = (name) => {
-  if (!name) return '';
-  const words = name.trim().split(/\s+/);
-  const coreWords = words.filter(w => w.length > 1);
-  return coreWords.length > 0 ? coreWords.join(' ') : name;
 };
 
 
