@@ -1,5 +1,25 @@
 -- =============================================================================
--- 1. STANDARD VIEW (SUMMARY LIST)
+-- 1. RAW SQL QUERY
+-- =============================================================================
+/*
+SELECT
+    ecase_no AS case_number,
+    unit_name,
+    ps_name,
+    offence_dt AS offence_date,
+    offdr_name AS offender_name,
+    offdr_age AS offender_age,
+    offdr_mobile_no AS offender_mobile,
+    offdr_occupation AS offender_occupation,
+    offdr_address AS offender_address,
+    sections AS act_section,
+    disposal_type
+FROM epetty.e_cases
+ORDER BY offence_dt DESC;
+*/
+
+-- =============================================================================
+-- 2. STANDARD VIEW
 -- =============================================================================
 
 CREATE OR REPLACE VIEW v_e_cases_list AS
@@ -19,7 +39,7 @@ FROM epetty.e_cases
 ORDER BY offence_dt DESC;
 
 -- =============================================================================
--- 2. MATERIALIZED VIEW (SUMMARY LIST)
+-- 3. MATERIALIZED VIEW
 -- =============================================================================
 
 DROP MATERIALIZED VIEW IF EXISTS mv_e_cases_list CASCADE;
