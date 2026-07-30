@@ -37,6 +37,7 @@ Located in the `backend/` directory, the API is built with **Node.js, Express, a
 Powered by **PostgreSQL** (via Prisma) for robust, relational data storage.
 - Features a unified `User` model linked in one-to-one relationships with either a `PoliceProfile` or an `OrganizationProfile`.
 - Tracks a comprehensive, immutable `SystemAuditLog` for every critical action performed, powering the real-time activity feeds in the dashboards.
+- **Foreign Data Wrapper (FDW) Architecture**: SSOR directly mounts remote CCTNS and ePetty databases via FDW schemas (`cctns_etl`, `epetty`). It processes heavy data lookups using **Materialized Views** (`mv_clearance_accused_search`, `mv_e_cases_list`), completely avoiding brittle external HTTP APIs to ensure 100% uptime and sub-second clearance vetting.
 
 ---
 
