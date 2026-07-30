@@ -1,4 +1,60 @@
 import { env } from '../config/env.js';
+import { Prisma } from '@prisma/client';
+import prisma from '../config/db.js';
+
+let epettyMvReady = false;
+async function getEpettyView() {
+  if (epettyMvReady) return 'public.mv_e_cases_list';
+  try {
+    const res = await prisma.$queryRaw`SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_e_cases_list'`;
+    if (res && res.length > 0) {
+      epettyMvReady = true;
+      return 'public.mv_e_cases_list';
+    }
+  } catch (e) {}
+  return 'public.v_e_cases_list';
+}
+
+const fetchEpettyFromDb = async (filters) => {
+  const viewName = await getEpettyView();
+  
+  let whereClauses = [];
+  let params = [];
+  
+  if (filters.offdrName) {
+    whereClauses.push(`offender_name ILIKE $${params.length + 1}`);
+    params.push(`%${filters.offdrName}%`);
+  }
+  if (filters.offdrMobileNo) {
+    whereClauses.push(`offender_mobile LIKE $${params.length + 1}`);
+    params.push(`%${filters.offdrMobileNo}%`);
+  }
+  if (filters.ecaseNo) {
+    whereClauses.push(`case_number ILIKE $${params.length + 1}`);
+    params.push(`%${filters.ecaseNo}%`);
+  }
+  
+  if (whereClauses.length === 0) return [];
+  
+  const whereSql = whereClauses.join(' AND ');
+  const query = `SELECT * FROM ${viewName} WHERE ${whereSql} LIMIT 50`;
+  
+  const results = await prisma.$queryRawUnsafe(query, ...params);
+  
+  return results.map(r => ({
+    ecaseNo: r.case_number,
+    unitName: r.unit_name,
+    psName: r.ps_name,
+    incidentDate: r.offence_date,
+    offenderName: r.offender_name,
+    age: r.offender_age,
+    offdrMobileNo: r.offender_mobile,
+    occupation: r.offender_occupation,
+    address: r.offender_address,
+    sectionName: r.act_section,
+    caseStatus: r.disposal_type
+  }));
+};
 
 const normalizeApiResponse = (data) => {
   if (!data) return [];
@@ -281,14 +337,23 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
     return { matches: [], priorityLabel: null, matchedSource: null };
   }
 
+
+
   const runLookup = async (filters) => {
     try {
-      return {
-        matches: await fetchEpettyFromApi(filters, { throwOnFailure: true }),
-        lookupError: null
-      };
+      if (env.EXTERNAL_API_CALL) {
+        return {
+          matches: await fetchEpettyFromApi(filters, { throwOnFailure: true }),
+          lookupError: null
+        };
+      } else {
+        return {
+          matches: await fetchEpettyFromDb(filters),
+          lookupError: null
+        };
+      }
     } catch (error) {
-      console.warn(`[ePetty] API lookup failed (${env.EPETTY_API_URL}): ${error.message}`);
+      console.warn(`[ePetty] Lookup failed: ${error.message}`);
       let errMsg = error.message;
       const lowerMsg = errMsg.toLowerCase();
       if (lowerMsg.includes('timeout') || lowerMsg.includes('fetch failed') || lowerMsg.includes('und_err') || lowerMsg.includes('econnrefused')) {

@@ -1,5 +1,6 @@
 import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
+import { env } from '../config/env.js';
 
 export const CLEARANCE_ACCUSED_MV = 'public.mv_clearance_accused_search';
 
@@ -161,13 +162,9 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
   WITH accused_latest AS (
     SELECT DISTINCT ON (p.person_id)
       p.person_id AS offender_id,
-      COALESCE(
-        p.full_name,
-        p.raw_full_name,
-        NULLIF(TRIM(CONCAT(COALESCE(p.name, ''), ' ', COALESCE(p.surname, ''))), '')
-      ) AS offender_name,
+      p.full_name AS offender_name,
       p.alias AS offender_alias,
-      p.date_of_birth,
+      NULL::date AS date_of_birth,
       p.age,
       p.relative_name AS father_name,
       p.phone_number,
@@ -181,18 +178,14 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
       c.court_name,
       h.ps_name AS police_station,
       lower(regexp_replace(
-        COALESCE(
-          p.full_name,
-          p.raw_full_name,
-          NULLIF(TRIM(CONCAT(COALESCE(p.name, ''), ' ', COALESCE(p.surname, ''))), '')
-        ),
+        p.full_name,
         '\\s+', ' ', 'g'
       )) AS search_name_norm,
       right(regexp_replace(COALESCE(p.phone_number, p.phone_numbers, ''), '\\D', '', 'g'), 10) AS search_phone_norm
-    FROM public.accused a
-    JOIN public.persons p ON a.person_id = p.person_id
-    JOIN public.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN public.hierarchy h ON c.ps_code = h.ps_code
+    FROM cctns_etl.accused a
+    JOIN cctns_etl.persons p ON a.person_id = p.person_id
+    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
+    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     ORDER BY p.person_id, c.fir_date DESC NULLS LAST
   ),
   fpb_latest AS (
@@ -202,7 +195,7 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
       dob,
       father_husband_name,
       aadhaar_or_other_id_number
-    FROM public.fpb_accused
+    FROM cctns_etl.fpb_accused
     WHERE person_id IS NOT NULL
     ORDER BY person_id, date_fetched DESC NULLS LAST
   )
@@ -397,6 +390,10 @@ export const searchCctnsCandidate = async ({
   aadharNumber = '',
   fatherName = ''
 } = {}) => {
+  if (env.EXTERNAL_API_CALL) {
+    console.warn('[CCTNS] EXTERNAL_API_CALL is true, but CCTNS API is not implemented. Falling back to DB search.');
+  }
+
   const normName = normalizeName(candidateName);
   const normPhone = normalizePhone(candidatePhone);
   const normAadhaar = normalizeAadhaar(aadharNumber);
