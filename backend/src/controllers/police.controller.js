@@ -9,6 +9,19 @@ import { streamDocument, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../s
 import { withVerificationUrls, withVerificationUrlsList, guardDocumentAccess } from '../services/media.service.js';
 import logger from '../utils/logger.js';
 
+const mvReadyCache = {};
+
+async function getActiveView(mvName, vName) {
+  if (mvReadyCache[mvName]) return Prisma.raw(mvName);
+
+  const res = await prisma.$queryRaw`SELECT 1 FROM pg_matviews WHERE matviewname = ${mvName}`;
+  if (res && res.length > 0) {
+    mvReadyCache[mvName] = true;
+    return Prisma.raw(mvName);
+  }
+  return Prisma.raw(vName);
+}
+
 export const getLogs = async (req, res) => {
   try {
     const logs = await prisma.systemAuditLog.findMany({
@@ -266,7 +279,7 @@ export const updateOrganizationStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     if (!['approved', 'rejected', 'pending'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
@@ -330,25 +343,26 @@ export const getDocumentSignedUrl = async (req, res) => {
 
 export const getDashboardStats = async (req, res) => {
   try {
+    const OFFENDERS_LIST_VIEW = await getActiveView('mv_offenders_list', 'v_offenders_list');
     const clearPending = await prisma.candidateVerification.count({
       where: { status: 'pending' }
     });
 
-    const totalResult = await prisma.$queryRaw`SELECT count(*) as total FROM public.mv_offenders_list`;
+    const totalResult = await prisma.$queryRaw`SELECT count(*) as total FROM public.${OFFENDERS_LIST_VIEW}`;
     const totalOffenders = Number(totalResult[0]?.total || 0);
 
-    const trialResult = await prisma.$queryRaw`SELECT count(*) as count FROM public.mv_offenders_list WHERE current_status ILIKE '%Arrest%'`;
+    const trialResult = await prisma.$queryRaw`SELECT count(*) as count FROM public.${OFFENDERS_LIST_VIEW} WHERE current_status ILIKE '%Arrest%'`;
     const underTrialCount = Number(trialResult[0]?.count || 0);
     // Generic assumption for convictions since DB only tracks arrest actions
     const convictedCount = Math.max(0, totalOffenders - underTrialCount);
 
-    const tierResult = await prisma.$queryRaw`SELECT risk_tier, count(*) as count FROM public.mv_offenders_list GROUP BY risk_tier`;
+    const tierResult = await prisma.$queryRaw`SELECT risk_tier, count(*) as count FROM public.${OFFENDERS_LIST_VIEW} GROUP BY risk_tier`;
     const byTier = tierResult.map(t => ({
       tier: (t.risk_tier || 'orange').toLowerCase(),
       count: Number(t.count)
     }));
 
-    const offenceResult = await prisma.$queryRaw`SELECT primary_offence, count(*) as count FROM public.mv_offenders_list WHERE primary_offence IS NOT NULL AND primary_offence != '' AND primary_offence != '—' GROUP BY primary_offence ORDER BY count DESC LIMIT 6`;
+    const offenceResult = await prisma.$queryRaw`SELECT primary_offence, count(*) as count FROM public.${OFFENDERS_LIST_VIEW} WHERE primary_offence IS NOT NULL AND primary_offence != '' AND primary_offence != '—' GROUP BY primary_offence ORDER BY count DESC LIMIT 6`;
     const sectionData = offenceResult.map(o => ({
       name: o.primary_offence,
       value: Number(o.count)
@@ -392,7 +406,7 @@ export const updateTicketStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+
     const policeProfile = await prisma.policeProfile.findUnique({ where: { userId: req.user.id } });
     const assignee = policeProfile ? policeProfile.name : 'Police Officer';
 
@@ -411,7 +425,7 @@ export const addTicketMessage = async (req, res) => {
   try {
     const { id } = req.params;
     const { text } = req.body;
-    
+
     const policeProfile = await prisma.policeProfile.findUnique({ where: { userId: req.user.id } });
     const senderName = policeProfile ? `${policeProfile.rank} ${policeProfile.name}` : 'Police Officer';
 
@@ -438,6 +452,7 @@ export const addTicketMessage = async (req, res) => {
 
 export const getOffendersList = async (req, res) => {
   try {
+    const OFFENDERS_LIST_VIEW = await getActiveView('mv_offenders_list', 'v_offenders_list');
     const { page = 1, limit = 10, search = '', tier = '', status = '', crime = '' } = req.query;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
@@ -455,7 +470,7 @@ export const getOffendersList = async (req, res) => {
         whereClause = Prisma.sql`${whereClause} AND (${Prisma.join(tierConditions, ' OR ')})`;
       }
     }
-    
+
     if (status) {
       const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
       if (statuses.length > 0) {
@@ -473,14 +488,14 @@ export const getOffendersList = async (req, res) => {
     }
 
     const rawData = await prisma.$queryRaw`
-      SELECT * FROM public.mv_offenders_list
+      SELECT * FROM public.${OFFENDERS_LIST_VIEW}
       ${whereClause}
       ORDER BY offender_id ASC
       LIMIT ${limitNum} OFFSET ${offset}
     `;
 
     const countResult = await prisma.$queryRaw`
-      SELECT count(*) as total FROM public.mv_offenders_list
+      SELECT count(*) as total FROM public.${OFFENDERS_LIST_VIEW}
       ${whereClause}
     `;
     const total = Number(countResult[0]?.total || 0);
@@ -497,11 +512,11 @@ export const getOffendersList = async (req, res) => {
       cc: '—', // Not in list view
       status: 'active'
     }));
-    
-    res.status(200).json({ 
-      success: true, 
-      data: offenders, 
-      pagination: { total, page: pageNum, limit: limitNum } 
+
+    res.status(200).json({
+      success: true,
+      data: offenders,
+      pagination: { total, page: pageNum, limit: limitNum }
     });
   } catch (error) {
     logger.error('[getOffendersList error]', error);
@@ -511,10 +526,11 @@ export const getOffendersList = async (req, res) => {
 
 export const getOffenderById = async (req, res) => {
   try {
+    const OFFENDER_DETAILS_VIEW = await getActiveView('mv_offender_details', 'v_offender_details');
     const { id } = req.params;
-    
+
     const rawData = await prisma.$queryRaw`
-      SELECT * FROM public.mv_offender_details
+      SELECT * FROM public.${OFFENDER_DETAILS_VIEW}
       WHERE offender_id = ${id}
       LIMIT 1
     `;
@@ -524,7 +540,7 @@ export const getOffenderById = async (req, res) => {
     }
 
     const row = rawData[0];
-    
+
     const fillObj = (obj, fields) => {
       const result = {};
       fields.forEach(f => {
@@ -542,7 +558,7 @@ export const getOffenderById = async (req, res) => {
     };
 
     const personFields = ['person_id', 'name', 'surname', 'alias', 'full_name', 'relation_type', 'relative_name', 'gender', 'is_died', 'date_of_birth', 'age', 'occupation', 'education_qualification', 'caste', 'sub_caste', 'religion', 'nationality', 'designation', 'place_of_work', 'present_house_no', 'present_street_road_no', 'present_ward_colony', 'present_landmark_milestone', 'present_locality_village', 'present_area_mandal', 'present_district', 'present_state_ut', 'present_country', 'present_residency_type', 'present_pin_code', 'present_jurisdiction_ps', 'phone_number', 'country_code', 'email_id', 'date_created', 'date_modified', 'raw_full_name', 'gender_confidence', 'gender_source', 'phone_numbers'];
-    
+
     const accusedFields = ['accused_id', 'crime_id', 'person_id', 'seq_num', 'is_known', 'is_named', 'is_absconding', 'is_arrested', 'arrest_date', 'status', 'pf_height', 'pf_build', 'pf_color', 'pf_eyes', 'pf_hair', 'pf_beard', 'pf_mustache', 'pf_face', 'pf_mole', 'pf_leucoderma', 'age', 'date_created', 'date_modified'];
 
     const crimeFields = ['crime_id', 'crime_number', 'fir_no', 'fir_date', 'ps_id', 'police_station', 'district_id', 'district', 'acts_sections', 'brief_fact', 'day_of_week', 'fir_reg_time', 'fir_type', 'gd_entry_date', 'gd_entry_num', 'gd_entry_type', 'occurrence_from_date', 'occurrence_prior_to_date', 'occurrence_to_date', 'poo_area_mandal', 'poo_beat_no', 'poo_district', 'poo_house_no', 'poo_jurisdiction_ps', 'poo_landmark_milestone', 'poo_latitude', 'poo_limits', 'poo_longitude', 'poo_pin_code', 'poo_state_ut', 'poo_street_road_no', 'poo_ward_colony', 'additional_json_data'];
@@ -585,6 +601,7 @@ export const getOffenderById = async (req, res) => {
 
 export const getEpettyRegistryList = async (req, res) => {
   try {
+    const E_CASES_DETAILS_VIEW = await getActiveView('mv_e_cases_details', 'v_e_cases_details');
     const { page = 1, limit = 10, search = '', unit = '', disposal = '' } = req.query;
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
@@ -624,14 +641,14 @@ export const getEpettyRegistryList = async (req, res) => {
     }
 
     const rawData = await prisma.$queryRaw`
-      SELECT * FROM public.mv_e_cases_details
+      SELECT * FROM public.${E_CASES_DETAILS_VIEW}
       ${whereClause}
       ORDER BY offence_date DESC NULLS LAST
       LIMIT ${limitNum} OFFSET ${offset}
     `;
 
     const countResult = await prisma.$queryRaw`
-      SELECT count(*) as total FROM public.mv_e_cases_details
+      SELECT count(*) as total FROM public.${E_CASES_DETAILS_VIEW}
       ${whereClause}
     `;
     const total = Number(countResult[0]?.total || 0);
@@ -644,11 +661,11 @@ export const getEpettyRegistryList = async (req, res) => {
       date: row.offence_date || '—',
       disposal: row.disposal_type || 'Pending'
     }));
-    
-    res.status(200).json({ 
-      success: true, 
-      data: mappedData, 
-      pagination: { total, page: pageNum, limit: limitNum } 
+
+    res.status(200).json({
+      success: true,
+      data: mappedData,
+      pagination: { total, page: pageNum, limit: limitNum }
     });
   } catch (error) {
     logger.error('[getEpettyRegistryList error]', error);
@@ -658,10 +675,11 @@ export const getEpettyRegistryList = async (req, res) => {
 
 export const getEpettyRegistryById = async (req, res) => {
   try {
+    const E_CASES_DETAILS_VIEW = await getActiveView('mv_e_cases_details', 'v_e_cases_details');
     const { id } = req.params;
-    
+
     const rawData = await prisma.$queryRaw`
-      SELECT * FROM public.mv_e_cases_details
+      SELECT * FROM public.${E_CASES_DETAILS_VIEW}
       WHERE case_number = ${id}
       LIMIT 1
     `;
@@ -679,16 +697,17 @@ export const getEpettyRegistryById = async (req, res) => {
 
 export const getEpettyRegistryStats = async (req, res) => {
   try {
+    const E_CASES_DETAILS_VIEW = await getActiveView('mv_e_cases_details', 'v_e_cases_details');
     const rawData = await prisma.$queryRaw`
       SELECT 
         COUNT(*) as total, 
         SUM(CASE WHEN disposal_type = 'ONLY FINE' OR disposal_type = 'IMPRISON AND FINE' THEN 1 ELSE 0 END) as total_fines,
         SUM(CASE WHEN disposal_type IS NULL OR disposal_type = '' THEN 1 ELSE 0 END) as pending_cases,
         SUM(CASE WHEN disposal_type = 'ONLY IMPRISON' OR disposal_type = 'IMPRISON AND FINE' THEN 1 ELSE 0 END) as imprisonment
-      FROM public.mv_e_cases_details;
+      FROM public.${E_CASES_DETAILS_VIEW};
     `;
     const stats = rawData[0] || { total: 0, total_fines: 0, pending_cases: 0, imprisonment: 0 };
-    
+
     res.status(200).json({
       success: true,
       data: {
@@ -706,6 +725,7 @@ export const getEpettyRegistryStats = async (req, res) => {
 
 export const getOffendersStats = async (req, res) => {
   try {
+    const OFFENDERS_LIST_VIEW = await getActiveView('mv_offenders_list', 'v_offenders_list');
     const rawData = await prisma.$queryRaw`
       SELECT 
         COUNT(*) as total, 
@@ -713,10 +733,10 @@ export const getOffendersStats = async (req, res) => {
         SUM(CASE WHEN risk_tier = 'BLUE' THEN 1 ELSE 0 END) as blue_tier,
         SUM(CASE WHEN risk_tier = 'BLACK' THEN 1 ELSE 0 END) as black_tier,
         SUM(CASE WHEN current_status ILIKE '%absconding%' THEN 1 ELSE 0 END) as absconding
-      FROM public.mv_offenders_list;
+      FROM public.${OFFENDERS_LIST_VIEW};
     `;
     const stats = rawData[0] || { total: 0, red_tier: 0, black_tier: 0, absconding: 0 };
-    
+
     res.status(200).json({
       success: true,
       data: {
