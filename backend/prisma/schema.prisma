@@ -154,3 +154,14 @@ model Media {
   @@index([category])
   @@index([store])
 }
+
+model ssor_kb {
+  id            Int     @id @default(autoincrement())
+  act_name      String
+  section_code  String
+  tier          String
+  severity_rank Int
+  description   String?
+
+  @@unique([act_name, section_code])
+}

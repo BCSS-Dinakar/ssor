@@ -16,13 +16,13 @@ WITH LatestOffences AS (
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
         risk.tier AS risk_tier
-    FROM public.accused a
-    JOIN public.persons p ON a.person_id = p.person_id
-    JOIN public.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN public.hierarchy h ON c.ps_code = h.ps_code
+    FROM cctns_etl.accused a
+    JOIN cctns_etl.persons p ON a.person_id = p.person_id
+    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
+    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM public.ssor_kb kb
+        FROM ssor_kb kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1
@@ -40,7 +40,7 @@ ORDER BY offence_date DESC;
 -- 2. STANDARD VIEW
 -- =============================================================================
 
-CREATE OR REPLACE VIEW public.v_offenders_list AS
+CREATE OR REPLACE VIEW v_offenders_list AS
 WITH LatestOffences AS (
     SELECT DISTINCT ON (p.person_id)
         p.person_id AS offender_id,
@@ -51,13 +51,13 @@ WITH LatestOffences AS (
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
         risk.tier AS risk_tier
-    FROM public.accused a
-    JOIN public.persons p ON a.person_id = p.person_id
-    JOIN public.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN public.hierarchy h ON c.ps_code = h.ps_code
+    FROM cctns_etl.accused a
+    JOIN cctns_etl.persons p ON a.person_id = p.person_id
+    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
+    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM public.ssor_kb kb
+        FROM ssor_kb kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1
@@ -72,9 +72,9 @@ ORDER BY offence_date DESC;
 -- 3. MATERIALIZED VIEW
 -- =============================================================================
 
-DROP MATERIALIZED VIEW IF EXISTS public.mv_offenders_list;
+DROP MATERIALIZED VIEW IF EXISTS mv_offenders_list CASCADE;
 
-CREATE MATERIALIZED VIEW public.mv_offenders_list AS
+CREATE MATERIALIZED VIEW mv_offenders_list AS
 WITH LatestOffences AS (
     SELECT DISTINCT ON (p.person_id)
         p.person_id AS offender_id,
@@ -85,13 +85,13 @@ WITH LatestOffences AS (
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
         risk.tier AS risk_tier
-    FROM public.accused a
-    JOIN public.persons p ON a.person_id = p.person_id
-    JOIN public.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN public.hierarchy h ON c.ps_code = h.ps_code
+    FROM cctns_etl.accused a
+    JOIN cctns_etl.persons p ON a.person_id = p.person_id
+    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
+    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM public.ssor_kb kb
+        FROM ssor_kb kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1
@@ -102,4 +102,4 @@ SELECT * FROM LatestOffences
 ORDER BY offence_date DESC;
 
 -- Now that we guaranteed 1 row per offender, we CAN use a UNIQUE INDEX!
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_offenders_list_id ON public.mv_offenders_list (offender_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_offenders_list_id ON mv_offenders_list (offender_id);
