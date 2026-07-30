@@ -1,15 +1,8 @@
 -- =============================================================================
--- 1. RAW SQL QUERY
--- =============================================================================
-/*
-SELECT * FROM public.e_cases ORDER BY offence_dt DESC;
-*/
-
--- =============================================================================
--- 2. STANDARD VIEW
+-- 1. STANDARD VIEW (FULL DETAILS)
 -- =============================================================================
 
-CREATE OR REPLACE VIEW public.v_e_cases_details AS
+CREATE OR REPLACE VIEW v_e_cases_details AS
 SELECT
     ecase_no AS case_number,
     unit_name,
@@ -35,17 +28,17 @@ SELECT
     disposal_dt AS disposal_date,
     disposal_type,
     disposal_remarks
-FROM public.e_cases
+FROM epetty.e_cases
 ORDER BY offence_dt DESC;
 
 
 -- =============================================================================
--- 3. MATERIALIZED VIEW
+-- 2. MATERIALIZED VIEW (FULL DETAILS)
 -- =============================================================================
 
-DROP MATERIALIZED VIEW IF EXISTS public.mv_e_cases_details;
+DROP MATERIALIZED VIEW IF EXISTS mv_e_cases_details CASCADE;
 
-CREATE MATERIALIZED VIEW public.mv_e_cases_details AS
+CREATE MATERIALIZED VIEW mv_e_cases_details AS
 SELECT
     ecase_no AS case_number,
     unit_name,
@@ -71,8 +64,8 @@ SELECT
     disposal_dt AS disposal_date,
     disposal_type,
     disposal_remarks
-FROM public.e_cases
+FROM epetty.e_cases
 ORDER BY offence_dt DESC;
 
 -- Create unique index for concurrent refreshes
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_e_cases_details_id ON public.mv_e_cases_details (case_number);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_e_cases_details_id ON mv_e_cases_details (case_number);

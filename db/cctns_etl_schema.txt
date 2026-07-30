@@ -1,0 +1,399 @@
+         table_name         |           column_name           |        data_type         
+----------------------------+---------------------------------+--------------------------
+ accused                    | accused_id                      | text
+ accused                    | crime_id                        | text
+ accused                    | person_id                       | text
+ accused                    | accused_code                    | text
+ accused                    | accused_status                  | text
+ accused                    | seq_num                         | text
+ accused                    | accused_type                    | text
+ accused                    | is_ccl                          | boolean
+ accused                    | physical_features               | jsonb
+ accused                    | ingested_at                     | timestamp with time zone
+ accused                    | updated_at                      | timestamp with time zone
+ arrests                    | id                              | bigint
+ arrests                    | crime_id                        | text
+ arrests                    | person_id                       | text
+ arrests                    | accused_code                    | text
+ arrests                    | accused_seq_no                  | text
+ arrests                    | accused_type                    | text
+ arrests                    | arrested_date                   | text
+ arrests                    | date_of_issue_41a               | text
+ arrests                    | is_41a_crpc                     | boolean
+ arrests                    | is_41a_explain_submitted        | boolean
+ arrests                    | is_absconding                   | boolean
+ arrests                    | is_apprehended                  | boolean
+ arrests                    | is_arrested                     | boolean
+ arrests                    | is_ccl                          | boolean
+ arrests                    | is_died                         | boolean
+ arrests                    | payload                         | jsonb
+ arrests                    | ingested_at                     | timestamp with time zone
+ arrests                    | updated_at                      | timestamp with time zone
+ case_properties            | case_property_id                | text
+ case_properties            | crime_id                        | text
+ case_properties            | mo_id                           | text
+ case_properties            | fsl_request_id                  | text
+ case_properties            | status                          | text
+ case_properties            | cpr_no                          | text
+ case_properties            | case_type                       | text
+ case_properties            | court_name                      | text
+ case_properties            | court_order_number              | text
+ case_properties            | court_order_date                | text
+ case_properties            | expert_type                     | text
+ case_properties            | strength_of_evidence            | text
+ case_properties            | assign_custody                  | text
+ case_properties            | date_custody                    | text
+ case_properties            | date_disposal                   | text
+ case_properties            | details_disposal                | text
+ case_properties            | fsl_no                          | text
+ case_properties            | fsl_date                        | text
+ case_properties            | fsl_court_name                  | text
+ case_properties            | media                           | jsonb
+ case_properties            | payload                         | jsonb
+ case_properties            | date_created_api                | timestamp with time zone
+ case_properties            | date_modified_api               | timestamp with time zone
+ case_properties            | ingested_at                     | timestamp with time zone
+ case_properties            | updated_at                      | timestamp with time zone
+ charge_sheet_updates       | update_charge_sheet_id          | text
+ charge_sheet_updates       | crime_id                        | text
+ charge_sheet_updates       | charge_sheet_no                 | text
+ charge_sheet_updates       | charge_sheet_date               | text
+ charge_sheet_updates       | charge_sheet_status             | text
+ charge_sheet_updates       | taken_on_file                   | jsonb
+ charge_sheet_updates       | date_created_api                | timestamp with time zone
+ charge_sheet_updates       | ingested_at                     | timestamp with time zone
+ charge_sheet_updates       | updated_at                      | timestamp with time zone
+ chargesheet_accused        | id                              | bigint
+ chargesheet_accused        | charge_sheet_id                 | text
+ chargesheet_accused        | accused_payload                 | jsonb
+ chargesheet_acts_sections  | id                              | bigint
+ chargesheet_acts_sections  | charge_sheet_id                 | text
+ chargesheet_acts_sections  | act_section_payload             | jsonb
+ chargesheets               | charge_sheet_id                 | text
+ chargesheets               | crime_id                        | text
+ chargesheets               | charge_sheet_no                 | text
+ chargesheets               | charge_sheet_no_for_icjs        | text
+ chargesheets               | charge_sheet_date               | text
+ chargesheets               | charge_sheet_type               | text
+ chargesheets               | court_name                      | text
+ chargesheets               | is_ccl                          | boolean
+ chargesheets               | is_esigned                      | boolean
+ chargesheets               | upload_charge_sheet             | jsonb
+ chargesheets               | date_created_api                | timestamp with time zone
+ chargesheets               | date_modified_api               | timestamp with time zone
+ chargesheets               | ingested_at                     | timestamp with time zone
+ chargesheets               | updated_at                      | timestamp with time zone
+ crimes                     | crime_id                        | text
+ crimes                     | fir_num                         | text
+ crimes                     | fir_reg_num                     | text
+ crimes                     | fir_date                        | text
+ crimes                     | fir_type                        | text
+ crimes                     | fir_copy_file_id                | uuid
+ crimes                     | case_status                     | text
+ crimes                     | crime_type                      | text
+ crimes                     | acts_sections                   | text
+ crimes                     | brief_facts                     | text
+ crimes                     | court_name                      | text
+ crimes                     | io_name                         | text
+ crimes                     | io_rank                         | text
+ crimes                     | io_mobile                       | text
+ crimes                     | ps_code                         | text
+ crimes                     | major_head                      | text
+ crimes                     | minor_head                      | text
+ crimes                     | complainant_id                  | text
+ crimes                     | gd                              | jsonb
+ crimes                     | occurrence_date                 | jsonb
+ crimes                     | place_of_offence                | jsonb
+ crimes                     | date_created_api                | timestamp with time zone
+ crimes                     | date_modified_api               | timestamp with time zone
+ crimes                     | ingested_at                     | timestamp with time zone
+ crimes                     | updated_at                      | timestamp with time zone
+ disposals                  | crime_id                        | text
+ disposals                  | case_status                     | text
+ disposals                  | disposal                        | text
+ disposals                  | disposal_type                   | text
+ disposals                  | disposed_date                   | text
+ disposals                  | ingested_at                     | timestamp with time zone
+ disposals                  | updated_at                      | timestamp with time zone
+ etl_checkpoints            | checkpoint_key                  | text
+ etl_checkpoints            | endpoint_key                    | text
+ etl_checkpoints            | last_success_date               | date
+ etl_checkpoints            | last_success_at                 | timestamp with time zone
+ etl_checkpoints            | last_window_from                | date
+ etl_checkpoints            | last_window_to                  | date
+ etl_checkpoints            | cursor_payload                  | jsonb
+ etl_checkpoints            | updated_at                      | timestamp with time zone
+ etl_endpoint_runs          | run_id                          | uuid
+ etl_endpoint_runs          | job_id                          | uuid
+ etl_endpoint_runs          | endpoint_key                    | text
+ etl_endpoint_runs          | window_from                     | date
+ etl_endpoint_runs          | window_to                       | date
+ etl_endpoint_runs          | status                          | text
+ etl_endpoint_runs          | attempt                         | integer
+ etl_endpoint_runs          | started_at                      | timestamp with time zone
+ etl_endpoint_runs          | finished_at                     | timestamp with time zone
+ etl_endpoint_runs          | http_status                     | integer
+ etl_endpoint_runs          | records_extracted               | integer
+ etl_endpoint_runs          | records_upserted                | integer
+ etl_endpoint_runs          | duration_ms                     | integer
+ etl_endpoint_runs          | request_meta                    | jsonb
+ etl_endpoint_runs          | error_message                   | text
+ etl_errors                 | error_id                        | uuid
+ etl_errors                 | job_id                          | uuid
+ etl_errors                 | run_id                          | uuid
+ etl_errors                 | endpoint_key                    | text
+ etl_errors                 | attempt                         | integer
+ etl_errors                 | error_class                     | text
+ etl_errors                 | error_message                   | text
+ etl_errors                 | stack_trace                     | text
+ etl_errors                 | context                         | jsonb
+ etl_errors                 | created_at                      | timestamp with time zone
+ etl_errors                 | resolved_at                     | timestamp with time zone
+ etl_jobs                   | job_id                          | uuid
+ etl_jobs                   | mode                            | text
+ etl_jobs                   | status                          | text
+ etl_jobs                   | started_at                      | timestamp with time zone
+ etl_jobs                   | finished_at                     | timestamp with time zone
+ etl_jobs                   | initial_start_date              | date
+ etl_jobs                   | window_days                     | integer
+ etl_jobs                   | windows_planned                 | integer
+ etl_jobs                   | windows_completed               | integer
+ etl_jobs                   | records_extracted               | bigint
+ etl_jobs                   | records_loaded                  | bigint
+ etl_jobs                   | error_summary                   | text
+ etl_jobs                   | config_snapshot                 | jsonb
+ etl_raw_payloads           | raw_id                          | uuid
+ etl_raw_payloads           | job_id                          | uuid
+ etl_raw_payloads           | run_id                          | uuid
+ etl_raw_payloads           | endpoint_key                    | text
+ etl_raw_payloads           | window_from                     | date
+ etl_raw_payloads           | window_to                       | date
+ etl_raw_payloads           | request_url                     | text
+ etl_raw_payloads           | request_params                  | jsonb
+ etl_raw_payloads           | http_status                     | integer
+ etl_raw_payloads           | payload                         | jsonb
+ etl_raw_payloads           | payload_bytes                   | integer
+ etl_raw_payloads           | content_type                    | text
+ etl_raw_payloads           | created_at                      | timestamp with time zone
+ etl_schema_migrations      | filename                        | text
+ etl_schema_migrations      | applied_at                      | timestamp with time zone
+ etl_sync_state             | id                              | smallint
+ etl_sync_state             | mode_hint                       | text
+ etl_sync_state             | earliest_data_date              | date
+ etl_sync_state             | last_successful_sync_date       | date
+ etl_sync_state             | last_successful_sync_at         | timestamp with time zone
+ etl_sync_state             | backfill_complete               | boolean
+ etl_sync_state             | updated_at                      | timestamp with time zone
+ file_registry              | file_id                         | uuid
+ file_registry              | source_endpoint                 | text
+ file_registry              | parent_type                     | text
+ file_registry              | parent_id                       | text
+ file_registry              | source_field                    | text
+ file_registry              | mime_hint                       | text
+ file_registry              | download_status                 | text
+ file_registry              | local_path                      | text
+ file_registry              | downloaded_at                   | timestamp with time zone
+ file_registry              | download_error                  | text
+ file_registry              | download_attempts               | integer
+ file_registry              | ingested_at                     | timestamp with time zone
+ file_registry              | updated_at                      | timestamp with time zone
+ fpb_accused                | id                              | bigint
+ fpb_accused                | crime_id                        | text
+ fpb_accused                | person_id                       | text
+ fpb_accused                | fir_reg_num                     | text
+ fpb_accused                | ps_code                         | text
+ fpb_accused                | fir_num_query                   | text
+ fpb_accused                | full_name                       | text
+ fpb_accused                | surname                         | text
+ fpb_accused                | alias                           | text
+ fpb_accused                | age                             | text
+ fpb_accused                | dob                             | text
+ fpb_accused                | sex                             | text
+ fpb_accused                | phone_number                    | text
+ fpb_accused                | date_of_arrest                  | text
+ fpb_accused                | date_fingerprinted              | text
+ fpb_accused                | fp_unit                         | text
+ fpb_accused                | slip_type                       | text
+ fpb_accused                | aadhaar_or_other_id             | jsonb
+ fpb_accused                | arrest_details                  | jsonb
+ fpb_accused                | permanent_address               | jsonb
+ fpb_accused                | present_address                 | jsonb
+ fpb_accused                | physical_features               | jsonb
+ fpb_accused                | payload                         | jsonb
+ fpb_accused                | ingested_at                     | timestamp with time zone
+ fpb_accused                | updated_at                      | timestamp with time zone
+ fpb_additional_crimes      | id                              | bigint
+ fpb_additional_crimes      | fpb_accused_id                  | bigint
+ fpb_additional_crimes      | crime_no                        | text
+ fpb_additional_crimes      | district                        | text
+ fpb_additional_crimes      | police_station                  | text
+ fpb_additional_crimes      | section_of_law                  | text
+ fpb_additional_crimes      | state                           | text
+ fpb_additional_crimes      | year                            | text
+ fpb_additional_crimes      | payload                         | jsonb
+ hierarchy                  | ps_code                         | text
+ hierarchy                  | ps_name                         | text
+ hierarchy                  | circle_code                     | text
+ hierarchy                  | circle_name                     | text
+ hierarchy                  | sdpo_code                       | text
+ hierarchy                  | sdpo_name                       | text
+ hierarchy                  | dist_code                       | text
+ hierarchy                  | dist_name                       | text
+ hierarchy                  | range_code                      | text
+ hierarchy                  | range_name                      | text
+ hierarchy                  | sub_zone_code                   | text
+ hierarchy                  | sub_zone_name                   | text
+ hierarchy                  | zone_code                       | text
+ hierarchy                  | zone_name                       | text
+ hierarchy                  | adg_code                        | text
+ hierarchy                  | adg_name                        | text
+ hierarchy                  | ingested_at                     | timestamp with time zone
+ hierarchy                  | updated_at                      | timestamp with time zone
+ interrogation_reports      | interrogation_report_id         | text
+ interrogation_reports      | crime_id                        | text
+ interrogation_reports      | person_id                       | text
+ interrogation_reports      | physical_features               | jsonb
+ interrogation_reports      | commission_of_offence           | jsonb
+ interrogation_reports      | present_whereabouts             | jsonb
+ interrogation_reports      | share_of_amount_spent           | jsonb
+ interrogation_reports      | socio_economic_profile          | jsonb
+ interrogation_reports      | other_indulgance_before_offence | text
+ interrogation_reports      | other_regular_habits            | text
+ interrogation_reports      | time_since_modus_operandi       | text
+ interrogation_reports      | date_created_api                | timestamp with time zone
+ interrogation_reports      | date_modified_api               | timestamp with time zone
+ interrogation_reports      | ingested_at                     | timestamp with time zone
+ interrogation_reports      | updated_at                      | timestamp with time zone
+ ir_child_rows              | id                              | bigint
+ ir_child_rows              | interrogation_report_id         | text
+ ir_child_rows              | section_name                    | text
+ ir_child_rows              | row_index                       | integer
+ ir_child_rows              | related_person_id               | text
+ ir_child_rows              | payload                         | jsonb
+ mo_seizure_media           | id                              | bigint
+ mo_seizure_media           | mo_seizure_id                   | text
+ mo_seizure_media           | file_id                         | uuid
+ mo_seizure_media           | media_category                  | text
+ mo_seizure_media           | media_name                      | text
+ mo_seizure_media           | media_type                      | text
+ mo_seizure_media           | media_url                       | text
+ mo_seizures                | mo_seizure_id                   | text
+ mo_seizures                | crime_id                        | text
+ mo_seizures                | mo_id                           | text
+ mo_seizures                | description                     | text
+ mo_seizures                | mo_type                         | text
+ mo_seizures                | sub_type                        | text
+ mo_seizures                | seq_no                          | text
+ mo_seizures                | seized_date                     | text
+ mo_seizures                | seized_by                       | text
+ mo_seizures                | seized_from                     | text
+ mo_seizures                | strength_of_evidence            | text
+ mo_seizures                | place_of_seizure                | jsonb
+ mo_seizures                | date_created_api                | timestamp with time zone
+ mo_seizures                | date_modified_api               | timestamp with time zone
+ mo_seizures                | payload                         | jsonb
+ mo_seizures                | ingested_at                     | timestamp with time zone
+ mo_seizures                | updated_at                      | timestamp with time zone
+ pending_fk_queue           | id                              | bigint
+ pending_fk_queue           | entity_type                     | text
+ pending_fk_queue           | entity_id                       | text
+ pending_fk_queue           | missing_ref_type                | text
+ pending_fk_queue           | missing_ref_id                  | text
+ pending_fk_queue           | payload                         | jsonb
+ pending_fk_queue           | created_at                      | timestamp with time zone
+ pending_fk_queue           | resolved_at                     | timestamp with time zone
+ person_identity_details    | id                              | bigint
+ person_identity_details    | person_id                       | text
+ person_identity_details    | identity_type                   | text
+ person_identity_details    | identity_number                 | text
+ person_identity_details    | file_id                         | uuid
+ person_media               | id                              | bigint
+ person_media               | person_id                       | text
+ person_media               | file_id                         | uuid
+ person_media               | media_ref                       | text
+ persons                    | person_id                       | text
+ persons                    | full_name                       | text
+ persons                    | surname                         | text
+ persons                    | alias                           | text
+ persons                    | gender                          | text
+ persons                    | age                             | text
+ persons                    | dob                             | text
+ persons                    | caste                           | text
+ persons                    | religion                        | text
+ persons                    | nationality                     | text
+ persons                    | occupation                      | text
+ persons                    | father_husband_name             | text
+ persons                    | place_of_birth                  | text
+ persons                    | personal_details                | jsonb
+ persons                    | contact_details                 | jsonb
+ persons                    | present_address                 | jsonb
+ persons                    | date_created_api                | timestamp with time zone
+ persons                    | date_modified_api               | timestamp with time zone
+ persons                    | is_stub                         | boolean
+ persons                    | ingested_at                     | timestamp with time zone
+ persons                    | updated_at                      | timestamp with time zone
+ properties                 | property_id                     | text
+ properties                 | crime_id                        | text
+ properties                 | case_property_id                | text
+ properties                 | category                        | text
+ properties                 | nature                          | text
+ properties                 | property_status                 | text
+ properties                 | belongs                         | text
+ properties                 | particular_of_property          | text
+ properties                 | place_of_recovery               | text
+ properties                 | recovered_from                  | text
+ properties                 | estimate_value                  | text
+ properties                 | recovered_value                 | text
+ properties                 | date_of_seizure                 | text
+ properties                 | additional_details              | jsonb
+ properties                 | media                           | jsonb
+ properties                 | date_created_api                | timestamp with time zone
+ properties                 | date_modified_api               | timestamp with time zone
+ properties                 | ingested_at                     | timestamp with time zone
+ properties                 | updated_at                      | timestamp with time zone
+ report_arrest_particulars  | id                              | bigint
+ report_arrest_particulars  | crime_id                        | text
+ report_arrest_particulars  | fir_num                         | text
+ report_arrest_particulars  | accused_name                    | text
+ report_arrest_particulars  | date_of_arrest                  | text
+ report_arrest_particulars  | district                        | text
+ report_arrest_particulars  | ps_name                         | text
+ report_arrest_particulars  | district_codes                  | text
+ report_arrest_particulars  | window_from                     | date
+ report_arrest_particulars  | window_to                       | date
+ report_arrest_particulars  | payload                         | jsonb
+ report_arrest_particulars  | ingested_at                     | timestamp with time zone
+ report_missing_udb_persons | id                              | bigint
+ report_missing_udb_persons | crime_id                        | text
+ report_missing_udb_persons | fir_num                         | text
+ report_missing_udb_persons | person_type                     | text
+ report_missing_udb_persons | person_name                     | text
+ report_missing_udb_persons | person_age                      | text
+ report_missing_udb_persons | gender                          | text
+ report_missing_udb_persons | district                        | text
+ report_missing_udb_persons | ps_name                         | text
+ report_missing_udb_persons | district_codes                  | text
+ report_missing_udb_persons | window_from                     | date
+ report_missing_udb_persons | window_to                       | date
+ report_missing_udb_persons | payload                         | jsonb
+ report_missing_udb_persons | ingested_at                     | timestamp with time zone
+ stolen_automobiles         | stolen_property_id              | text
+ stolen_automobiles         | crime_id                        | text
+ stolen_automobiles         | seq_no                          | text
+ stolen_automobiles         | auto_seq_no                     | text
+ stolen_automobiles         | auto_type                       | text
+ stolen_automobiles         | registration_no                 | text
+ stolen_automobiles         | chassis_no                      | text
+ stolen_automobiles         | engine_no                       | text
+ stolen_automobiles         | make                            | text
+ stolen_automobiles         | model                           | text
+ stolen_automobiles         | color                           | text
+ stolen_automobiles         | estimate_value                  | text
+ stolen_automobiles         | district                        | text
+ stolen_automobiles         | payload                         | jsonb
+ stolen_automobiles         | date_created_api                | timestamp with time zone
+ stolen_automobiles         | date_modified_api               | timestamp with time zone
+ stolen_automobiles         | ingested_at                     | timestamp with time zone
+ stolen_automobiles         | updated_at                      | timestamp with time zone
+(395 rows)
+
