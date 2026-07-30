@@ -1,4 +1,4 @@
-import { fetchEpettyFromApi, searchEpettyCandidate } from '../services/epetty.service.js';
+import { fetchEpettyFromDb, searchEpettyCandidate } from '../services/epetty.service.js';
 
 export const searchEpettyCases = async (req, res) => {
   try {
@@ -41,7 +41,7 @@ export const searchEpettyCases = async (req, res) => {
       return res.status(200).json({ success: true, ...result });
     }
 
-    const matches = await fetchEpettyFromApi(customFilters);
+    const matches = await fetchEpettyFromDb(customFilters);
     return res.status(200).json({
       success: true,
       matches,
@@ -57,7 +57,7 @@ export const searchEpettyCases = async (req, res) => {
 export const getEpettyCaseByNumber = async (req, res) => {
   try {
     const { caseNumber } = req.params;
-    const matches = await fetchEpettyFromApi({ ecaseNo: caseNumber });
+    const matches = await fetchEpettyFromDb({ ecaseNo: caseNumber });
 
     if (matches.length === 0) {
       return res.status(404).json({ success: false, message: 'ePetty case not found.' });
