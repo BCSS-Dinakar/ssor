@@ -4,6 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from '../config/env.js';
 import { initAppSchema } from './appSchema.js';
+import prisma from '../config/db.js';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,39 +128,89 @@ const ensureFdwAndViews = async () => {
       await client.query(sql);
     }
 
-    // Release the single client before running parallel builds
-    client.release();
-
-    // 3. Ensure materialized views exist (IN PARALLEL)
-    const views = [
-      { name: 'mv_offenders_list', file: 'offenders_list_views.sql' },
-      { name: 'mv_offender_details', file: 'offender_details_views.sql' },
-      { name: 'mv_e_cases_list', file: 'e_cases_list_views.sql' },
-      { name: 'mv_e_cases_details', file: 'e_cases_details_views.sql' }
+    // 3. Ensure STANDARD views exist synchronously FIRST
+    const standardViews = [
+      { v_name: 'v_offenders_list', file: 'offenders_list_views.sql' },
+      { v_name: 'v_offender_details', file: 'offender_details_views.sql' },
+      { v_name: 'v_e_cases_list', file: 'e_cases_list_views.sql' },
+      { v_name: 'v_e_cases_details', file: 'e_cases_details_views.sql' }
     ];
 
-    console.log('⚙️  Checking for missing materialized views...');
-    const buildPromises = views.map(async (v) => {
-      const buildClient = await pool.connect();
-      try {
-        const res = await buildClient.query(`SELECT 1 FROM pg_matviews WHERE matviewname = $1`, [v.name]);
-        if (res.rowCount === 0) {
-          console.log(`🔨 [PARALLEL] Building missing view: ${v.name}... (This may take a few minutes)`);
-          const sqlPath = path.join(__dirname, '../../../db/', v.file);
-          if (fs.existsSync(sqlPath)) {
-            const sql = fs.readFileSync(sqlPath, 'utf-8');
-            await buildClient.query(sql);
-            console.log(`✅ Successfully built ${v.name}`);
-          } else {
-            console.warn(`⚠️ Warning: SQL file not found for ${v.name} at ${sqlPath}`);
-          }
-        }
-      } finally {
-        buildClient.release();
-      }
-    });
+    const materializedViews = [
+      { mv_name: 'mv_offenders_list', file: 'offenders_list_views.sql' },
+      { mv_name: 'mv_offender_details', file: 'offender_details_views.sql' },
+      { mv_name: 'mv_e_cases_list', file: 'e_cases_list_views.sql' },
+      { mv_name: 'mv_e_cases_details', file: 'e_cases_details_views.sql' },
+      { mv_name: 'mv_clearance_accused_search', file: 'clearance_accused_search_view.sql' }
+    ];
 
-    await Promise.all(buildPromises);
+    console.log('⚙️  Creating standard views synchronously...');
+    for (const v of standardViews) {
+      const sqlPath = path.join(__dirname, '../../../db/', v.file);
+      if (fs.existsSync(sqlPath)) {
+        const sql = fs.readFileSync(sqlPath, 'utf-8');
+        const parts = sql.split(/-- 3\. MATERIALIZED VIEW.*/i);
+        if (parts.length > 0 && parts[0].trim().length > 0) {
+          await client.query(parts[0]);
+          console.log(`✅ Ensured standard view: ${v.v_name}`);
+        }
+      } else {
+        console.warn(`⚠️ Warning: SQL file not found for ${v.v_name} at ${sqlPath}`);
+      }
+    }
+
+    // Release the single client before running background builds
+    client.release();
+
+    // 4. Ensure materialized views exist (IN THE BACKGROUND)
+    console.log('⚙️  Checking for missing materialized views in the background...');
+
+    // Background task to build missing views
+    const buildMissingViews = async () => {
+      const buildPool = new Pool({
+        user,
+        password: password || undefined,
+        host,
+        port,
+        database,
+        max: 10
+      });
+
+      try {
+        const buildPromises = materializedViews.map(async (v) => {
+          const buildClient = await buildPool.connect();
+          try {
+            const res = await buildClient.query(`SELECT 1 FROM pg_matviews WHERE matviewname = $1`, [v.mv_name]);
+            if (res.rowCount === 0) {
+              console.log(`🔨 [BACKGROUND] Building missing view: ${v.mv_name}... (This may take a few minutes)`);
+              const sqlPath = path.join(__dirname, '../../../db/', v.file);
+              if (fs.existsSync(sqlPath)) {
+                const sql = fs.readFileSync(sqlPath, 'utf-8');
+                const parts = sql.split(/-- 3\. MATERIALIZED VIEW.*/i);
+                // Execute ONLY the materialized view portion in the background
+                if (parts.length > 1 && parts[1].trim().length > 0) {
+                  await buildClient.query(parts[1]);
+                  console.log(`✅ Successfully built ${v.mv_name}`);
+                }
+              }
+            }
+          } catch (err) {
+            console.error(`❌ Error building view ${v.mv_name}:`, err);
+          } finally {
+            buildClient.release();
+          }
+        });
+
+        await Promise.all(buildPromises);
+      } catch (err) {
+        console.error('❌ Error during background views setup:', err);
+      } finally {
+        await buildPool.end();
+      }
+    };
+
+    // Fire and forget
+    buildMissingViews().catch(err => console.error('Background view build failed:', err));
 
   } catch (error) {
     console.error('❌ Error during FDW and Views setup:', error);
@@ -183,4 +235,84 @@ export const autoSetup = async () => {
 
   console.log('⚙️  Ensuring Data Views & Schemas exist...');
   await ensureFdwAndViews();
+
+  await ensureDefaultUsers();
 };
+
+/**
+ * Ensures default users exist in the database for ease of testing.
+ */
+async function ensureDefaultUsers() {
+  try {
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      console.log('⚙️  User table is empty. Seeding default test credentials...');
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash('ssor@123', salt);
+
+      await prisma.user.create({
+        data: {
+          loginId: 'police@ssor',
+          passwordHash,
+          role: 'police',
+          status: 'approved',
+          policeProfile: {
+            create: {
+              name: 'BCSS Test Officer',
+              badgeId: 'TEST-ISP-0001',
+              rank: 'Inspector of Police (Test)',
+              empId: 'TEST-POL-0001',
+              department: 'Testing Department',
+              wing: 'QA & Development',
+              jurisdiction: 'Test Commissionerate',
+              station: 'Test Police Station',
+              district: 'Test Commissionerate',
+              state: 'Telangana',
+              country: 'India',
+              joiningDate: '2025-01-01',
+              email: 'police@ssor.com',
+              mobile: '9876543210',
+              clearanceLevel: 'Level 3 Registry Administrator (Test)'
+            }
+          }
+        }
+      });
+
+      await prisma.user.create({
+        data: {
+          loginId: 'org@ssor',
+          passwordHash,
+          role: 'organization',
+          status: 'approved',
+          organizationProfile: {
+            create: {
+              orgName: 'BCSS Test School',
+              orgType: 'School',
+              country: 'India',
+              state: 'Telangana',
+              district: 'Hyderabad',
+              city: 'Hyderabad',
+              address: '123 Test Street, IT Park',
+              pinCode: '500081',
+              officialEmail: 'info@testschool.ssor',
+              officialPhone: '040-12345678',
+              adminName: 'Sunitha Reddy',
+              designation: 'Principal',
+              empId: 'EMP-001',
+              adminEmail: 'admin@testschool.ssor',
+              mobile: '9876543210'
+            }
+          }
+        }
+      });
+
+      console.log('\n=============================================');
+      console.log('✅ Default users seeded successfully!');
+      console.log('   [Role: police]       police@ssor / ssor@123');
+      console.log('   [Role: organization] org@ssor / ssor@123');
+      console.log('=============================================\n');
+    }
+  } catch (err) {
+    console.error('❌ Error checking/seeding default users:', err);
+  }
+}

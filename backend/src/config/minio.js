@@ -29,18 +29,6 @@ export function getMinio() {
  * Falls back to the internal endpoint when no public endpoint is set (dev).
  */
 export function getMinioForSigning() {
-  if (process.env.MINIO_PUBLIC_ENDPOINT) {
-    if (!publicClient) {
-      publicClient = new Client({
-        endPoint: process.env.MINIO_PUBLIC_ENDPOINT,
-        port: parseInt(process.env.MINIO_PUBLIC_PORT || process.env.MINIO_PORT || '9000'),
-        useSSL: (process.env.MINIO_PUBLIC_USE_SSL ?? process.env.MINIO_USE_SSL) === 'true',
-        accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-        secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
-      });
-    }
-    return publicClient;
-  }
   return getMinio();
 }
 

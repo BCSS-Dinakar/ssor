@@ -7,6 +7,8 @@
 -- After initial run:
 --   REFRESH MATERIALIZED VIEW CONCURRENTLY public.mv_clearance_accused_search;
 -- =============================================================================
+-- 3. MATERIALIZED VIEW
+-- =============================================================================
 
 BEGIN;
 
@@ -18,13 +20,9 @@ CREATE MATERIALIZED VIEW public.mv_clearance_accused_search AS
 WITH accused_latest AS (
     SELECT DISTINCT ON (p.person_id)
         p.person_id AS offender_id,
-        COALESCE(
-            p.full_name,
-            p.raw_full_name,
-            NULLIF(TRIM(CONCAT(COALESCE(p.name, ''), ' ', COALESCE(p.surname, ''))), '')
-        ) AS offender_name,
+        p.full_name AS offender_name,
         p.alias AS offender_alias,
-        p.date_of_birth,
+        NULL::date AS date_of_birth,
         p.age,
         p.relative_name AS father_name,
         p.phone_number,
@@ -38,18 +36,14 @@ WITH accused_latest AS (
         c.court_name,
         h.ps_name AS police_station,
         lower(regexp_replace(
-            COALESCE(
-                p.full_name,
-                p.raw_full_name,
-                NULLIF(TRIM(CONCAT(COALESCE(p.name, ''), ' ', COALESCE(p.surname, ''))), '')
-            ),
+            p.full_name,
             '\s+', ' ', 'g'
         )) AS search_name_norm,
         right(regexp_replace(COALESCE(p.phone_number, p.phone_numbers, ''), '\D', '', 'g'), 10) AS search_phone_norm
-    FROM public.accused a
-    JOIN public.persons p ON a.person_id = p.person_id
-    JOIN public.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN public.hierarchy h ON c.ps_code = h.ps_code
+    FROM cctns_etl.accused a
+    JOIN cctns_etl.persons p ON a.person_id = p.person_id
+    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
+    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     ORDER BY p.person_id, c.fir_date DESC NULLS LAST
 ),
 fpb_latest AS (
@@ -59,7 +53,7 @@ fpb_latest AS (
         dob,
         father_husband_name,
         aadhaar_or_other_id_number
-    FROM public.fpb_accused
+    FROM cctns_etl.fpb_accused
     WHERE person_id IS NOT NULL
     ORDER BY person_id, date_fetched DESC NULLS LAST
 )
@@ -114,7 +108,7 @@ CREATE INDEX IF NOT EXISTS idx_accused_crime_id
     ON public.accused (crime_id);
 
 CREATE INDEX IF NOT EXISTS idx_fpb_accused_person_id
-    ON public.fpb_accused (person_id);
+    ON cctns_etl.fpb_accused (person_id);
 
 COMMIT;
 
@@ -123,11 +117,11 @@ REFRESH MATERIALIZED VIEW public.mv_clearance_accused_search;
 
 -- Grant read access to the app DB role (adjust role if different)
 GRANT SELECT ON public.mv_clearance_accused_search TO cctns_prod;
-GRANT SELECT ON public.accused TO cctns_prod;
-GRANT SELECT ON public.persons TO cctns_prod;
-GRANT SELECT ON public.crimes TO cctns_prod;
-GRANT SELECT ON public.hierarchy TO cctns_prod;
-GRANT SELECT ON public.fpb_accused TO cctns_prod;
+GRANT SELECT ON cctns_etl.accused TO cctns_prod;
+GRANT SELECT ON cctns_etl.persons TO cctns_prod;
+GRANT SELECT ON cctns_etl.crimes TO cctns_prod;
+GRANT SELECT ON cctns_etl.hierarchy TO cctns_prod;
+GRANT SELECT ON cctns_etl.fpb_accused TO cctns_prod;
 
 -- Optional sanity check:
 -- SELECT offender_id, offender_name, match_phone, match_dob, search_name_norm FROM public.mv_clearance_accused_search LIMIT 20;
