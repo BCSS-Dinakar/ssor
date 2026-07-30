@@ -1,6 +1,5 @@
 import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
-import { env } from '../config/env.js';
 
 export const CLEARANCE_ACCUSED_MV = 'public.mv_clearance_accused_search';
 
@@ -166,9 +165,9 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
       p.alias AS offender_alias,
       NULL::date AS date_of_birth,
       p.age,
-      p.relative_name AS father_name,
-      p.phone_number,
-      p.phone_numbers,
+      p.father_husband_name AS father_name,
+      NULL::text AS phone_number,
+      NULL::text AS phone_numbers,
       a.accused_status,
       c.fir_num,
       c.fir_reg_num,
@@ -181,7 +180,7 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
         p.full_name,
         '\\s+', ' ', 'g'
       )) AS search_name_norm,
-      right(regexp_replace(COALESCE(p.phone_number, p.phone_numbers, ''), '\\D', '', 'g'), 10) AS search_phone_norm
+      right(regexp_replace('', '\\D', '', 'g'), 10) AS search_phone_norm
     FROM cctns_etl.accused a
     JOIN cctns_etl.persons p ON a.person_id = p.person_id
     JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
@@ -390,10 +389,6 @@ export const searchCctnsCandidate = async ({
   aadharNumber = '',
   fatherName = ''
 } = {}) => {
-  if (env.EXTERNAL_API_CALL) {
-    console.warn('[CCTNS] EXTERNAL_API_CALL is true, but CCTNS API is not implemented. Falling back to DB search.');
-  }
-
   const normName = normalizeName(candidateName);
   const normPhone = normalizePhone(candidatePhone);
   const normAadhaar = normalizeAadhaar(aadharNumber);

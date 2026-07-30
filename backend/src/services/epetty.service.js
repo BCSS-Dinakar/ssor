@@ -15,7 +15,7 @@ async function getEpettyView() {
   return 'public.v_e_cases_list';
 }
 
-const fetchEpettyFromDb = async (filters) => {
+export const fetchEpettyFromDb = async (filters) => {
   const viewName = await getEpettyView();
   
   let whereClauses = [];
@@ -126,57 +126,6 @@ const getApiSearchName = (name) => {
   return coreWords.length > 0 ? coreWords.join(' ') : name;
 };
 
-export const fetchEpettyFromApi = async (filters = {}, options = {}) => {
-  if (!env.EPETTY_API_URL) {
-    console.warn('[ePetty] EPETTY_API_URL is not configured. Skipping live ePetty lookup.');
-    return [];
-  }
-
-  let authHeader = env.EPETTY_BASIC_AUTH || '';
-  if (authHeader && !authHeader.startsWith('Basic ')) {
-    authHeader = `Basic ${authHeader}`;
-  }
-
-  const payload = {
-    ecaseNo: filters.ecaseNo || '',
-    offdrName: normalizeEpettyText(filters.offdrName),
-    offdrMobileNo: normalizePhone(filters.offdrMobileNo),
-    offrFName: normalizeEpettyText(filters.offrFName),
-    offrOccupation: normalizeEpettyText(filters.offrOccupation),
-    psName: normalizeEpettyText(filters.psName)
-  };
-
-  const headers = { 'Content-Type': 'application/json' };
-  if (authHeader) headers.Authorization = authHeader;
-
-  try {
-    const response = await fetch(env.EPETTY_API_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-      // Fail fast when the ePetty server hangs (accepts TCP but never answers).
-      // Without this, the whole vetting scan blocks indefinitely and the officer
-      // never receives the CCTNS results or the "ePetty unavailable" error.
-      signal: AbortSignal.timeout(15000)
-    });
-
-    if (!response.ok) {
-      console.warn(`[ePetty] API returned ${response.status} ${response.statusText}.`);
-      return [];
-    }
-
-    const data = await response.json();
-    return normalizeApiResponse(data).map(standardizeEpettyRecord).filter(Boolean);
-  } catch (error) {
-    const message = describeLookupError(error);
-    if (options.throwOnFailure) {
-      throw new Error(message);
-    }
-
-    console.warn(`[ePetty] API lookup failed (${env.EPETTY_API_URL}): ${message}`);
-    return [];
-  }
-};
 
 const buildSearchSteps = ({ name, phone, father, occupation, customFilters = {} }) => {
   const steps = [];
@@ -341,25 +290,13 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
 
   const runLookup = async (filters) => {
     try {
-      if (env.EXTERNAL_API_CALL) {
-        return {
-          matches: await fetchEpettyFromApi(filters, { throwOnFailure: true }),
-          lookupError: null
-        };
-      } else {
-        return {
-          matches: await fetchEpettyFromDb(filters),
-          lookupError: null
-        };
-      }
+      return {
+        matches: await fetchEpettyFromDb(filters),
+        lookupError: null
+      };
     } catch (error) {
-      console.warn(`[ePetty] Lookup failed: ${error.message}`);
-      let errMsg = error.message;
-      const lowerMsg = errMsg.toLowerCase();
-      if (lowerMsg.includes('timeout') || lowerMsg.includes('fetch failed') || lowerMsg.includes('und_err') || lowerMsg.includes('econnrefused')) {
-        errMsg = "ePetty server is currently down or not responding.";
-      }
-      return { matches: [], lookupError: errMsg };
+      console.warn(`[ePetty] DB Lookup failed: ${error.message}`);
+      return { matches: [], lookupError: "ePetty database is currently unavailable." };
     }
   };
 

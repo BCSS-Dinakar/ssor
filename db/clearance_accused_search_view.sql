@@ -24,9 +24,9 @@ WITH accused_latest AS (
         p.alias AS offender_alias,
         NULL::date AS date_of_birth,
         p.age,
-        p.relative_name AS father_name,
-        p.phone_number,
-        p.phone_numbers,
+        p.father_husband_name AS father_name,
+        NULL::text AS phone_number,
+        NULL::text AS phone_numbers,
         a.accused_status,
         c.fir_num,
         c.fir_reg_num,
@@ -39,7 +39,7 @@ WITH accused_latest AS (
             p.full_name,
             '\s+', ' ', 'g'
         )) AS search_name_norm,
-        right(regexp_replace(COALESCE(p.phone_number, p.phone_numbers, ''), '\D', '', 'g'), 10) AS search_phone_norm
+        right(regexp_replace('', '\D', '', 'g'), 10) AS search_phone_norm
     FROM cctns_etl.accused a
     JOIN cctns_etl.persons p ON a.person_id = p.person_id
     JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
