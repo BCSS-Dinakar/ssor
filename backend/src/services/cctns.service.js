@@ -192,8 +192,8 @@ const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
       person_id,
       phone_number,
       dob,
-      father_husband_name,
-      aadhaar_or_other_id_number
+      NULL::text AS father_husband_name,
+      NULL::text AS aadhaar_or_other_id_number
     FROM cctns_etl.fpb_accused
     WHERE person_id IS NOT NULL
     ORDER BY person_id, date_fetched DESC NULLS LAST
