@@ -25,6 +25,8 @@ import VerificationVetting from './pages/portal/police/VerificationVetting';
 import SupportTickets from './pages/portal/police/SupportTickets';
 
 import SystemAuditLog from './pages/portal/police/SystemAuditLog';
+import UserGuide from './pages/portal/police/UserGuide';
+import OrgUserGuide from './pages/portal/organization/OrgUserGuide';
 
 import SubmitVerification from './pages/portal/organization/SubmitVerification';
 import VerificationRequests from './pages/portal/organization/VerificationRequests';
@@ -40,61 +42,62 @@ import { ToastProvider } from './components/ui';
 function App() {
   return (
     <ToastProvider>
-    <Router>
-      <Routes>
-        {/* Marketing site */}
-        <Route element={<MarketingLayout />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/services" element={<OrganizationServicesPage />} />
+      <Router>
+        <Routes>
+          {/* Marketing site */}
+          <Route element={<MarketingLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/services" element={<OrganizationServicesPage />} />
 
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-        </Route>
-
-        <Route path="/login" element={<LoginPage />} />
-
-        {/* Public certificate verification (QR scan target) */}
-        <Route path="/verify/:token" element={<VerifyCertificate />} />
-
-        {/* Protected role-based portal */}
-        <Route path="/portal" element={<PortalLayout />}>
-          <Route index element={<PortalIndex />} />
-          {/* Shared */}
-          <Route path="profile" element={<Profile />} />
-          <Route path="tiers" element={<RiskTierGuide />} />
-          
-          {/* Police Only Routes */}
-          <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
-            <Route path="register" element={<RegistryDatabase />} />
-            <Route path="register/:id" element={<OffenderDetail />} />
-            <Route path="epetty-register" element={<EpettyRegistry />} />
-            <Route path="epetty-register/:id" element={<EpettyDetail />} />
-            <Route path="clearances" element={<PendingVerifications />} />
-            <Route path="clearances/:id" element={<VerificationVetting />} />
-            <Route path="clearance-history" element={<VerificationHistory />} />
-            <Route path="clearance-history/:id" element={<VerificationVetting />} />
-            <Route path="org-verify" element={<OrganizationApprovals />} />
-            <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
-            <Route path="tickets" element={<SupportTickets />} />
-            <Route path="audit" element={<SystemAuditLog />} />
+            <Route path="/contact" element={<ContactPage />} />
           </Route>
 
-          {/* Organization Only Routes */}
-          <Route element={<RoleProtectedRoute allowedRoles={['organization']} />}>
-            <Route path="apply" element={<SubmitVerification />} />
-            <Route path="requests" element={<VerificationRequests />} />
-            <Route path="candidates" element={<VerifiedPersonnel />} />
-            <Route path="candidates/:id" element={<PersonnelDetails />} />
-            <Route path="track/:id" element={<VerificationDetails />} />
-            <Route path="resources" element={<LegalResources />} />
-            <Route path="compliance" element={<ComplianceAndSupport />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Public certificate verification (QR scan target) */}
+          <Route path="/verify/:token" element={<VerifyCertificate />} />
+
+          {/* Protected role-based portal */}
+          <Route path="/portal" element={<PortalLayout />}>
+            <Route index element={<PortalIndex />} />
+            {/* Shared */}
+            <Route path="profile" element={<Profile />} />
+            <Route path="tiers" element={<RiskTierGuide />} />
+
+            {/* Police Only Routes */}
+            <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
+              <Route path="register" element={<RegistryDatabase />} />
+              <Route path="register/:id" element={<OffenderDetail />} />
+              <Route path="epetty-register" element={<EpettyRegistry />} />
+              <Route path="epetty-register/:id" element={<EpettyDetail />} />
+              <Route path="clearances" element={<PendingVerifications />} />
+              <Route path="clearances/:id" element={<VerificationVetting />} />
+              <Route path="clearance-history" element={<VerificationHistory />} />
+              <Route path="clearance-history/:id" element={<VerificationVetting />} />
+              <Route path="org-verify" element={<OrganizationApprovals />} />
+              <Route path="org-verify/:id" element={<OrganizationApprovalDetails />} />
+              <Route path="tickets" element={<SupportTickets />} />
+              <Route path="audit" element={<SystemAuditLog />} />
+              <Route path="police-guide" element={<UserGuide />} />
+            </Route>
+
+            {/* Organization Only Routes */}
+            <Route element={<RoleProtectedRoute allowedRoles={['organization']} />}>
+              <Route path="apply" element={<SubmitVerification />} />
+              <Route path="requests" element={<VerificationRequests />} />
+              <Route path="candidates" element={<VerifiedPersonnel />} />
+              <Route path="candidates/:id" element={<PersonnelDetails />} />
+              <Route path="track/:id" element={<VerificationDetails />} />
+              <Route path="resources" element={<LegalResources />} />
+              <Route path="compliance" element={<ComplianceAndSupport />} />
+              <Route path="org-guide" element={<OrgUserGuide />} />
+            </Route>
           </Route>
 
-        </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </ToastProvider>
   );
 }
