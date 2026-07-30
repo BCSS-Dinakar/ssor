@@ -6,6 +6,7 @@ import { streamDocument, statObject, removeObject, getPresignedUrl, SIGNED_URL_E
 import { mediaFromFile, resolveObjectKey, guardDocumentAccess, deleteMediaByObjectKey } from '../services/media.service.js';
 import { setCache, getCache, deleteCache } from '../config/redis.js';
 import logger from '../utils/logger.js';
+import { sendAuthTemplate, sendTemplateByKey, normalizePhone } from '../services/whatsapp.service.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -325,7 +326,16 @@ export const requestLoginOtp = async (req, res) => {
 
     await setCache(redisKey, otp, 120); // 2 minutes valid for login
 
-    console.log(`🔑 Login OTP for ${loginId} (${mobile}): ${otp}`);
+    const waPhone = normalizePhone(mobile);
+    try {
+      await sendAuthTemplate(waPhone, "ssor_login_otp", otp);
+      console.log(`📱 WhatsApp Login OTP sent to ${loginId} (${mobile}): ${otp}`);
+    } catch (waErr) {
+      console.error('WhatsApp Login OTP failed:', waErr);
+      if (process.env.NODE_ENV !== 'development') {
+        throw new Error('Failed to send OTP via WhatsApp.');
+      }
+    }
 
     const maskedMobile = mobile.slice(0, 2) + '******' + mobile.slice(-2);
 
@@ -383,6 +393,24 @@ export const verifyLoginOtp = async (req, res) => {
       userProfile.clearance = userProfile.organizationProfile.designation || 'Org Admin';
     }
 
+    const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    try {
+      let mobile = null;
+      if (userProfile.role === 'police' && userProfile.policeProfile) {
+        mobile = userProfile.policeProfile.mobile;
+      } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
+        mobile = userProfile.organizationProfile.mobile;
+      }
+      if (mobile) {
+        await sendTemplateByKey(normalizePhone(mobile), "ssor_login_alert", {
+          user_name: userProfile.name || "there",
+          login_time: loginTime,
+        });
+      }
+    } catch (err) {
+      console.error("Login-alert template failed:", err.message);
+    }
+
     res.status(200).json({ success: true, user: userProfile });
   } catch (error) {
     console.error('verifyLoginOtp Error:', error);
@@ -415,7 +443,16 @@ export const recoverRequest = async (req, res) => {
 
     await setCache(redisKey, otp, 300); // 5 mins
 
-    console.log(`🔑 Recovery OTP for ${mobile}: ${otp}`);
+    const waPhone = normalizePhone(mobile);
+    try {
+      await sendAuthTemplate(waPhone, "ssor_login_otp", otp);
+      console.log(`📱 WhatsApp Recovery OTP sent to ${mobile}: ${otp}`);
+    } catch (waErr) {
+      console.error('WhatsApp Recovery OTP failed:', waErr);
+      if (process.env.NODE_ENV !== 'development') {
+        throw new Error('Failed to send OTP via WhatsApp.');
+      }
+    }
     const maskedMobile = mobile.slice(0, 2) + '******' + mobile.slice(-2);
 
     res.status(200).json({
