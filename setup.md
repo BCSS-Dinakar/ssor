@@ -3,10 +3,12 @@
 Follow these steps to set up the entire SSOR (State Sexual Offender Registry) stack on your local machine.
 
 ## Prerequisites
-- **Node.js** (v16 or higher)
+- **Node.js** (v18 or higher)
 - **npm** (comes with Node.js)
 - **PostgreSQL** database server running locally
 - **Redis** server running locally (for OTP caching)
+- **MinIO** server running locally (for secure document uploads and storage)
+- **Meta Developer Account** (for WhatsApp Cloud API setup)
 
 ---
 
@@ -23,13 +25,32 @@ npm install
 ```
 
 ### Environment Variables
-Create a `.env` file in the `backend` directory with the following contents. Make sure to update the `DATABASE_URL` with your actual PostgreSQL credentials:
+Create a `.env` file in the `backend` directory with the following contents. Make sure to update the credentials with your actual database, MinIO, and WhatsApp settings:
 ```env
+# Database
 PORT=5001
 DATABASE_URL="postgresql://username:password@localhost:5432/ssor_db?schema=public"
 JWT_SECRET="your_super_secret_jwt_key_here"
 NODE_ENV="development"
 FRONTEND_URL="http://localhost:3000"
+
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+# MinIO Storage
+MINIO_ENDPOINT=127.0.0.1
+MINIO_PORT=9000
+MINIO_USE_SSL=false
+MINIO_ACCESS_KEY=your_minio_access_key
+MINIO_SECRET_KEY=your_minio_secret_key
+MINIO_BUCKET=ssor-documents
+
+# WhatsApp API
+WHATSAPP_TOKEN=your_whatsapp_token
+PHONE_NUMBER_ID=your_phone_number_id
+WABA_ID=your_waba_id
+GRAPH_VERSION=v23.0
 ```
 
 ### Database Setup (Prisma)
@@ -40,11 +61,15 @@ npx prisma db push
 ```
 
 ### Create Test Accounts & Seed Data (Optional)
-Run the provided npm script to seed the database with a test Police Officer, a test Organization account, and dynamic dummy clearance request data:
+Run the provided npm script to seed the database with test user accounts:
 ```bash
 npm run db:seed-users
 ```
-*(Check `credentials.txt` in the backend folder for the login details).*
+To create custom test accounts directly (e.g. `dinakar@org` & `dinakar@police`), you can run:
+```bash
+node scripts/createTestUsers.js
+```
+*(Check `credentials.txt` in the backend folder or the console output for credentials details).*
 
 ### Start the Server
 Start the backend development server:
@@ -78,6 +103,13 @@ The frontend will automatically open in your browser at [http://localhost:3000](
 
 ## Troubleshooting
 - **CORS Issues**: Ensure the backend `.env` has `FRONTEND_URL="http://localhost:3000"`.
-- **Uploads Failing**: Ensure the backend has a `storage/documents` folder automatically created (or create it manually).
-- **OTP/Login Issues**: Make sure your local **Redis** server is running. If it crashes, the backend will automatically fallback to a `.fallback-cache.json` file.
+- **MinIO/Uploads Failing**: Make sure your MinIO container is running, the credentials match `.env`, and the bucket has been created successfully. If MinIO is unreachable, backend falls back to local disk storage (`storage/media`).
+- **OTP/WhatsApp Issues**: 
+  - Ensure **Redis** is running (`redis-cli ping` returns `PONG`). Caching falls back to local files if Redis is down.
+  - Verify that the WhatsApp API details (`WHATSAPP_TOKEN`, `PHONE_NUMBER_ID`) in `.env` are valid. Invalid details will log a warning/error in the startup banner.
 - **Prisma Errors**: If you get Prisma connection errors, double-check that your PostgreSQL server is active and the `DATABASE_URL` in `.env` is perfectly correct.
+
+---
+
+## 📱 WhatsApp Meta Setup Reference
+For detailed instructions on configuring the Meta Developer Application and WhatsApp templates, please refer to the [WhatsApp Meta Setup Guide](./doc/whatsapp_meta_setup.md).

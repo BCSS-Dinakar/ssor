@@ -29,8 +29,8 @@ Located in the `frontend/` directory, the client is a **React.js Single Page App
 ### 2. The Backend (API Layer)
 Located in the `backend/` directory, the API is built with **Node.js, Express, and Prisma ORM**.
 - **Role-Based Access Control (RBAC)**: Custom Express middlewares strictly guard routes (`requireAuth`, `requirePolice`) based on the JWT session.
-- **Secure File Storage**: Documents (like government certificates and authorization letters) uploaded during registration are saved directly to the local filesystem (`storage/documents`), bypassing the public web folder entirely. These files can only be accessed through an authenticated API endpoint.
-- **Advanced Authentication**: Uses JWTs signed and delivered via secure, HTTP-only cookies to prevent XSS attacks. Includes a secure OTP-based login recovery mechanism.
+- **Secure File Storage**: Integrates **MinIO Object Storage** to safely store uploaded documents (such as government certificates and authorization letters). During storage outages, uploads seamlessly fall back to local disk storage (`storage/media`), with reconciliation scripts to sync them back.
+- **Advanced Authentication**: Uses JWTs signed and delivered via secure, HTTP-only cookies to prevent XSS attacks. Includes a **WhatsApp Cloud API** integration to deliver OTPs for verification, password recovery, and secure login alerts.
 - **Caching & Resilience**: Integrates **Redis** for fast OTP caching with an automated failover system that writes to local files if the Redis server goes down.
 
 ### 3. The Database (Data Layer)

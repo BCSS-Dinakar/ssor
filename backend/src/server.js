@@ -1,10 +1,10 @@
 import { env, validateEnv } from './config/env.js';
 import app from './app.js';
-import logger from './utils/logger.js';
 import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
 import { ensureBucket, MINIO_BUCKET } from './config/minio.js';
 import getRedis from './config/redis.js';
+import { checkConnection as pingWhatsApp } from './services/whatsapp.service.js';
 
 const pingRedis = async () => {
   try {
@@ -61,6 +61,9 @@ const startServer = async () => {
   // 4. Check Redis (non-fatal)
   const redisStatus = await pingRedis();
 
+  // 4.5 Check WhatsApp config via API
+  const whatsappStatus = await pingWhatsApp();
+
   // 5. Start Express Server
   const { server, port } = await listenWithPortFallback(env.PORT, env.PORT_RETRY_LIMIT);
 
@@ -72,6 +75,7 @@ const startServer = async () => {
 🗄️ Database    : Connected
 🧠 Redis       : ${redisStatus}
 🪣 MinIO       : ${minioStatus}
+💬 WhatsApp    : ${whatsappStatus}
 ⚡ Prisma Client Ready
 ────────────────────────────────────
     `);
@@ -105,13 +109,13 @@ const gracefulShutdown = async (signal) => {
   if (global._ssorServer) {
     global._ssorServer.close();
   }
-  
+
   const prisma = (await import('./config/db.js')).default;
   if (prisma) {
     await prisma.$disconnect();
     console.log('⚡ Prisma Client Disconnected');
   }
-  
+
   process.exit(0);
 };
 
