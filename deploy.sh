@@ -271,19 +271,13 @@ ensure_minio() {
 ensure_backend_service_env() {
   local env_file="$ROOT_DIR/backend/.env"
 
-  if [[ -z "$(get_env "$env_file" "REDIS_HOST")" ]]; then
-    set_env "$env_file" "REDIS_HOST" "$REDIS_HOST"
-  fi
-  if [[ -z "$(get_env "$env_file" "REDIS_PORT")" ]]; then
-    set_env "$env_file" "REDIS_PORT" "$REDIS_PORT"
-  fi
-
-  if [[ -z "$(get_env "$env_file" "MINIO_ENDPOINT")" ]]; then
-    set_env "$env_file" "MINIO_ENDPOINT" "$MINIO_ENDPOINT"
-  fi
-  if [[ -z "$(get_env "$env_file" "MINIO_PORT")" ]]; then
-    set_env "$env_file" "MINIO_PORT" "$MINIO_PORT"
-  fi
+  # Redis/MinIO API talk to local daemons — always pin loopback unless explicitly overridden
+  # via REDIS_HOST / MINIO_ENDPOINT in the environment or .deploy.local.
+  # (Binding Redis to 127.0.0.1 means APP_HOST/public IP cannot be used as REDIS_HOST.)
+  set_env "$env_file" "REDIS_HOST" "$REDIS_HOST"
+  set_env "$env_file" "REDIS_PORT" "$REDIS_PORT"
+  set_env "$env_file" "MINIO_ENDPOINT" "$MINIO_ENDPOINT"
+  set_env "$env_file" "MINIO_PORT" "$MINIO_PORT"
   if [[ -z "$(get_env "$env_file" "MINIO_USE_SSL")" ]]; then
     set_env "$env_file" "MINIO_USE_SSL" "$MINIO_USE_SSL"
   fi
@@ -296,19 +290,10 @@ ensure_backend_service_env() {
     die "Set MINIO_ACCESS_KEY and MINIO_SECRET_KEY in backend/.env before deploying (non-default)."
   fi
 
-  # Always refresh public signing endpoint for this host (production requirement).
-  local pub
-  pub="$(get_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "")"
-  if [[ -z "$pub" ]]; then
-    pub="$MINIO_PUBLIC_ENDPOINT"
-  fi
-  # Prefer explicit override from .deploy.local / env; else keep existing; else APP_HOST.
-  if [[ -n "${MINIO_PUBLIC_ENDPOINT}" ]]; then
-    pub="$MINIO_PUBLIC_ENDPOINT"
-  fi
-  set_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "$pub"
-  set_env "$env_file" "MINIO_PUBLIC_PORT" "$(get_env "$env_file" "MINIO_PUBLIC_PORT" "$MINIO_PUBLIC_PORT")"
-  set_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$(get_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$MINIO_PUBLIC_USE_SSL")"
+  # Public signing endpoint = host browsers can reach (APP_HOST by default).
+  set_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "$MINIO_PUBLIC_ENDPOINT"
+  set_env "$env_file" "MINIO_PUBLIC_PORT" "$MINIO_PUBLIC_PORT"
+  set_env "$env_file" "MINIO_PUBLIC_USE_SSL" "$MINIO_PUBLIC_USE_SSL"
 }
 
 validate_production_backend_env() {
@@ -334,16 +319,36 @@ validate_production_backend_env() {
 wait_for_backend() {
   local url="http://127.0.0.1:${BACKEND_PORT}/api/health"
   local i code
-  log "Waiting for backend health at ${url}"
-  for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+  # AUTO_DB_PUSH / materialized-view builds can take several minutes on first boot.
+  local max_wait="${BACKEND_HEALTH_WAIT_SECS:-180}"
+  log "Waiting for backend health at ${url} (up to ${max_wait}s)"
+  for ((i = 1; i <= max_wait; i++)); do
     code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 "$url" || true)"
     if [[ "$code" == "200" ]]; then
-      log "Backend health OK"
+      log "Backend health OK (${i}s)"
       return 0
+    fi
+    if (( i % 30 == 0 )); then
+      log "Still waiting for backend... ${i}s (last HTTP ${code:-000})"
     fi
     sleep 1
   done
   warn "Backend health not OK yet (last HTTP ${code:-000}). Check: pm2 logs ssor-backend --lines 50"
+}
+
+wait_for_frontend() {
+  local url="http://127.0.0.1:${FRONTEND_PORT}"
+  local i code
+  log "Waiting for frontend at ${url}"
+  for i in $(seq 1 30); do
+    code="$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 "$url" || true)"
+    if [[ "$code" == "200" ]]; then
+      log "Frontend OK (${i}s)"
+      return 0
+    fi
+    sleep 1
+  done
+  warn "Frontend not serving on :${FRONTEND_PORT} (last HTTP ${code:-000}). Try: pm2 restart ssor-frontend"
 }
 
 load_nvm() {
@@ -421,17 +426,19 @@ log "Installing frontend dependencies and building"
 )
 
 log "Starting or reloading PM2 processes"
+# Single start/restart only — a follow-up restart aborts long AUTO_DB_PUSH / MV builds.
+# ssor-frontend runs `npm run serve:prod`; a cluster-mode reload leaves the npm wrapper
+# alive while the child `serve` dies, so restart (not reload) is required there.
 if pm2 describe ssor-backend >/dev/null 2>&1; then
-  pm2 reload "$ROOT_DIR/ecosystem.config.cjs" --update-env
+  pm2 restart "$ROOT_DIR/ecosystem.config.cjs" --update-env
 else
-  pm2 start "$ROOT_DIR/ecosystem.config.cjs" --update-env
+  pm2 start "$ROOT_DIR/ecosystem.config.cjs"
 fi
-# Ensure .env-driven process picks up Redis/MinIO that may have come up mid-deploy.
-pm2 restart ssor-backend --update-env
 
 pm2 save
 
 wait_for_backend
+wait_for_frontend
 
 log "Deployment complete"
 pm2 status
