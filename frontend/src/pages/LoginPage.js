@@ -600,9 +600,9 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-x-hidden">
+    <div className="min-h-screen md:h-screen grid md:grid-cols-2 bg-white overflow-x-hidden">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between overflow-hidden bg-primary shrink-0">
+      <div className="hidden md:flex relative flex-col justify-between md:overflow-hidden min-h-0 bg-primary">
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-accent rounded-full filter blur-[120px] opacity-20" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-500 rounded-full filter blur-[120px] opacity-20" />
@@ -617,7 +617,7 @@ function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent z-10" />
           <img src="/images/hero-shield.png" alt="" className="w-full h-full object-cover opacity-30 mix-blend-overlay" />
         </div>
-        <div className="relative z-10 p-12 lg:p-16 flex flex-col h-full">
+        <div className="relative z-10 p-8 md:p-[6vh] lg:p-[8vh] flex flex-col justify-between h-full min-h-0">
           <div className="flex-none">
             <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium transition-colors w-max">
               <ArrowLeft className="h-4 w-4" />
@@ -625,46 +625,46 @@ function LoginPage() {
             </Link>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="inline-flex items-center justify-start gap-3 mb-8">
-              <div className="h-16 w-16 overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg">
+          <div className="flex-1 flex flex-col justify-center min-h-0">
+            <div className="inline-flex items-center justify-start gap-[1.5vh] mb-[4vh]">
+              <div className="h-[min(8vh,4rem)] w-[min(8vh,4rem)] overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg shrink-0">
                 <img src="/images/ssor-logo.png" alt="SSOR Logo" className="h-full w-full object-cover rounded-2xl" />
               </div>
-              <span className="text-4xl font-bold text-white font-heading tracking-tight">SSOR Portal</span>
+              <span className="text-[clamp(1.5rem,4vh,2.25rem)] font-bold text-white font-heading tracking-tight leading-none">SSOR Portal</span>
             </div>
-            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-6 font-heading">
+            <h1 className="text-[clamp(1.5rem,5vh,3rem)] font-bold text-white leading-tight mb-[3vh] font-heading">
               Secure, controlled-access sign in.
             </h1>
-            <p className="text-blue-100/90 text-lg max-w-md leading-relaxed">
+            <p className="text-blue-100/90 text-[clamp(0.875rem,2vh,1.125rem)] max-w-md leading-relaxed">
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
 
-            <div className="mt-10 space-y-5 max-w-md">
+            <div className="mt-[5vh] space-y-[2.5vh] max-w-md shrink-0">
               <div className="flex items-start gap-4">
-                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                  <ShieldCheck className="h-5 w-5 text-blue-100" />
+                <div className="flex-none h-[clamp(2rem,6vh,2.75rem)] w-[clamp(2rem,6vh,2.75rem)] rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <ShieldCheck className="h-[50%] w-[50%] text-blue-100" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-base">Role-based access</h3>
-                  <p className="text-blue-200/70 text-sm leading-relaxed">Organizations and officers get separate, scoped entry into the register.</p>
+                  <h3 className="text-white font-semibold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug">Role-based access</h3>
+                  <p className="text-blue-200/70 text-[clamp(0.75rem,1.5vh,0.875rem)] leading-relaxed mt-0.5">Organizations and officers get separate, scoped entry into the register.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                  <KeyRound className="h-5 w-5 text-blue-100" />
+                <div className="flex-none h-[clamp(2rem,6vh,2.75rem)] w-[clamp(2rem,6vh,2.75rem)] rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <KeyRound className="h-[50%] w-[50%] text-blue-100" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-base">OTP-verified sign-in</h3>
-                  <p className="text-blue-200/70 text-sm leading-relaxed">Every login is confirmed with a one-time passcode for added security.</p>
+                  <h3 className="text-white font-semibold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug">OTP-verified sign-in</h3>
+                  <p className="text-blue-200/70 text-[clamp(0.75rem,1.5vh,0.875rem)] leading-relaxed mt-0.5">Every login is confirmed with a one-time passcode for added security.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="flex-none h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
-                  <BadgeCheck className="h-5 w-5 text-blue-100" />
+                <div className="flex-none h-[clamp(2rem,6vh,2.75rem)] w-[clamp(2rem,6vh,2.75rem)] rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
+                  <BadgeCheck className="h-[50%] w-[50%] text-blue-100" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-base">Verified &amp; audited</h3>
-                  <p className="text-blue-200/70 text-sm leading-relaxed">Organizations are approved by police, and every action is logged.</p>
+                  <h3 className="text-white font-semibold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug">Verified &amp; audited</h3>
+                  <p className="text-blue-200/70 text-[clamp(0.75rem,1.5vh,0.875rem)] leading-relaxed mt-0.5">Organizations are approved by police, and every action is logged.</p>
                 </div>
               </div>
             </div>
@@ -678,27 +678,27 @@ function LoginPage() {
       </div>
 
       {/* Right panel */}
-      <div className="w-full lg:w-1/2 flex flex-col lg:h-screen lg:overflow-y-auto relative bg-white">
+      <div className="w-full min-w-0 min-h-0 md:h-screen md:overflow-hidden relative bg-primary md:bg-white flex flex-col">
         {/* Subtle background pattern for large screens to reduce emptiness */}
-        <div className="hidden lg:block absolute inset-0 z-0 opacity-[0.4] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+        <div className="hidden md:block absolute inset-0 z-0 opacity-[0.4] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
 
-        <div className="lg:hidden bg-gradient-to-br from-primary via-[#0E2A4F] to-secondary p-6 sm:p-8 text-white relative overflow-hidden shrink-0">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium mb-6 transition-colors relative z-10">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
-          <div className="inline-flex items-center gap-3 relative z-10">
-            <div className="h-10 w-10 overflow-hidden rounded-lg bg-white/10 p-0.5 shadow-sm">
-              <img src="/images/ssor-logo.png" alt="SSOR Logo" className="h-full w-full object-cover rounded-lg" />
-            </div>
-            <span className="text-2xl sm:text-3xl font-bold text-white font-heading tracking-tight">SSOR Portal</span>
+        <div className="flex-1 flex flex-col justify-center w-full p-4 sm:p-8 md:p-0 relative z-10 min-h-0">
+          
+          {/* Mobile Header */}
+          <div className="md:hidden flex flex-col items-center justify-center text-white mb-6 mt-4">
+             <div className="h-14 w-14 bg-white rounded-2xl p-0.5 shadow-lg mb-3">
+               <img src="/images/ssor-logo.png" alt="SSOR" className="w-full h-full object-cover rounded-xl" />
+             </div>
+             <h1 className="text-3xl font-bold font-heading tracking-tight drop-shadow-md">SSOR Portal</h1>
+             <Link to="/" className="inline-flex items-center gap-1.5 text-blue-200 hover:text-white text-sm font-medium mt-3 transition-colors">
+               <ArrowLeft className="h-3 w-3" /> Back to home
+             </Link>
           </div>
-        </div>
 
-        <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 py-8 lg:py-12 flex-1 flex flex-col justify-center min-h-[calc(100vh-200px)] lg:min-h-0 relative z-10">
-          <div className="w-full pb-10 lg:pb-0">
+          <div className="max-w-2xl w-full mx-auto bg-white md:bg-transparent rounded-3xl shadow-2xl md:shadow-none px-5 py-8 sm:px-8 sm:py-10 md:px-[4vw] md:py-[4vh] relative z-10 min-h-0 flex flex-col">
+          <div className="w-full pb-10 lg:pb-0 flex-1 min-h-0 overflow-y-auto md:overflow-visible">
             {/* Role toggle */}
-            <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-2 gap-1.5 mb-6">
+            <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-[3vh] shrink-0">
               {ROLES.map((r) => {
                 const active = role === r.id;
                 return (
@@ -706,15 +706,15 @@ function LoginPage() {
                     key={r.id}
                     type="button"
                     onClick={() => setRole(r.id)}
-                    className={`flex items-start gap-2.5 rounded-xl px-3 sm:px-4 py-3 text-left transition-all duration-300 min-w-0 ${active ? 'bg-white shadow-md ring-1 ring-slate-200/80' : 'hover:bg-slate-200/70'
+                    className={`flex items-start gap-2.5 rounded-xl px-3 sm:px-4 py-[min(1.5vh,0.75rem)] text-left transition-all duration-300 min-w-0 ${active ? 'bg-white shadow-md ring-1 ring-slate-200/80' : 'hover:bg-slate-200/70'
                       }`}
                   >
                     <r.Icon className={`h-5 w-5 shrink-0 mt-0.5 ${active ? 'text-accent' : 'text-slate-400'}`} />
                     <div className="min-w-0 flex-1">
-                      <div className={`font-bold text-sm sm:text-base leading-snug ${active ? 'text-primary' : 'text-slate-700'}`}>
+                      <div className={`font-bold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug ${active ? 'text-primary' : 'text-slate-700'}`}>
                         {r.label}
                       </div>
-                      <div className="text-xs sm:text-sm text-slate-500 leading-snug mt-0.5 break-words">
+                      <div className="text-[clamp(0.7rem,1.5vh,0.875rem)] text-slate-500 leading-snug mt-0.5 break-words">
                         {r.sub}
                       </div>
                     </div>
@@ -727,12 +727,12 @@ function LoginPage() {
               <div className="px-2 sm:px-6 lg:px-8">
                 {/* Login */}
                 {mode === 'login' && (
-                  <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-5">
-                    <div className="mb-2">
-                      <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">
+                  <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-[min(2.5vh,1.25rem)]">
+                    <div className="mb-[2vh]">
+                      <h2 className="text-[clamp(1.25rem,3vh,1.5rem)] font-bold text-primary font-heading tracking-tight leading-none">
                         {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
                       </h2>
-                      <p className="text-base text-slate-500 mt-2 leading-relaxed">
+                      <p className="text-[clamp(0.875rem,1.8vh,1rem)] text-slate-500 mt-[1vh] leading-snug">
                         {role === 'police'
                           ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
                           : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
@@ -1288,6 +1288,7 @@ function LoginPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
