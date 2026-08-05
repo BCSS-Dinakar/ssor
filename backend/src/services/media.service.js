@@ -55,7 +55,7 @@ export async function createMedia({ objectKey, originalName, fileType, fileSize,
       fileSize: fileSize ?? null,
       category: category || null,
       store: store || 'minio',
-      uploadedBy: uploadedBy || null,
+      uploadedBy: uploadedBy != null ? String(uploadedBy) : null,
     },
   });
   return media.id;

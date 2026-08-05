@@ -93,6 +93,7 @@ function DynamicArrayList({ items, title, icon }) {
 }
 
 const CCTNS_CATEGORY_ORDER = [
+  { key: 'aadhaar_name', label: 'Aadhaar + name exact' },
   { key: 'aadhaar', label: 'Aadhaar exact match' },
   { key: 'name_phone', label: 'Name + phone exact' },
   { key: 'name', label: 'Name exact' },
