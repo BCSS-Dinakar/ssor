@@ -47,7 +47,7 @@ export const NAV = {
   police: [
     { id: 'overview', label: 'Dashboard', desc: 'Register metrics and queues', icon: LayoutDashboard, path: '/portal' },
     { section: 'Register' },
-    { id: 'register', label: 'Registry Database', desc: 'Search disclosable offender records', icon: Database, path: '/portal/register' },
+    { id: 'register', label: 'CCTNS Registry', desc: 'Search disclosable offender records', icon: Database, path: '/portal/register' },
     { id: 'epetty-register', label: 'E-petty Registry', desc: 'Search e-petty cases and records', icon: Database, path: '/portal/epetty-register' },
     { id: 'tiers', label: 'Risk Tier Guide', desc: 'Offender classification reference', icon: BookOpen, path: '/portal/tiers' },
     { section: 'Clearances' },

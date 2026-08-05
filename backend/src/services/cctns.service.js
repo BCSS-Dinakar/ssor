@@ -2,9 +2,17 @@ import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
 
 export const CLEARANCE_ACCUSED_MV = 'public.mv_clearance_accused_search';
+const CLEARANCE_ACCUSED_V = 'public.v_clearance_accused_search';
 
 /** CCTNS clearance search order / subcategory metadata */
 export const CCTNS_MATCH_CATEGORIES = {
+  aadhaar_name: {
+    key: 'aadhaar_name',
+    label: 'Aadhaar + name exact match',
+    params: ['aadhaar', 'name'],
+    confidence: 100,
+    priorityLabel: 'High Priority (Exact Aadhaar & Name Match)'
+  },
   aadhaar: {
     key: 'aadhaar',
     label: 'Aadhaar exact match',
@@ -96,6 +104,20 @@ const fuzzyConfidence = (similarity) => {
   return Math.max(40, Math.min(75, Math.round(40 + sim * 35)));
 };
 
+// mv_clearance_accused_search.highest_risk_tier comes straight from
+// ssor_kb.tier, which is UPPERCASE ('RED'/'ORANGE'/'BLUE'/'BLACK'/'PINK').
+// The frontend's tier-color map (VerificationVetting.js) keys on TitleCase
+// ('Red'/'Orange'/...), so reformat here rather than push that knowledge
+// into the UI. Falls back to 'Orange' — same default as before this was wired
+// up — for the ~25% of rows with no computed tier, or the live-CTE fallback
+// path which doesn't compute one at all.
+const KNOWN_RISK_TIERS = new Set(['RED', 'ORANGE', 'BLUE', 'BLACK', 'PINK', 'GREEN']);
+const formatRiskTier = (tier) => {
+  const upper = String(tier || '').trim().toUpperCase();
+  if (!KNOWN_RISK_TIERS.has(upper)) return 'Orange';
+  return upper.charAt(0) + upper.slice(1).toLowerCase();
+};
+
 export const mapCctnsRowToSuspect = (row, categoryKey, confidenceOverride = null) => {
   const category = CCTNS_MATCH_CATEGORIES[categoryKey] || CCTNS_MATCH_CATEGORIES.fuzzy;
   const confidence =
@@ -115,7 +137,7 @@ export const mapCctnsRowToSuspect = (row, categoryKey, confidenceOverride = null
     firDate: formatDate(row.fir_date),
     courtName: row.court_name || row.police_station || '—',
     convDate: '—',
-    riskTier: 'Orange',
+    riskTier: formatRiskTier(row.highest_risk_tier),
     source: 'CCTNS',
     sourceType: 'cctns',
     priority: category.priorityLabel,
@@ -156,84 +178,27 @@ const isTimeoutError = (error) => {
   return text.includes('timeout') || text.includes('timed out') || text.includes('sockettimeout');
 };
 
-/** Live CTE matching the materialized view — used when MV is unavailable */
-const LIVE_ACCUSED_SEARCH_FROM = Prisma.raw(`(
-  WITH accused_latest AS (
-    SELECT DISTINCT ON (p.person_id)
-      p.person_id AS offender_id,
-      p.full_name AS offender_name,
-      p.alias AS offender_alias,
-      NULL::date AS date_of_birth,
-      p.age,
-      p.father_husband_name AS father_name,
-      NULL::text AS phone_number,
-      NULL::text AS phone_numbers,
-      a.accused_status,
-      c.fir_num,
-      c.fir_reg_num,
-      c.fir_date,
-      c.acts_sections,
-      c.crime_type,
-      c.court_name,
-      h.ps_name AS police_station,
-      lower(regexp_replace(
-        p.full_name,
-        '\\s+', ' ', 'g'
-      )) AS search_name_norm,
-      right(regexp_replace('', '\\D', '', 'g'), 10) AS search_phone_norm
-    FROM cctns_etl.accused a
-    JOIN cctns_etl.persons p ON a.person_id = p.person_id
-    JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
-    LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
-    ORDER BY p.person_id, c.fir_date DESC NULLS LAST
-  ),
-  fpb_latest AS (
-    SELECT DISTINCT ON (person_id)
-      person_id,
-      phone_number,
-      dob,
-      NULL::text AS father_husband_name,
-      NULL::text AS aadhaar_or_other_id_number
-    FROM cctns_etl.fpb_accused
-    WHERE person_id IS NOT NULL
-    ORDER BY person_id, date_fetched DESC NULLS LAST
-  )
-  SELECT
-    ac.offender_id,
-    ac.offender_name,
-    ac.offender_alias,
-    ac.date_of_birth,
-    ac.age,
-    ac.father_name,
-    ac.phone_number,
-    ac.phone_numbers,
-    ac.accused_status,
-    ac.fir_num,
-    ac.fir_reg_num,
-    ac.fir_date,
-    ac.acts_sections,
-    ac.crime_type,
-    ac.court_name,
-    ac.police_station,
-    ac.search_name_norm,
-    ac.search_phone_norm,
-    COALESCE(f.phone_number, ac.phone_number) AS match_phone,
-    COALESCE(f.dob, ac.date_of_birth) AS match_dob,
-    COALESCE(f.father_husband_name, ac.father_name) AS match_father_name,
-    f.aadhaar_or_other_id_number AS match_aadhaar,
-    right(regexp_replace(
-      COALESCE(f.phone_number, ac.phone_number, ac.phone_numbers, ''), '\\D', '', 'g'
-    ), 10) AS match_phone_norm
-  FROM accused_latest ac
-  LEFT JOIN fpb_latest f ON f.person_id = ac.offender_id
-)`);
-
-let preferLiveFallback = false;
+// Prefer the materialized view (fast, indexed); fall back to the plain view
+// (always live, no build/refresh needed) if the MV isn't built yet — same
+// pg_matviews-check-and-cache pattern as getActiveView() in
+// police.controller.js and getEpettyView() in epetty.service.js. Both views
+// expose identical column names (see db/clearance_accused_search_view.sql),
+// so nothing downstream needs to know which one is active.
+let clearanceViewReady = false;
+const getClearanceView = async () => {
+  if (clearanceViewReady) return Prisma.raw(CLEARANCE_ACCUSED_MV);
+  try {
+    const res = await prisma.$queryRaw`SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_clearance_accused_search'`;
+    if (res && res.length > 0) {
+      clearanceViewReady = true;
+      return Prisma.raw(CLEARANCE_ACCUSED_MV);
+    }
+  } catch (e) {}
+  return Prisma.raw(CLEARANCE_ACCUSED_V);
+};
 
 const runAccusedSearch = async (whereClause, orderClause = Prisma.empty, limit = 10, { fuzzy = false, normName = '' } = {}) => {
-  const fromSource = preferLiveFallback
-    ? LIVE_ACCUSED_SEARCH_FROM
-    : Prisma.raw(CLEARANCE_ACCUSED_MV);
+  const fromSource = await getClearanceView();
 
   if (fuzzy) {
     return prisma.$queryRaw`
@@ -256,27 +221,12 @@ const runAccusedSearch = async (whereClause, orderClause = Prisma.empty, limit =
   `;
 };
 
-const runWithMvFallback = async (queryFn) => {
-  try {
-    return await queryFn();
-  } catch (error) {
-    if (!preferLiveFallback && isMvMissingError(error)) {
-      console.warn('[CCTNS] mv_clearance_accused_search unavailable — falling back to live accused/persons query.');
-      preferLiveFallback = true;
-      return queryFn();
-    }
-    throw error;
-  }
-};
-
 const searchHigh = (normName, normPhone) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      src.search_name_norm LIKE ${'%' + normName + '%'}
-      AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
-      AND src.match_phone_norm <> ''
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    src.search_name_norm LIKE ${'%' + normName + '%'}
+    AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
+    AND src.match_phone_norm <> ''
+  `);
 
 const fatherNormSql = (normFather) => Prisma.sql`
   lower(regexp_replace(COALESCE(src.match_father_name, ''), '\\s+', ' ', 'g')) LIKE ${'%' + normFather + '%'}
@@ -284,61 +234,45 @@ const fatherNormSql = (normFather) => Prisma.sql`
 `;
 
 const searchNamePhoneFather = (normName, normPhone, normFather) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      src.search_name_norm LIKE ${'%' + normName + '%'}
-      AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
-      AND src.match_phone_norm <> ''
-      AND ${fatherNormSql(normFather)}
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    src.search_name_norm LIKE ${'%' + normName + '%'}
+    AND src.match_phone_norm LIKE ${'%' + normPhone + '%'}
+    AND src.match_phone_norm <> ''
+    AND ${fatherNormSql(normFather)}
+  `);
 
 const searchNameFather = (normName, normFather) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      src.search_name_norm LIKE ${'%' + normName + '%'}
-      AND ${fatherNormSql(normFather)}
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    src.search_name_norm LIKE ${'%' + normName + '%'}
+    AND ${fatherNormSql(normFather)}
+  `);
 
 const searchPhoneFather = (normPhone, normFather) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      src.match_phone_norm LIKE ${'%' + normPhone + '%'}
-      AND length(src.match_phone_norm) >= 7
-      AND ${fatherNormSql(normFather)}
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    src.match_phone_norm LIKE ${'%' + normPhone + '%'}
+    AND length(src.match_phone_norm) >= 7
+    AND ${fatherNormSql(normFather)}
+  `);
 
 const searchFather = (normFather) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`${fatherNormSql(normFather)}`)
-  );
+  runAccusedSearch(Prisma.sql`${fatherNormSql(normFather)}`);
 
 const searchMedium = (normName) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`src.search_name_norm LIKE ${'%' + normName + '%'}`)
-  );
+  runAccusedSearch(Prisma.sql`src.search_name_norm LIKE ${'%' + normName + '%'}`);
 
 const searchLow = (normPhone) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      src.match_phone_norm LIKE ${'%' + normPhone + '%'}
-      AND length(src.match_phone_norm) >= 7
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    src.match_phone_norm LIKE ${'%' + normPhone + '%'}
+    AND length(src.match_phone_norm) >= 7
+  `);
 
 const searchAadhaar = (normAadhaar) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.sql`
-      regexp_replace(COALESCE(src.match_aadhaar, ''), '\\D', '', 'g') = ${normAadhaar}
-    `)
-  );
+  runAccusedSearch(Prisma.sql`
+    regexp_replace(COALESCE(src.match_aadhaar, ''), '\\D', '', 'g') = ${normAadhaar}
+  `);
 
 const searchFallback = (normName) =>
-  runWithMvFallback(() =>
-    runAccusedSearch(Prisma.empty, Prisma.empty, 10, { fuzzy: true, normName })
-  );
+  runAccusedSearch(Prisma.empty, Prisma.empty, 10, { fuzzy: true, normName });
 
 const buildOutcome = (rows, categoryKey) => {
   const category = CCTNS_MATCH_CATEGORIES[categoryKey];
@@ -401,14 +335,27 @@ export const searchCctnsCandidate = async ({
   try {
     if (normAadhaar) {
       const rows = await searchAadhaar(normAadhaar);
-      if (rows.length > 0) return buildOutcome(rows, 'aadhaar');
+      if (rows.length > 0) {
+        // Aadhaar number is a unique government ID, but the record it's
+        // attached to could still carry a mismatched/misspelled name (data
+        // entry noise) — only stamp the full 100% "corroborated" confidence
+        // when the candidate's provided name also matches this same record.
+        if (normName) {
+          const aadhaarNameOutcome = buildOutcome(rows, 'aadhaar_name');
+          aadhaarNameOutcome.matches = postFilterMatches(aadhaarNameOutcome.matches, { normName });
+          if (aadhaarNameOutcome.matches.length > 0) return aadhaarNameOutcome;
+        }
+        // Aadhaar matched but the name didn't corroborate (or wasn't provided)
+        // — still surface it, just at the lower aadhaar-only confidence.
+        return buildOutcome(rows, 'aadhaar');
+      }
     }
 
     const checkAndReturn = (rows, categoryKey) => {
       const outcome = buildOutcome(rows, categoryKey);
       const category = CCTNS_MATCH_CATEGORIES[categoryKey];
       const filterCriteria = {};
-      
+
       if (category.params.includes('name')) filterCriteria.normName = normName;
       if (category.params.includes('phone')) filterCriteria.normPhone = normPhone;
       if (category.params.includes('father')) filterCriteria.normFather = normFather;
@@ -491,7 +438,9 @@ export const searchCctnsCandidate = async ({
     if (isTimeoutError(error)) {
       lookupError = 'CCTNS database timed out. Check network connectivity to the Postgres host used by DATABASE_URL.';
     } else if (isMvMissingError(error)) {
-      lookupError = 'CCTNS search view/tables unavailable. Confirm accused/persons exist and optionally recreate mv_clearance_accused_search.';
+      // getClearanceView() already falls back mv_clearance_accused_search -> v_clearance_accused_search
+      // proactively, so reaching this means BOTH are gone — confirm the source tables/mv_offender_details exist.
+      lookupError = 'CCTNS search view/tables unavailable. Confirm cctns_etl.accused/persons and mv_offender_details exist, and recreate v_clearance_accused_search / mv_clearance_accused_search from db/clearance_accused_search_view.sql.';
     }
 
     return {

@@ -13,6 +13,22 @@ import logger from '../utils/logger.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const parseInputDate = (dobInput) => {
+  if (!dobInput) return null;
+  if (dobInput instanceof Date) return isNaN(dobInput.getTime()) ? null : dobInput;
+  const str = String(dobInput).trim();
+  
+  // Handle DD-MM-YYYY or DD/MM/YYYY
+  if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
+    const [day, month, year] = str.split(/[-/]/).map(Number);
+    const parsed = new Date(year, month - 1, day);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  const parsed = new Date(str);
+  return isNaN(parsed.getTime()) ? null : parsed;
+};
+
 export const submitVerification = async (req, res) => {
   try {
     const {
@@ -20,8 +36,13 @@ export const submitVerification = async (req, res) => {
       dob, phone, consent, fatherName, aadharNumber, address
     } = req.body;
 
-    if (!candidate || !dob || !phone || !role || consent !== 'true' && consent !== true) {
+    if (!candidate || !dob || !phone || !role || (consent !== 'true' && consent !== true)) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    const parsedDob = parseInputDate(dob);
+    if (!parsedDob) {
+      return res.status(400).json({ success: false, message: 'Invalid Date of Birth format. Please provide a valid date.' });
     }
 
     const candidateImageFile = req.files?.['candidateImage']?.[0];
@@ -53,7 +74,7 @@ export const submitVerification = async (req, res) => {
         role: role,
         candidateName: candidate,
         fatherName: fatherName || null,
-        dob: new Date(dob),
+        dob: parsedDob,
         phone: phone,
         consent: consent === 'true' || consent === true,
         aadharNumber: aadharNumber || null,

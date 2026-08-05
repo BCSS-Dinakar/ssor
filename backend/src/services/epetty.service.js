@@ -1,25 +1,30 @@
 
 import prisma from '../config/db.js';
 
+// The "list" view has no father_name/occupation-less-restricted columns for
+// filtering — buildSearchSteps() below generates steps keyed on father name,
+// occupation, and PS name too, so verification search must run against the
+// "details" view, which is the only one carrying father_name (99.97% filled)
+// and offender_sex/full address alongside occupation and ps_name.
 let epettyMvReady = false;
 async function getEpettyView() {
-  if (epettyMvReady) return 'public.mv_e_cases_list';
+  if (epettyMvReady) return 'public.mv_e_cases_details';
   try {
-    const res = await prisma.$queryRaw`SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_e_cases_list'`;
+    const res = await prisma.$queryRaw`SELECT 1 FROM pg_matviews WHERE matviewname = 'mv_e_cases_details'`;
     if (res && res.length > 0) {
       epettyMvReady = true;
-      return 'public.mv_e_cases_list';
+      return 'public.mv_e_cases_details';
     }
   } catch (e) {}
-  return 'public.v_e_cases_list';
+  return 'public.v_e_cases_details';
 }
 
 export const fetchEpettyFromDb = async (filters) => {
   const viewName = await getEpettyView();
-  
+
   let whereClauses = [];
   let params = [];
-  
+
   if (filters.offdrName) {
     whereClauses.push(`offender_name ILIKE $${params.length + 1}`);
     params.push(`%${filters.offdrName}%`);
@@ -28,28 +33,48 @@ export const fetchEpettyFromDb = async (filters) => {
     whereClauses.push(`offender_mobile LIKE $${params.length + 1}`);
     params.push(`%${filters.offdrMobileNo}%`);
   }
+  if (filters.offrFName) {
+    whereClauses.push(`father_name ILIKE $${params.length + 1}`);
+    params.push(`%${filters.offrFName}%`);
+  }
+  if (filters.offrOccupation) {
+    whereClauses.push(`offender_occupation ILIKE $${params.length + 1}`);
+    params.push(`%${filters.offrOccupation}%`);
+  }
+  if (filters.psName) {
+    whereClauses.push(`ps_name ILIKE $${params.length + 1}`);
+    params.push(`%${filters.psName}%`);
+  }
   if (filters.ecaseNo) {
     whereClauses.push(`case_number ILIKE $${params.length + 1}`);
     params.push(`%${filters.ecaseNo}%`);
   }
-  
+
   if (whereClauses.length === 0) return [];
-  
+
   const whereSql = whereClauses.join(' AND ');
   const query = `SELECT * FROM ${viewName} WHERE ${whereSql} LIMIT 50`;
-  
+
   const results = await prisma.$queryRawUnsafe(query, ...params);
-  
-  return results.map(r => ({
+
+  // Standardize immediately so every downstream consumer (postFilterMatches,
+  // dedupeRecords, and the suspect mapping in police.controller.js) sees one
+  // consistent field shape (name/phone/recordId/offence/...). Previously this
+  // returned ad-hoc DB-column-named fields (offenderName/offdrMobileNo/...)
+  // that none of those consumers actually read, which silently broke matching
+  // end-to-end — see postFilterMatches below.
+  return results.map(r => standardizeEpettyRecord({
     ecaseNo: r.case_number,
     unitName: r.unit_name,
     psName: r.ps_name,
     incidentDate: r.offence_date,
     offenderName: r.offender_name,
+    fatherName: r.father_name,
+    sex: r.offender_sex,
     age: r.offender_age,
     offdrMobileNo: r.offender_mobile,
     occupation: r.offender_occupation,
-    address: r.offender_address,
+    address: r.offender_address || r.present_address,
     sectionName: r.act_section,
     caseStatus: r.disposal_type
   }));
@@ -181,23 +206,41 @@ const isNameMatch = (searchStr, recordStr) => {
 
 // The external ePetty API frequently returns the same case row multiple times.
 // Collapse exact duplicates so the UI never renders repeated records.
+//
+// Keys here match standardizeEpettyRecord()'s output shape (recordId/name/
+// phone/fatherName/offence) — fetchEpettyFromDb() now standardizes every row
+// before returning it, so this and postFilterMatches below finally see the
+// same field names police.controller.js's suspect mapping already expects.
+// Previously fetchEpettyFromDb returned raw DB-column-named fields
+// (offenderName/offdrMobileNo/...) that these checks never matched, which
+// silently discarded every real match — see postFilterMatches.
+const recordIdentityKey = (record) => [
+  record.recordId,
+  record.name,
+  record.phone,
+  record.fatherName,
+  record.incidentDate,
+  record.offence
+].map((v) => (v == null ? '' : String(v).trim().toLowerCase())).join('::');
+
 const dedupeRecords = (records = []) => {
   const seen = new Set();
   return records.filter((record) => {
-    const key = [
-      record.recordId,
-      record.name,
-      record.phone,
-      record.fatherName,
-      record.incidentDate,
-      record.offence
-    ].map((v) => (v == null ? '' : String(v).trim().toLowerCase())).join('::');
+    const key = recordIdentityKey(record);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 };
 
+// NOTE: field names here (name/phone) are standardizeEpettyRecord()'s output
+// shape, not the request-filter key names. Before fetchEpettyFromDb started
+// standardizing its rows, these read record.name/record.phone against
+// objects that never had those keys — so any step with a name or phone
+// filter (the high-priority steps buildSearchSteps tries first, i.e. almost
+// every real search) had every one of its rows silently discarded here,
+// regardless of what SQL found. Only father/occupation/case-number-only
+// steps ever survived.
 const postFilterMatches = (matches, filters) => {
   return matches.filter(record => {
     // Ensure the record name strictly includes the requested search name, allowing initials to match full words
@@ -279,10 +322,12 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
 
   const steps = buildSearchSteps({ name, phone, father, occupation: role, customFilters: extraFilters });
 
+  // Cascade: try steps strongest-first, return as soon as one has matches.
+  // Weaker steps never run once a stronger one hits.
   for (const step of steps) {
     const { matches, lookupError } = await runLookup(step.filters);
     if (lookupError) return unavailable(lookupError);
-    
+
     // The external API often returns very broad matches.
     // We post-filter locally to ensure the records strictly match the requested criteria (e.g. exactly 'sai kiran').
     const strictMatches = dedupeRecords(postFilterMatches(matches, step.filters));
