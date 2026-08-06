@@ -400,22 +400,6 @@ export const getDashboardStats = async (req, res) => {
       where: { ...baseWhere, status: 'rejected' }
     });
 
-    if (req.user.role === 'DISTRICT_USER') {
-      return res.status(200).json({
-        success: true,
-        data: {
-          clearPending,
-          clearApproved,
-          clearRejected,
-          totalOffenders: 0,
-          convictedCount: 0,
-          underTrialCount: 0,
-          byTier: [],
-          sectionData: []
-        }
-      });
-    }
-
     const totalResult = await prisma.$queryRaw`SELECT count(*) as total FROM public.${OFFENDERS_LIST_VIEW}`;
     const totalOffenders = Number(totalResult[0]?.total || 0);
 

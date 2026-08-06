@@ -15,6 +15,7 @@ WITH LatestOffences AS (
         c.fir_date AS offence_date,
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
+        h.dist_code AS dist_code,
         risk.tier AS risk_tier
     FROM cctns_etl.accused a
     JOIN cctns_etl.persons p ON a.person_id = p.person_id
@@ -40,6 +41,7 @@ ORDER BY offence_date DESC;
 -- 2. STANDARD VIEW
 -- =============================================================================
 
+DROP VIEW IF EXISTS v_offenders_list CASCADE;
 CREATE OR REPLACE VIEW v_offenders_list AS
 WITH LatestOffences AS (
     SELECT DISTINCT ON (p.person_id)
@@ -50,6 +52,7 @@ WITH LatestOffences AS (
         c.fir_date AS offence_date,
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
+        h.dist_code AS dist_code,
         risk.tier AS risk_tier
     FROM cctns_etl.accused a
     JOIN cctns_etl.persons p ON a.person_id = p.person_id
@@ -84,6 +87,7 @@ WITH LatestOffences AS (
         c.fir_date AS offence_date,
         c.crime_type AS primary_offence,
         h.ps_name AS police_station,
+        h.dist_code AS dist_code,
         risk.tier AS risk_tier
     FROM cctns_etl.accused a
     JOIN cctns_etl.persons p ON a.person_id = p.person_id
