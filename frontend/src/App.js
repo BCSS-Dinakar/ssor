@@ -11,6 +11,7 @@ import VerifyCertificate from './pages/VerifyCertificate';
 
 import PortalIndex from './pages/portal/PortalIndex';
 import Profile from './pages/portal/Profile';
+import Settings from './pages/portal/Settings';
 
 import RegistryDatabase from './pages/portal/police/RegistryDatabase';
 import EpettyRegistry from './pages/portal/police/EpettyRegistry';
@@ -26,6 +27,8 @@ import SupportTickets from './pages/portal/police/SupportTickets';
 
 import SystemAuditLog from './pages/portal/police/SystemAuditLog';
 import UserGuide from './pages/portal/police/UserGuide';
+import UserManagement from './pages/portal/admin/UserManagement';
+import DistrictManagement from './pages/portal/admin/DistrictManagement';
 import OrgUserGuide from './pages/portal/organization/OrgUserGuide';
 
 import SubmitVerification from './pages/portal/organization/SubmitVerification';
@@ -64,9 +67,12 @@ function App() {
             {/* Shared */}
             <Route path="profile" element={<Profile />} />
             <Route path="tiers" element={<RiskTierGuide />} />
+            <Route element={<RoleProtectedRoute allowedRoles={['STATE_ADMIN', 'DISTRICT_USER']} />}>
+              <Route path="settings" element={<Settings />} />
+            </Route>
 
-            {/* Police Only Routes */}
-            <Route element={<RoleProtectedRoute allowedRoles={['police']} />}>
+            {/* Police & Admin Routes */}
+            <Route element={<RoleProtectedRoute allowedRoles={['police', 'STATE_ADMIN', 'DISTRICT_USER']} />}>
               <Route path="register" element={<RegistryDatabase />} />
               <Route path="register/:id" element={<OffenderDetail />} />
               <Route path="epetty-register" element={<EpettyRegistry />} />
@@ -80,6 +86,12 @@ function App() {
               <Route path="tickets" element={<SupportTickets />} />
               <Route path="audit" element={<SystemAuditLog />} />
               <Route path="police-guide" element={<UserGuide />} />
+            </Route>
+
+            {/* State Admin Only Routes */}
+            <Route element={<RoleProtectedRoute allowedRoles={['STATE_ADMIN']} />}>
+              <Route path="admin/users" element={<UserManagement />} />
+              <Route path="admin/districts" element={<DistrictManagement />} />
             </Route>
 
             {/* Organization Only Routes */}

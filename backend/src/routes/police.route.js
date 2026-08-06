@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { requireAuth, requirePolice } from '../middleware/auth.middleware.js';
+import { requireAuth, requireRoles } from '../middleware/auth.middleware.js';
 import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDocumentSignedUrl, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, getOffendersStats, generateVerificationReport, getEpettyRegistryList, getEpettyRegistryById, getEpettyRegistryStats } from '../controllers/police.controller.js';
 
 const router = Router();
 
 router.use(requireAuth);
-router.use(requirePolice);
+router.use(requireRoles(['STATE_ADMIN', 'DISTRICT_USER', 'police']));
 
 router.get('/dashboard', getDashboardStats);
 router.get('/offenders', getOffendersList);

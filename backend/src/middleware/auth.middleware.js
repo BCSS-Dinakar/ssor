@@ -15,7 +15,7 @@ export const requireAuth = async (req, res, next) => {
     // Verify user exists and is approved
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, role: true, status: true }
+      select: { id: true, role: true, status: true, distCode: true }
     });
 
     if (!user) {
@@ -33,10 +33,12 @@ export const requireAuth = async (req, res, next) => {
   }
 };
 
-export const requirePolice = (req, res, next) => {
-  if (req.user && req.user.role === 'police') {
-    next();
-  } else {
-    res.status(403).json({ success: false, message: 'Forbidden. Police access only.' });
-  }
+export const requireRoles = (allowedRoles) => {
+  return (req, res, next) => {
+    if (req.user && allowedRoles.includes(req.user.role)) {
+      next();
+    } else {
+      res.status(403).json({ success: false, message: 'Forbidden. Insufficient permissions.' });
+    }
+  };
 };

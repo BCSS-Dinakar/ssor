@@ -1,12 +1,13 @@
 import express from 'express';
 import crypto from 'crypto';
 import { env } from '../config/env.js';
-import { requireAuth, requirePolice } from '../middleware/auth.middleware.js';
+import { requireAuth, requireRoles } from '../middleware/auth.middleware.js';
+import { processReleaseBatch } from '../services/release-alert.service.js';
 
 const router = express.Router();
 
 router.use(requireAuth);
-router.use(requirePolice);
+router.use(requireRoles(['STATE_ADMIN', 'DISTRICT_USER', 'police']));
 
 // AES payload key for the NIC ePrisons releases API — must be provided via
 // .env (PRIVATE_KEY). No hardcoded fallback: live fetches are skipped when unset.
@@ -209,6 +210,8 @@ router.post('/releases', async (req, res) => {
                             status: 'Released / Alert Active',
                             riskTier: idx % 2 === 0 ? 'Red' : 'Orange'
                         }));
+                        // Trigger WhatsApp alerts (non-blocking)
+                        processReleaseBatch(allRecords);
                         return res.json({ status: true, data: allRecords, jails: targetJails });
                     }
                 }
@@ -303,6 +306,8 @@ router.post('/releases', async (req, res) => {
             });
         });
 
+        // Trigger WhatsApp alerts for simulated records (non-blocking)
+        processReleaseBatch(allRecords);
         return res.json({ status: true, data: allRecords, jails: targetJails });
     } catch (e) {
         return res.status(500).json({ status: false, message: e.message });

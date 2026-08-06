@@ -39,7 +39,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Login ID, password, and role are required.' });
     }
 
-    if (!['police', 'organization'].includes(role)) {
+    if (!['STATE_ADMIN', 'DISTRICT_USER', 'police', 'organization'].includes(role)) {
       cleanupFiles(req.files);
       return res.status(400).json({ success: false, message: 'Invalid role.' });
     }
@@ -59,8 +59,11 @@ export const register = async (req, res) => {
       role,
     };
 
-    if (role === 'police') {
-      userData.status = 'approved'; // Police are auto-approved for now
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(role)) {
+      userData.status = 'approved'; // Police/Admins are auto-approved for now
+      if (role === 'DISTRICT_USER' && req.body.distCode) {
+        userData.distCode = req.body.distCode;
+      }
       const { name, badgeId, rank, empId, department, wing, jurisdiction, joiningDate, email, mobile, altPhone, station, district, state, country, clearanceLevel } = req.body;
       if (!name) {
         cleanupFiles(req.files);
@@ -96,6 +99,14 @@ export const register = async (req, res) => {
         }
       }
 
+      // Look up distCode for the organization to enforce district-level access control
+      const districtMatch = await prisma.district.findFirst({
+        where: { distName: { equals: district, mode: 'insensitive' } }
+      });
+      if (districtMatch) {
+        userData.distCode = districtMatch.distCode;
+      }
+
       userData.organizationProfile = {
         create: {
           orgName, orgType, parentOrg, department, jurisdiction, country, state, district, city, address, pinCode, officialEmail, officialPhone, altPhone, website, adminName, designation, empId, adminEmail, mobile,
@@ -114,7 +125,7 @@ export const register = async (req, res) => {
 
     const { passwordHash: ph, ...userProfile } = newUser;
     // Format response to have a top level name depending on role
-    if (userProfile.role === 'police' && userProfile.policeProfile) {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(userProfile.role) && userProfile.policeProfile) {
       userProfile.name = userProfile.policeProfile.name;
     } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
       userProfile.name = userProfile.organizationProfile.adminName;
@@ -139,7 +150,11 @@ export const login = async (req, res) => {
       where: { loginId },
       include: { policeProfile: true, organizationProfile: true }
     });
-    if (!user || user.role !== role) {
+
+    const isInternalRole = ['police', 'STATE_ADMIN', 'DISTRICT_USER'].includes(user?.role);
+    const isValidRole = role === 'police' ? isInternalRole : (user?.role === role);
+
+    if (!user || !isValidRole) {
       return res.status(401).json({ success: false, message: 'Invalid credentials or role mismatch.' });
     }
 
@@ -157,7 +172,7 @@ export const login = async (req, res) => {
     res.cookie('token', token, COOKIE_OPTIONS);
 
     const { passwordHash, ...userProfile } = user;
-    if (userProfile.role === 'police' && userProfile.policeProfile) {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(userProfile.role) && userProfile.policeProfile) {
       userProfile.name = userProfile.policeProfile.name;
       userProfile.clearance = userProfile.policeProfile.clearanceLevel || userProfile.policeProfile.rank || 'Police Officer';
     } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
@@ -228,7 +243,7 @@ export const getMe = async (req, res) => {
       if (o.supportingDocsMediaIds) docKeys.push(...o.supportingDocsMediaIds);
     }
 
-    if (userProfile.policeProfile) {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(userProfile.role) && userProfile.policeProfile) {
       const p = userProfile.policeProfile;
       userProfile.name = p.name;
       userProfile.clearance = p.clearanceLevel || p.rank || 'Police Officer';
@@ -311,7 +326,7 @@ export const requestLoginOtp = async (req, res) => {
     }
 
     let mobile = null;
-    if (role === 'police' && user.policeProfile) {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(role) && user.policeProfile) {
       mobile = user.policeProfile.mobile;
     } else if (role === 'organization' && user.organizationProfile) {
       mobile = user.organizationProfile.mobile;
@@ -385,7 +400,7 @@ export const verifyLoginOtp = async (req, res) => {
     res.cookie('token', token, COOKIE_OPTIONS);
 
     const { passwordHash, ...userProfile } = user;
-    if (userProfile.role === 'police' && userProfile.policeProfile) {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(userProfile.role) && userProfile.policeProfile) {
       userProfile.name = userProfile.policeProfile.name;
       userProfile.clearance = userProfile.policeProfile.clearanceLevel || userProfile.policeProfile.rank || 'Police Officer';
     } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
@@ -396,7 +411,7 @@ export const verifyLoginOtp = async (req, res) => {
     const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
     try {
       let mobile = null;
-      if (userProfile.role === 'police' && userProfile.policeProfile) {
+      if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(userProfile.role) && userProfile.policeProfile) {
         mobile = userProfile.policeProfile.mobile;
       } else if (userProfile.role === 'organization' && userProfile.organizationProfile) {
         mobile = userProfile.organizationProfile.mobile;
@@ -426,7 +441,7 @@ export const recoverRequest = async (req, res) => {
     }
 
     let user = null;
-    if (role === 'police') {
+    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(role)) {
       const profile = await prisma.policeProfile.findFirst({ where: { mobile } });
       if (profile) user = await prisma.user.findUnique({ where: { id: profile.userId } });
     } else if (role === 'organization') {

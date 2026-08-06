@@ -26,6 +26,12 @@ export async function send(payload) {
     throw new Error("Missing WHATSAPP_TOKEN in .env");
   }
 
+  let to = String(payload.to).replace(/\D/g, '');
+  if (to.length === 10) {
+    to = '91' + to;
+  }
+  payload.to = to;
+
   const res = await fetch(getApiUrl(), {
     method: "POST",
     headers: {

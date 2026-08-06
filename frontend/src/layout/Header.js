@@ -33,7 +33,11 @@ function Header({ onMenu }) {
       .sort((a, b) => b.path.length - a.path.length)[0];
   }
 
-  const roleName = auth?.role === 'police' ? 'Police' : 'Organization';
+  // Internal (police-facing) roles share the "Officer" identity used across portalData.js labels
+  // (e.g. "Officer Profile"), mirroring the isInternalRole grouping used server-side in auth.controller.js.
+  const isInternalRole = ['police', 'STATE_ADMIN', 'DISTRICT_USER'].includes(auth?.role);
+  const ROLE_LABELS = { police: 'Police', organization: 'Organization', STATE_ADMIN: 'State Admin', DISTRICT_USER: 'District' };
+  const roleName = ROLE_LABELS[auth?.role] || 'Portal';
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-3 shadow-panel sm:px-5">
@@ -79,7 +83,7 @@ function Header({ onMenu }) {
             <div className="hidden text-left sm:block">
               <div className="font-heading text-sm font-bold leading-tight text-primary">{auth?.name}</div>
               <div className="mt-0.5 text-xs font-medium text-muted">
-                {auth?.clearance || (auth?.role === 'police' ? 'Officer' : 'Organization')}
+                {auth?.clearance || (isInternalRole ? 'Officer' : 'Organization')}
               </div>
             </div>
             <ChevronDown className="hidden h-4 w-4 text-slate-400 sm:block" aria-hidden="true" />

@@ -9,6 +9,7 @@ import {
   UserCircle,
   BookOpen,
   Award,
+  Settings,
 } from 'lucide-react';
 
 // Risk tiers (from the concept note + prototype)
@@ -62,11 +63,51 @@ export const NAV = {
     { section: 'Account' },
     { id: 'profile', label: 'Officer Profile', desc: 'Your officer credentials', icon: UserCircle, path: '/portal/profile' },
   ],
+  STATE_ADMIN: [
+    { id: 'overview', label: 'Dashboard', desc: 'Register metrics and queues', icon: LayoutDashboard, path: '/portal' },
+    { section: 'Register' },
+    { id: 'register', label: 'CCTNS Registry', desc: 'Search disclosable offender records', icon: Database, path: '/portal/register' },
+    { id: 'epetty-register', label: 'E-petty Registry', desc: 'Search e-petty cases and records', icon: Database, path: '/portal/epetty-register' },
+    { id: 'tiers', label: 'Risk Tier Guide', desc: 'Offender classification reference', icon: BookOpen, path: '/portal/tiers' },
+    { section: 'Clearances' },
+    { id: 'clearances', label: 'Pending Clearances', desc: 'Process candidate clearance requests', icon: FileCheck, path: '/portal/clearances', badge: 'clearPending' },
+    { id: 'clearance-history', label: 'Clearance History', desc: 'Completed clearance decisions', icon: ClipboardList, path: '/portal/clearance-history' },
+    { id: 'org-verify', label: 'Organization Approvals', desc: 'Approve portal access for organizations', icon: ClipboardList, path: '/portal/org-verify' },
+    { id: 'tickets', label: 'Support Tickets', desc: 'Organization inquiries and support', icon: MessageSquare, path: '/portal/tickets' },
+    { section: 'Oversight' },
+    { id: 'audit', label: 'System Audit Log', desc: 'Immutable record of system access', icon: ShieldCheck, path: '/portal/audit' },
+    { section: 'Help' },
+    { id: 'guide', label: 'User Guide', desc: 'Registry process and flows', icon: BookOpen, path: '/portal/police-guide' },
+    { section: 'Account' },
+    { id: 'settings', label: 'Settings', desc: 'Notification preferences', icon: Settings, path: '/portal/settings' },
+    { id: 'profile', label: 'Officer Profile', desc: 'Your officer credentials', icon: UserCircle, path: '/portal/profile' },
+  ],
+  DISTRICT_USER: [
+    { id: 'overview', label: 'Dashboard', desc: 'Register metrics and queues', icon: LayoutDashboard, path: '/portal' },
+    { section: 'Register' },
+    { id: 'register', label: 'CCTNS Registry', desc: 'Search disclosable offender records', icon: Database, path: '/portal/register' },
+    { id: 'epetty-register', label: 'E-petty Registry', desc: 'Search e-petty cases and records', icon: Database, path: '/portal/epetty-register' },
+    { id: 'tiers', label: 'Risk Tier Guide', desc: 'Offender classification reference', icon: BookOpen, path: '/portal/tiers' },
+    { section: 'Clearances' },
+    { id: 'clearances', label: 'Pending Clearances', desc: 'Process candidate clearance requests', icon: FileCheck, path: '/portal/clearances', badge: 'clearPending' },
+    { id: 'clearance-history', label: 'Clearance History', desc: 'Completed clearance decisions', icon: ClipboardList, path: '/portal/clearance-history' },
+    { id: 'org-verify', label: 'Organization Approvals', desc: 'Approve portal access for organizations', icon: ClipboardList, path: '/portal/org-verify' },
+    { id: 'tickets', label: 'Support Tickets', desc: 'Organization inquiries and support', icon: MessageSquare, path: '/portal/tickets' },
+    { section: 'Oversight' },
+    { id: 'audit', label: 'System Audit Log', desc: 'Immutable record of system access', icon: ShieldCheck, path: '/portal/audit' },
+    { section: 'Help' },
+    { id: 'guide', label: 'User Guide', desc: 'Registry process and flows', icon: BookOpen, path: '/portal/police-guide' },
+    { section: 'Account' },
+    { id: 'settings', label: 'Settings', desc: 'Notification preferences', icon: Settings, path: '/portal/settings' },
+    { id: 'profile', label: 'Officer Profile', desc: 'Your officer credentials', icon: UserCircle, path: '/portal/profile' },
+  ],
 };
 
 export const ROLE_META = {
   organization: { kicker: 'Organization Portal', title: 'Institution Console' },
   police: { kicker: 'Police Administration', title: 'Register Console' },
+  STATE_ADMIN: { kicker: 'State HQ', title: 'State Admin Console' },
+  DISTRICT_USER: { kicker: 'District HQ', title: 'District Console' },
 };
 
 export const HELPLINES = [

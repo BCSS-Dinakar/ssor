@@ -4,7 +4,9 @@ import OrganizationDashboard from './organization/OrganizationDashboard';
 
 function PortalIndex() {
   const { auth } = useAuth();
-  if (auth?.role === 'police') return <PoliceDashboard />;
+  if (['police', 'STATE_ADMIN', 'DISTRICT_USER'].includes(auth?.role)) {
+    return <PoliceDashboard />;
+  }
   return <OrganizationDashboard />;
 }
 

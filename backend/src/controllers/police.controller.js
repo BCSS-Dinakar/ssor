@@ -24,7 +24,13 @@ async function getActiveView(mvName, vName) {
 
 export const getLogs = async (req, res) => {
   try {
+    const where = {};
+    if (req.user.role === 'DISTRICT_USER') {
+      where.user = { distCode: req.user.distCode };
+    }
+
     const logs = await prisma.systemAuditLog.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
@@ -53,7 +59,12 @@ export const getLogs = async (req, res) => {
 
 export const getVerifications = async (req, res) => {
   try {
+    const where = {};
+    if (req.user.role === 'DISTRICT_USER') {
+      where.distCode = req.user.distCode;
+    }
     const rows = await prisma.candidateVerification.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
     const data = await withVerificationUrlsList(rows);
@@ -74,6 +85,10 @@ export const getVerificationById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Verification not found' });
     }
 
+    if (req.user.role === 'DISTRICT_USER' && verification.distCode !== req.user.distCode) {
+      return res.status(403).json({ success: false, message: 'Forbidden. This request belongs to a different district.' });
+    }
+
     res.status(200).json({ success: true, data: await withVerificationUrls(verification) });
   } catch (error) {
     logger.error('[getVerificationById Error]', error);
@@ -85,6 +100,18 @@ export const updateVerificationStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, policeFeedback } = req.body;
+
+    const existing = await prisma.candidateVerification.findUnique({
+      where: { id: parseInt(id, 10) }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Verification not found' });
+    }
+
+    if (req.user.role === 'DISTRICT_USER' && existing.distCode !== req.user.distCode) {
+      return res.status(403).json({ success: false, message: 'Forbidden. This request belongs to a different district.' });
+    }
 
     const verification = await prisma.candidateVerification.update({
       where: { id: parseInt(id, 10) },
@@ -113,6 +140,9 @@ export const scanVerificationById = async (req, res) => {
     const verification = await prisma.candidateVerification.findUnique({ where: { id: parseInt(id, 10) } });
     if (!verification) {
       return res.status(404).json({ success: false, message: 'Verification record not found.' });
+    }
+    if (req.user.role === 'DISTRICT_USER' && verification.distCode !== req.user.distCode) {
+      return res.status(403).json({ success: false, message: 'Forbidden. This request belongs to a different district.' });
     }
 
     // Update to mark as processing
@@ -235,6 +265,10 @@ export const generateVerificationReport = async (req, res) => {
     if (!verification) {
       return res.status(404).json({ success: false, message: 'Verification record not found' });
     }
+    if (req.user.role === 'DISTRICT_USER' && verification.distCode !== req.user.distCode) {
+      return res.status(403).json({ success: false, message: 'Forbidden.' });
+    }
+
 
     const report = await generateClearanceReport(verification, status, matchedSuspect);
     res.status(200).json({ success: true, report });
@@ -246,8 +280,12 @@ export const generateVerificationReport = async (req, res) => {
 
 export const getOrganizations = async (req, res) => {
   try {
+    const where = { role: 'organization' };
+    if (req.user.role === 'DISTRICT_USER') {
+      where.distCode = req.user.distCode;
+    }
     const orgs = await prisma.user.findMany({
-      where: { role: 'organization' },
+      where,
       include: { organizationProfile: true },
       orderBy: { createdAt: 'desc' }
     });
@@ -344,9 +382,39 @@ export const getDocumentSignedUrl = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
   try {
     const OFFENDERS_LIST_VIEW = await getActiveView('mv_offenders_list', 'v_offenders_list');
+    
+    const baseWhere = {};
+    if (req.user.role === 'DISTRICT_USER') {
+      baseWhere.distCode = req.user.distCode;
+    }
+
     const clearPending = await prisma.candidateVerification.count({
-      where: { status: 'pending' }
+      where: { ...baseWhere, status: 'pending' }
     });
+    
+    const clearApproved = await prisma.candidateVerification.count({
+      where: { ...baseWhere, status: 'cleared' }
+    });
+    
+    const clearRejected = await prisma.candidateVerification.count({
+      where: { ...baseWhere, status: 'rejected' }
+    });
+
+    if (req.user.role === 'DISTRICT_USER') {
+      return res.status(200).json({
+        success: true,
+        data: {
+          clearPending,
+          clearApproved,
+          clearRejected,
+          totalOffenders: 0,
+          convictedCount: 0,
+          underTrialCount: 0,
+          byTier: [],
+          sectionData: []
+        }
+      });
+    }
 
     const totalResult = await prisma.$queryRaw`SELECT count(*) as total FROM public.${OFFENDERS_LIST_VIEW}`;
     const totalOffenders = Number(totalResult[0]?.total || 0);
@@ -375,6 +443,8 @@ export const getDashboardStats = async (req, res) => {
         convictedCount,
         underTrialCount,
         clearPending,
+        clearApproved,
+        clearRejected,
         byTier,
         sectionData
       }
@@ -388,7 +458,13 @@ export const getDashboardStats = async (req, res) => {
 
 export const getTickets = async (req, res) => {
   try {
+    const where = {};
+    if (req.user.role === 'DISTRICT_USER') {
+      where.organization = { distCode: req.user.distCode };
+    }
+
     const tickets = await prisma.supportTicket.findMany({
+      where,
       include: {
         organization: { select: { organizationProfile: true } },
         messages: { orderBy: { createdAt: 'asc' } }

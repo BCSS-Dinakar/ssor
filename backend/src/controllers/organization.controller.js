@@ -66,6 +66,11 @@ export const submitVerification = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Organization profile not found' });
     }
 
+    // Match organization district name to our District table to get distCode
+    const districtMatch = await prisma.district.findFirst({
+      where: { distName: { equals: orgProfile.district, mode: 'insensitive' } }
+    });
+
     const verification = await prisma.candidateVerification.create({
       data: {
         organizationId: req.user.id,
@@ -79,6 +84,7 @@ export const submitVerification = async (req, res) => {
         consent: consent === 'true' || consent === true,
         aadharNumber: aadharNumber || null,
         address: address || null,
+        distCode: districtMatch?.distCode || null,
         candidateMediaId,
         consentMediaId
       }

@@ -617,29 +617,29 @@ function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/80 to-transparent z-10" />
           <img src="/images/hero-shield.png" alt="" className="w-full h-full object-cover opacity-30 mix-blend-overlay" />
         </div>
-        <div className="relative z-10 p-8 md:p-[6vh] lg:p-[8vh] flex flex-col justify-between h-full min-h-0">
+        <div className="relative z-10 p-6 md:p-[4vh] lg:p-[6vh] flex flex-col justify-between h-full min-h-0">
           <div className="flex-none">
-            <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-base font-medium transition-colors w-max">
+            <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-[clamp(0.75rem,1.5vh,1rem)] font-medium transition-colors w-max">
               <ArrowLeft className="h-4 w-4" />
               Back to home
             </Link>
           </div>
 
           <div className="flex-1 flex flex-col justify-center min-h-0">
-            <div className="inline-flex items-center justify-start gap-[1.5vh] mb-[4vh]">
-              <div className="h-[min(8vh,4rem)] w-[min(8vh,4rem)] overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg shrink-0">
+            <div className="inline-flex items-center justify-start gap-[1vh] mb-[2vh]">
+              <div className="h-[min(6vh,3.5rem)] w-[min(6vh,3.5rem)] overflow-hidden rounded-2xl bg-white/10 p-0.5 shadow-lg shrink-0">
                 <img src="/images/ssor-logo.png" alt="SSOR Logo" className="h-full w-full object-cover rounded-2xl" />
               </div>
-              <span className="text-[clamp(1.5rem,4vh,2.25rem)] font-bold text-white font-heading tracking-tight leading-none">SSOR Portal</span>
+              <span className="text-[clamp(1.25rem,3.5vh,2.25rem)] font-bold text-white font-heading tracking-tight leading-none">SSOR Portal</span>
             </div>
-            <h1 className="text-[clamp(1.5rem,5vh,3rem)] font-bold text-white leading-tight mb-[3vh] font-heading">
+            <h1 className="text-[clamp(1.25rem,4vh,3rem)] font-bold text-white leading-tight mb-[2vh] font-heading">
               Secure, controlled-access sign in.
             </h1>
-            <p className="text-blue-100/90 text-[clamp(0.875rem,2vh,1.125rem)] max-w-md leading-relaxed">
+            <p className="text-blue-100/90 text-[clamp(0.8rem,1.8vh,1.125rem)] max-w-md leading-relaxed">
               Government of Telangana, State Police. Organizations and officers each access the register through their own doorway.
             </p>
 
-            <div className="mt-[5vh] space-y-[2.5vh] max-w-md shrink-0">
+            <div className="mt-[3vh] space-y-[1.5vh] max-w-md shrink-0">
               <div className="flex items-start gap-4">
                 <div className="flex-none h-[clamp(2rem,6vh,2.75rem)] w-[clamp(2rem,6vh,2.75rem)] rounded-xl bg-white/10 border border-white/10 flex items-center justify-center">
                   <ShieldCheck className="h-[50%] w-[50%] text-blue-100" />
@@ -670,7 +670,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="flex-none flex items-center gap-2 text-sm text-blue-200/50 tracking-wide font-semibold mt-12">
+          <div className="flex-none flex items-center gap-2 text-[clamp(0.75rem,1.5vh,0.875rem)] text-blue-200/50 tracking-wide font-semibold mt-[2vh]">
             <Lock className="h-4 w-4" />
             Two roles · Strict access control
           </div>
@@ -695,10 +695,10 @@ function LoginPage() {
              </Link>
           </div>
 
-          <div className="max-w-2xl w-full mx-auto bg-white md:bg-transparent rounded-3xl shadow-2xl md:shadow-none px-5 py-8 sm:px-8 sm:py-10 md:px-[4vw] md:py-[4vh] relative z-10 min-h-0 flex flex-col">
-          <div className="w-full pb-10 lg:pb-0 flex-1 min-h-0 overflow-y-auto md:overflow-visible">
+          <div className="max-w-2xl w-full mx-auto bg-white md:bg-transparent rounded-3xl shadow-2xl md:shadow-none px-5 py-6 sm:px-8 sm:py-8 md:px-[2vw] md:py-[2vh] relative z-10 min-h-0 flex flex-col">
+          <div className="w-full pb-4 lg:pb-0 flex-1 min-h-0 overflow-y-auto hidden-scrollbar">
             {/* Role toggle */}
-            <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-[3vh] shrink-0">
+            <div className="bg-slate-100 rounded-2xl p-1.5 grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-[2vh] shrink-0">
               {ROLES.map((r) => {
                 const active = role === r.id;
                 return (
