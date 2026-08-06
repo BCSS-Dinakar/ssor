@@ -14,13 +14,16 @@ model User {
   role                   String
   status                 String                  @default("pending")
   createdAt              DateTime                @default(now())
+  distCode               String?
   candidateVerifications CandidateVerification[]
   organizationProfile    OrganizationProfile?
   policeProfile          PoliceProfile?
   supportTickets         SupportTicket[]
   auditLogs              SystemAuditLog[]
+  district               District?               @relation(fields: [distCode], references: [distCode])
 
   @@index([role])
+  @@index([distCode])
 }
 
 model SystemAuditLog {
@@ -33,8 +36,8 @@ model SystemAuditLog {
 }
 
 model PoliceProfile {
-  id             Int      @id @default(autoincrement())
-  userId         Int      @unique
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
   name           String
   badgeId        String?
   rank           String?
@@ -51,62 +54,65 @@ model PoliceProfile {
   state          String?
   country        String?
   clearanceLevel String?
-  docsMediaIds   Int[]    // -> Media.id[]
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  docsMediaIds   Int[]
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OrganizationProfile {
-  id                  Int      @id @default(autoincrement())
-  userId              Int      @unique
-  orgName             String
-  orgType             String
-  parentOrg           String?
-  department          String?
-  jurisdiction        String?
-  country             String
-  state               String
-  district            String
-  city                String
-  address             String
-  pinCode             String
-  officialEmail       String
-  officialPhone       String
-  altPhone            String?
-  website             String?
-  adminName           String
-  designation         String
-  empId               String
-  adminEmail          String
-  mobile              String
-  authLetterMediaId      Int?    // -> Media.id
-  govCertMediaId         Int?    // -> Media.id
-  supportingDocsMediaIds Int[]   // -> Media.id[]
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     Int     @id @default(autoincrement())
+  userId                 Int     @unique
+  orgName                String
+  orgType                String
+  parentOrg              String?
+  department             String?
+  jurisdiction           String?
+  country                String
+  state                  String
+  district               String
+  city                   String
+  address                String
+  pinCode                String
+  officialEmail          String
+  officialPhone          String
+  altPhone               String?
+  website                String?
+  adminName              String
+  designation            String
+  empId                  String
+  adminEmail             String
+  mobile                 String
+  authLetterMediaId      Int?
+  govCertMediaId         Int?
+  supportingDocsMediaIds Int[]
+  user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CandidateVerification {
-  id             Int      @id @default(autoincrement())
-  organizationId Int
-  orgName        String
-  orgType        String
-  role           String
-  candidateName  String
-  dob            DateTime
-  fatherName     String?
-  phone          String
-  consent        Boolean
-  aadharNumber   String?
-  address        String?
-  candidateMediaId Int?    // -> Media.id
-  consentMediaId   Int?    // -> Media.id
-  status         String   @default("pending")
-  policeFeedback String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  organization   User     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id               Int       @id @default(autoincrement())
+  organizationId   Int
+  orgName          String
+  orgType          String
+  role             String
+  candidateName    String
+  dob              DateTime
+  fatherName       String?
+  phone            String
+  consent          Boolean
+  aadharNumber     String?
+  address          String?
+  candidateMediaId Int?
+  consentMediaId   Int?
+  status           String    @default("pending")
+  policeFeedback   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  distCode         String?
+  district         District? @relation(fields: [distCode], references: [distCode])
+  organization     User      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([status])
+  @@index([distCode])
 }
 
 model SupportTicket {
@@ -146,8 +152,8 @@ model Media {
   originalName String
   fileType     String?
   fileSize     Int?
-  category     String? // 'candidate_image' | 'consent' | 'auth_letter' | 'gov_cert' | 'supporting_doc' | 'police_doc'
-  store        String   @default("minio") // 'minio' | 'disk' (disk = written during a MinIO outage, pending reconcile)
+  category     String?
+  store        String   @default("minio")
   uploadedBy   String?
   createdAt    DateTime @default(now())
 
@@ -164,4 +170,48 @@ model ssor_kb {
   description   String?
 
   @@unique([act_name, section_code])
+}
+
+model District {
+  distCode             String                        @id
+  distName             String
+  stateCode            String?
+  isActive             Boolean                       @default(true)
+  clearances           CandidateVerification[]
+  notificationSettings DistrictNotificationSettings?
+  notificationHistory  NotificationHistory[]
+  users                User[]
+}
+
+model DistrictNotificationSettings {
+  id                Int      @id @default(autoincrement())
+  distCode          String   @unique
+  primaryWhatsApp   String?
+  secondaryWhatsApp String?
+  alertsEnabled     Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  district          District @relation(fields: [distCode], references: [distCode], onDelete: Cascade)
+
+  @@index([distCode])
+}
+
+model NotificationHistory {
+  id            Int      @id @default(autoincrement())
+  distCode      String
+  prisonerId    String?
+  caseNumber    String?
+  prisonerName  String?
+  policeStation String?
+  prisonName    String?
+  releaseDate   String?
+  recipient     String
+  status        String
+  apiResponse   String?
+  errorMessage  String?
+  sentAt        DateTime @default(now())
+  district      District @relation(fields: [distCode], references: [distCode], onDelete: Cascade)
+
+  @@index([distCode])
+  @@index([sentAt])
 }
