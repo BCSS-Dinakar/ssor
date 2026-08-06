@@ -516,13 +516,13 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
                     <div className="grid grid-cols-3 gap-1 mt-1 text-center">
                       <div className="rounded bg-red-50/80 border border-red-100 py-0.5 text-[10px] font-bold text-red-700">
-                        Red: 8
+                        Red: {stateDistrictTierData[0].value}
                       </div>
                       <div className="rounded bg-orange-50/80 border border-orange-100 py-0.5 text-[10px] font-bold text-orange-700">
-                        Orange: 15
+                        Orange: {stateDistrictTierData[1].value}
                       </div>
                       <div className="rounded bg-emerald-50/80 border border-emerald-100 py-0.5 text-[10px] font-bold text-emerald-700">
-                        Green: 10
+                        Green: {stateDistrictTierData[2].value}
                       </div>
                     </div>
                   </div>
