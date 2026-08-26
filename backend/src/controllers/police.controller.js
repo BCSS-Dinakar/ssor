@@ -420,6 +420,42 @@ export const getDashboardStats = async (req, res) => {
       value: Number(o.count)
     }));
 
+    // District-level stats. `mv_districts` isn't guaranteed to exist (see
+    // district.controller.js), so aggregate straight off the offenders view
+    // (already proven to exist above) and resolve names from the `District`
+    // table instead of joining a matview that may not be there.
+    let districtStats = [];
+    try {
+      const [districtStatsRaw, districts] = await Promise.all([
+        prisma.$queryRaw`
+          SELECT
+            dist_code,
+            count(*) as total_offenders,
+            sum(case when upper(risk_tier) = 'RED' then 1 else 0 end) as red_count,
+            sum(case when upper(risk_tier) = 'ORANGE' then 1 else 0 end) as orange_count,
+            sum(case when upper(risk_tier) = 'GREEN' then 1 else 0 end) as green_count
+          FROM public.${OFFENDERS_LIST_VIEW}
+          WHERE dist_code IS NOT NULL
+          GROUP BY dist_code
+        `,
+        prisma.district.findMany({ where: { isActive: true } })
+      ]);
+
+      const distNameByCode = new Map(districts.map(d => [d.distCode, d.distName]));
+      districtStats = districtStatsRaw
+        .filter(d => distNameByCode.has(d.dist_code))
+        .map(d => ({
+          name: distNameByCode.get(d.dist_code),
+          totalOffenders: Number(d.total_offenders || 0),
+          redCount: Number(d.red_count || 0),
+          orangeCount: Number(d.orange_count || 0),
+          greenCount: Number(d.green_count || 0)
+        }));
+    } catch (districtStatsError) {
+      logger.error('[getDashboardStats districtStats]', districtStatsError);
+      // Non-fatal: dashboard still renders with the map falling back to static tiers.
+    }
+
     res.status(200).json({
       success: true,
       data: {
@@ -430,7 +466,8 @@ export const getDashboardStats = async (req, res) => {
         clearApproved,
         clearRejected,
         byTier,
-        sectionData
+        sectionData,
+        districtStats
       }
     });
 

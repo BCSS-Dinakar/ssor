@@ -236,7 +236,7 @@ function PersonnelDetails() {
                         <div>
                           <div className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-2">Clearance reference ID</div>
                           <div className="text-4xl font-black font-mono text-primary tracking-tight">
-                            {selectedCandidate.id.split('-')[0].toUpperCase()}
+                            {String(selectedCandidate.id).split('-')[0].toUpperCase()}
                           </div>
                         </div>
 

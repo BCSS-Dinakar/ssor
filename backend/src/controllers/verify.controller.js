@@ -45,7 +45,7 @@ export const verifyCertificate = async (req, res) => {
       success: true,
       valid: true,
       certificate: {
-        shortRef: verification.id.split('-')[0].toUpperCase(),
+        shortRef: String(verification.id).split('-')[0].toUpperCase(),
         referenceNo: verification.id,
         candidateName: verification.candidateName,
         organization: verification.orgName,

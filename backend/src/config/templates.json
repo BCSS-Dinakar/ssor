@@ -13,5 +13,13 @@
     "description": "Approved UTILITY template sent after a successful login. Uses named parameters.",
     "namedParams": true,
     "variables": ["user_name", "login_time"]
+  },
+  "ssor_release_alert": {
+    "name": "ssor_release_alert",
+    "language": "en",
+    "category": "utility",
+    "description": "Approved UTILITY template for proactive prisoner-release alerts to district officers. Uses named parameters. Must be approved in Meta Business Manager before use — release-alert.service.js falls back to free-form text if this template call fails.",
+    "namedParams": true,
+    "variables": ["district", "police_station", "prisoner_name", "father_name", "prison_name", "release_date", "case_details", "sections", "surveillance_officer", "status"]
   }
 }

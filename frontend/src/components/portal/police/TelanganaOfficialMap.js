@@ -115,27 +115,55 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     }
   };
 
+
+  // Helper to determine dynamic district tier based on live stats
+  const getDistrictDynamicTier = (distName) => {
+    if (!stateStats?.districtStats || stateStats.districtStats.length === 0) return 'Red'; // fallback to static config if no live data
+    const dStat = stateStats.districtStats.find(s => normDist(s.name) === normDist(distName));
+    if (!dStat || dStat.totalOffenders === 0) return 'Green';
+    
+    // Majority Rule logic or fallback
+    if (dStat.redCount >= dStat.orangeCount && dStat.redCount >= dStat.greenCount && dStat.redCount > 0) return 'Red';
+    if (dStat.orangeCount >= dStat.greenCount && dStat.orangeCount > 0) return 'Orange';
+    if (dStat.greenCount > 0) return 'Green';
+    
+    // If we have total offenders but they don't have a tier, fallback to red
+    return 'Red'; 
+  };
+
+  const getDistrictDynamicTotal = (distName) => {
+    if (!stateStats?.districtStats || stateStats.districtStats.length === 0) {
+      // Fallback to static
+      const staticDist = TELANGANA_DISTRICTS.find(s => normDist(s.name) === normDist(distName));
+      return staticDist?.totalOffenders || 0;
+    }
+    const dStat = stateStats.districtStats.find(s => normDist(s.name) === normDist(distName));
+    return dStat?.totalOffenders || 0;
+  };
+
   // Calculate State-wide District Risk Tier Data for Left Circle Graph
   const stateDistrictTierData = useMemo(() => {
     let red = 0, orange = 0, green = 0;
     TELANGANA_DISTRICTS.forEach(d => {
-      if (d.riskTier === 'Red') red++;
-      else if (d.riskTier === 'Orange') orange++;
-      else if (d.riskTier === 'Green') green++;
+      const tier = getDistrictDynamicTier(d.name);
+      if (tier === 'Red') red++;
+      else if (tier === 'Orange') orange++;
+      else if (tier === 'Green') green++;
     });
     return [
       { name: 'Red Tier', value: red, color: '#EF4444' },
       { name: 'Orange Tier', value: orange, color: '#F97316' },
       { name: 'Green Tier', value: green, color: '#10B981' }
     ];
-  }, []);
+  }, [stateStats?.districtStats]);
 
-  // Top high-density risk districts sorted by totalOffenders
+  // Top high-density risk districts sorted by dynamic totalOffenders
   const topDistricts = useMemo(() => {
     return [...TELANGANA_DISTRICTS]
-      .sort((a, b) => b.totalOffenders - a.totalOffenders)
+      .map(d => ({ ...d, dynamicTotal: getDistrictDynamicTotal(d.name) }))
+      .sort((a, b) => b.dynamicTotal - a.dynamicTotal)
       .slice(0, 5);
-  }, []);
+  }, [stateStats?.districtStats]);
 
   const handleMouseMove = (e, entity, type = 'DISTRICT') => {
     const svg = e.currentTarget.ownerSVGElement || e.currentTarget.closest('svg');
@@ -175,10 +203,11 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
         d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.hq.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.mandals.some((m) => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesTier = tierFilter === 'ALL' || d.riskTier.toUpperCase() === tierFilter;
+      const dynamicTier = getDistrictDynamicTier(d.name);
+      const matchesTier = tierFilter === 'ALL' || dynamicTier.toUpperCase() === tierFilter;
       return matchesSearch && matchesTier;
     });
-  }, [searchQuery, tierFilter]);
+  }, [searchQuery, tierFilter, stateStats?.districtStats]);
 
   // Filtered releases based on active selection
   const filteredReleases = useMemo(() => {
@@ -543,7 +572,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                             <span className="text-[11px] font-semibold text-slate-700">{d.name}</span>
                           </div>
                           <span className="font-mono text-[10px] font-bold text-slate-600">
-                            {d.totalOffenders} Cases
+                            {d.dynamicTotal} Cases
                           </span>
                         </div>
                       ))}
@@ -690,7 +719,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   const isEprisonsSelected = activeSlide === 'eprisons' && selectedEprisonsDistrict.toLowerCase() === d.name.toLowerCase();
                   const isNeighborBlackout = (selectedDistrict && !isSelected && activeSlide === 'offenders') ||
                     (activeSlide === 'eprisons' && selectedEprisonsDistrict !== 'ALL' && !isEprisonsSelected);
-                  const tierStyle = getTierColor(d.riskTier);
+                  const tierStyle = getTierColor(getDistrictDynamicTier(d.name));
 
                   if (selectedDistrict && selectedMandal && activeSlide === 'offenders') return null;
 
@@ -734,9 +763,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       onMouseMove={(e) => {
                         if (activeSlide === 'eprisons') {
                           const count = releaseCountByDistrict[normDist(d.name)] || 0;
-                          handleMouseMove(e, { ...d, releaseCount: count }, 'ALERT');
+                          handleMouseMove(e, { ...d, releaseCount: count, dynamicTotal: getDistrictDynamicTotal(d.name), dynamicRiskTier: getDistrictDynamicTier(d.name) }, 'ALERT');
                         } else {
-                          handleMouseMove(e, d, 'DISTRICT');
+                          handleMouseMove(e, { ...d, dynamicTotal: getDistrictDynamicTotal(d.name), dynamicRiskTier: getDistrictDynamicTier(d.name) }, 'DISTRICT');
                         }
                       }}
                       onMouseLeave={handleMouseLeave}
@@ -797,7 +826,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.name} District</span>
                     </div>
                     <div className="text-[10px] text-slate-600 font-mono">
-                      <div className="mb-1">Offenders: <strong>{hoveredEntity.totalOffenders || 0} ({hoveredEntity.riskTier || 'N/A'})</strong></div>
+                      <div className="mb-1">Offenders: <strong>{hoveredEntity.dynamicTotal || 0} ({hoveredEntity.dynamicRiskTier || 'N/A'})</strong></div>
                       {hoveredEntity.releaseCount > 0 ? (
                         <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
                           🚨 {hoveredEntity.releaseCount} Prisoner Release{hoveredEntity.releaseCount > 1 ? 's' : ''} — click to view PS
@@ -828,11 +857,11 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 ) : (
                   <div>
                     <div className="flex items-center gap-1">
-                      <span className={`h-1.5 w-1.5 rounded-full ${hoveredEntity.riskTier === 'Red' ? 'bg-red-500' : hoveredEntity.riskTier === 'Orange' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+                      <span className={`h-1.5 w-1.5 rounded-full ${hoveredEntity.dynamicRiskTier === 'Red' ? 'bg-red-500' : hoveredEntity.dynamicRiskTier === 'Orange' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
                       <span className="font-bold text-slate-900">{hoveredEntity.name}</span>
                     </div>
                     <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                      {hoveredEntity.totalOffenders} Offenders ({hoveredEntity.riskTier})
+                      {hoveredEntity.dynamicTotal} Cases ({hoveredEntity.dynamicRiskTier})
                     </div>
                   </div>
                 )}

@@ -152,7 +152,8 @@ function PoliceDashboard() {
           convictedCount,
           underTrialCount,
           pendingClearances: stats?.clearPending || pendingQueue.length || 0,
-          auditEventsCount: audit.length
+          auditEventsCount: audit.length,
+          districtStats: stats?.districtStats || []
         }}
       />
 
