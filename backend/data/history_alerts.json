@@ -1,0 +1,1289 @@
+[
+  {
+    "id": "h-PS-ADI-00",
+    "prisonerName": "Mohan Babu",
+    "fatherName": "M. Anil Yadav",
+    "age": 41,
+    "gender": "Male",
+    "psCode": "PS-ADI-00",
+    "psName": "Panjagutta PS",
+    "district": "Adilabad",
+    "pinLocation": {
+      "lat": 19.672557620632993,
+      "lng": 78.54244274678642
+    },
+    "boundingZones": [
+      {
+        "lat": 19.722557620632994,
+        "lng": 78.49244274678642
+      },
+      {
+        "lat": 19.722557620632994,
+        "lng": 78.59244274678642
+      },
+      {
+        "lat": 19.622557620632993,
+        "lng": 78.59244274678642
+      },
+      {
+        "lat": 19.622557620632993,
+        "lng": 78.49244274678642
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 100/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. V. Kumar"
+  },
+  {
+    "id": "h-PS-BHA-10",
+    "prisonerName": "M. Sunil Reddy",
+    "fatherName": "N. Kiran Rao",
+    "age": 48,
+    "gender": "Male",
+    "psCode": "PS-BHA-10",
+    "psName": "Madhapur PS",
+    "district": "Bhadradri Kothagudem",
+    "pinLocation": {
+      "lat": 17.531763449225824,
+      "lng": 80.6363001891464
+    },
+    "boundingZones": [
+      {
+        "lat": 17.581763449225825,
+        "lng": 80.5863001891464
+      },
+      {
+        "lat": 17.581763449225825,
+        "lng": 80.6863001891464
+      },
+      {
+        "lat": 17.481763449225824,
+        "lng": 80.6863001891464
+      },
+      {
+        "lat": 17.481763449225824,
+        "lng": 80.5863001891464
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 101/2024 Madhapur PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. M. Rao"
+  },
+  {
+    "id": "h-PS-HYD-20",
+    "prisonerName": "Ch. Satish Varma",
+    "fatherName": "K. Anil Reddy",
+    "age": 46,
+    "gender": "Male",
+    "psCode": "PS-HYD-20",
+    "psName": "Jubilee Hills PS",
+    "district": "Hyderabad",
+    "pinLocation": {
+      "lat": 17.392580172878954,
+      "lng": 78.47826687470938
+    },
+    "boundingZones": [
+      {
+        "lat": 17.442580172878955,
+        "lng": 78.42826687470938
+      },
+      {
+        "lat": 17.442580172878955,
+        "lng": 78.52826687470937
+      },
+      {
+        "lat": 17.342580172878954,
+        "lng": 78.52826687470937
+      },
+      {
+        "lat": 17.342580172878954,
+        "lng": 78.42826687470938
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 102/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-JAG-30",
+    "prisonerName": "B. Naresh Sharma",
+    "fatherName": "N. Prashanth Gari",
+    "age": 38,
+    "gender": "Male",
+    "psCode": "PS-JAG-30",
+    "psName": "Cyberabad PS",
+    "district": "Jagtial",
+    "pinLocation": {
+      "lat": 18.793006269201502,
+      "lng": 78.91372623341722
+    },
+    "boundingZones": [
+      {
+        "lat": 18.843006269201503,
+        "lng": 78.86372623341722
+      },
+      {
+        "lat": 18.843006269201503,
+        "lng": 78.96372623341722
+      },
+      {
+        "lat": 18.7430062692015,
+        "lng": 78.96372623341722
+      },
+      {
+        "lat": 18.7430062692015,
+        "lng": 78.86372623341722
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 103/2024 Cyberabad PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. S. Naidu"
+  },
+  {
+    "id": "h-PS-JAN-40",
+    "prisonerName": "Venkatesh Naidu",
+    "fatherName": "B. Raju Choudary",
+    "age": 36,
+    "gender": "Male",
+    "psCode": "PS-JAN-40",
+    "psName": "Madhapur PS",
+    "district": "Jangaon",
+    "pinLocation": {
+      "lat": 17.729084101144515,
+      "lng": 79.15041486540036
+    },
+    "boundingZones": [
+      {
+        "lat": 17.779084101144516,
+        "lng": 79.10041486540037
+      },
+      {
+        "lat": 17.779084101144516,
+        "lng": 79.20041486540036
+      },
+      {
+        "lat": 17.679084101144515,
+        "lng": 79.20041486540036
+      },
+      {
+        "lat": 17.679084101144515,
+        "lng": 79.10041486540037
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 104/2024 Madhapur PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-JAY-50",
+    "prisonerName": "V. Santosh Rao",
+    "fatherName": "M. Karthik Kumar",
+    "age": 33,
+    "gender": "Male",
+    "psCode": "PS-JAY-50",
+    "psName": "Banjara Hills PS",
+    "district": "Jayashankar Bhupalpally",
+    "pinLocation": {
+      "lat": 18.43635963951737,
+      "lng": 79.84681769303234
+    },
+    "boundingZones": [
+      {
+        "lat": 18.48635963951737,
+        "lng": 79.79681769303234
+      },
+      {
+        "lat": 18.48635963951737,
+        "lng": 79.89681769303233
+      },
+      {
+        "lat": 18.38635963951737,
+        "lng": 79.89681769303233
+      },
+      {
+        "lat": 18.38635963951737,
+        "lng": 79.79681769303234
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 105/2024 Banjara Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. G. Varma"
+  },
+  {
+    "id": "h-PS-JOG-60",
+    "prisonerName": "Ch. Vijay Sharma",
+    "fatherName": "A. Satish Varma",
+    "age": 33,
+    "gender": "Male",
+    "psCode": "PS-JOG-60",
+    "psName": "Gachibowli PS",
+    "district": "Jogulamba Gadwal",
+    "pinLocation": {
+      "lat": 16.201077700432464,
+      "lng": 77.78813868098759
+    },
+    "boundingZones": [
+      {
+        "lat": 16.251077700432464,
+        "lng": 77.73813868098759
+      },
+      {
+        "lat": 16.251077700432464,
+        "lng": 77.83813868098758
+      },
+      {
+        "lat": 16.151077700432463,
+        "lng": 77.83813868098758
+      },
+      {
+        "lat": 16.151077700432463,
+        "lng": 77.73813868098759
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 106/2024 Gachibowli PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. S. Naidu"
+  },
+  {
+    "id": "h-PS-KAM-70",
+    "prisonerName": "T. Krishna Rao",
+    "fatherName": "Ch. Suresh Setty",
+    "age": 36,
+    "gender": "Male",
+    "psCode": "PS-KAM-70",
+    "psName": "Kukatpally PS",
+    "district": "Kamareddy",
+    "pinLocation": {
+      "lat": 18.30749646908052,
+      "lng": 78.32609930111657
+    },
+    "boundingZones": [
+      {
+        "lat": 18.35749646908052,
+        "lng": 78.27609930111657
+      },
+      {
+        "lat": 18.35749646908052,
+        "lng": 78.37609930111657
+      },
+      {
+        "lat": 18.257496469080518,
+        "lng": 78.37609930111657
+      },
+      {
+        "lat": 18.257496469080518,
+        "lng": 78.27609930111657
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 107/2024 Kukatpally PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. V. Kumar"
+  },
+  {
+    "id": "h-PS-KAR-80",
+    "prisonerName": "G. Anil Naidu",
+    "fatherName": "G. Srinivas Varma",
+    "age": 39,
+    "gender": "Male",
+    "psCode": "PS-KAR-80",
+    "psName": "Banjara Hills PS",
+    "district": "Karimnagar",
+    "pinLocation": {
+      "lat": 18.425603039085363,
+      "lng": 79.12475026795883
+    },
+    "boundingZones": [
+      {
+        "lat": 18.475603039085364,
+        "lng": 79.07475026795883
+      },
+      {
+        "lat": 18.475603039085364,
+        "lng": 79.17475026795883
+      },
+      {
+        "lat": 18.375603039085362,
+        "lng": 79.17475026795883
+      },
+      {
+        "lat": 18.375603039085362,
+        "lng": 79.07475026795883
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 108/2024 Banjara Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. G. Varma"
+  },
+  {
+    "id": "h-PS-KHA-90",
+    "prisonerName": "Santosh Setty",
+    "fatherName": "T. Vijay Sharma",
+    "age": 40,
+    "gender": "Male",
+    "psCode": "PS-KHA-90",
+    "psName": "Gachibowli PS",
+    "district": "Khammam",
+    "pinLocation": {
+      "lat": 17.258077733904884,
+      "lng": 80.16320426641866
+    },
+    "boundingZones": [
+      {
+        "lat": 17.308077733904884,
+        "lng": 80.11320426641866
+      },
+      {
+        "lat": 17.308077733904884,
+        "lng": 80.21320426641866
+      },
+      {
+        "lat": 17.208077733904883,
+        "lng": 80.21320426641866
+      },
+      {
+        "lat": 17.208077733904883,
+        "lng": 80.11320426641866
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 109/2024 Gachibowli PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-KUM-100",
+    "prisonerName": "Praveen Yadav",
+    "fatherName": "M. Satish Rao",
+    "age": 42,
+    "gender": "Male",
+    "psCode": "PS-KUM-100",
+    "psName": "Cyberabad PS",
+    "district": "Kumuram Bheem Asifabad",
+    "pinLocation": {
+      "lat": 19.3520858718857,
+      "lng": 79.29832098595487
+    },
+    "boundingZones": [
+      {
+        "lat": 19.4020858718857,
+        "lng": 79.24832098595488
+      },
+      {
+        "lat": 19.4020858718857,
+        "lng": 79.34832098595487
+      },
+      {
+        "lat": 19.302085871885698,
+        "lng": 79.34832098595487
+      },
+      {
+        "lat": 19.302085871885698,
+        "lng": 79.24832098595488
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 110/2024 Cyberabad PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-MAH-110",
+    "prisonerName": "P. Srinivas Naidu",
+    "fatherName": "K. Harish Kumar",
+    "age": 42,
+    "gender": "Male",
+    "psCode": "PS-MAH-110",
+    "psName": "Panjagutta PS",
+    "district": "Mahabubabad",
+    "pinLocation": {
+      "lat": 17.591114923625167,
+      "lng": 80.01936269336451
+    },
+    "boundingZones": [
+      {
+        "lat": 17.641114923625167,
+        "lng": 79.96936269336452
+      },
+      {
+        "lat": 17.641114923625167,
+        "lng": 80.06936269336451
+      },
+      {
+        "lat": 17.541114923625166,
+        "lng": 80.06936269336451
+      },
+      {
+        "lat": 17.541114923625166,
+        "lng": 79.96936269336452
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 111/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. G. Varma"
+  },
+  {
+    "id": "h-PS-MAH-120",
+    "prisonerName": "N. Mahesh Choudary",
+    "fatherName": "B. Raju Yadav",
+    "age": 39,
+    "gender": "Male",
+    "psCode": "PS-MAH-120",
+    "psName": "Panjagutta PS",
+    "district": "Mahabubnagar",
+    "pinLocation": {
+      "lat": 16.759665269123563,
+      "lng": 77.98594206464041
+    },
+    "boundingZones": [
+      {
+        "lat": 16.809665269123563,
+        "lng": 77.93594206464041
+      },
+      {
+        "lat": 16.809665269123563,
+        "lng": 78.03594206464041
+      },
+      {
+        "lat": 16.709665269123562,
+        "lng": 78.03594206464041
+      },
+      {
+        "lat": 16.709665269123562,
+        "lng": 77.93594206464041
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 112/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. G. Varma"
+  },
+  {
+    "id": "h-PS-MAN-130",
+    "prisonerName": "Harish Babu",
+    "fatherName": "V. Vijay Goud",
+    "age": 49,
+    "gender": "Male",
+    "psCode": "PS-MAN-130",
+    "psName": "SR Nagar PS",
+    "district": "Mancherial",
+    "pinLocation": {
+      "lat": 18.865620142246474,
+      "lng": 79.47125316057266
+    },
+    "boundingZones": [
+      {
+        "lat": 18.915620142246475,
+        "lng": 79.42125316057266
+      },
+      {
+        "lat": 18.915620142246475,
+        "lng": 79.52125316057266
+      },
+      {
+        "lat": 18.815620142246473,
+        "lng": 79.52125316057266
+      },
+      {
+        "lat": 18.815620142246473,
+        "lng": 79.42125316057266
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 113/2024 SR Nagar PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. P. Sharma"
+  },
+  {
+    "id": "h-PS-MED-140",
+    "prisonerName": "K. Shiva Reddy",
+    "fatherName": "A. Rajesh Goud",
+    "age": 37,
+    "gender": "Male",
+    "psCode": "PS-MED-140",
+    "psName": "Kukatpally PS",
+    "district": "Medak",
+    "pinLocation": {
+      "lat": 18.03908496240652,
+      "lng": 78.2689515791873
+    },
+    "boundingZones": [
+      {
+        "lat": 18.08908496240652,
+        "lng": 78.2189515791873
+      },
+      {
+        "lat": 18.08908496240652,
+        "lng": 78.3189515791873
+      },
+      {
+        "lat": 17.98908496240652,
+        "lng": 78.3189515791873
+      },
+      {
+        "lat": 17.98908496240652,
+        "lng": 78.2189515791873
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 114/2024 Kukatpally PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. K. Reddy"
+  },
+  {
+    "id": "h-PS-MED-150",
+    "prisonerName": "M. Karthik Reddy",
+    "fatherName": "S. Prashanth Varma",
+    "age": 31,
+    "gender": "Male",
+    "psCode": "PS-MED-150",
+    "psName": "Cyberabad PS",
+    "district": "Medchal-Malkajgiri",
+    "pinLocation": {
+      "lat": 17.421225112840407,
+      "lng": 78.5297081762502
+    },
+    "boundingZones": [
+      {
+        "lat": 17.471225112840408,
+        "lng": 78.4797081762502
+      },
+      {
+        "lat": 17.471225112840408,
+        "lng": 78.5797081762502
+      },
+      {
+        "lat": 17.371225112840406,
+        "lng": 78.5797081762502
+      },
+      {
+        "lat": 17.371225112840406,
+        "lng": 78.4797081762502
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 115/2024 Cyberabad PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. M. Rao"
+  },
+  {
+    "id": "h-PS-MUL-160",
+    "prisonerName": "G. Sunil Rao",
+    "fatherName": "N. Karthik Varma",
+    "age": 37,
+    "gender": "Male",
+    "psCode": "PS-MUL-160",
+    "psName": "Madhapur PS",
+    "district": "Mulugu",
+    "pinLocation": {
+      "lat": 18.20919452243723,
+      "lng": 79.9430650496421
+    },
+    "boundingZones": [
+      {
+        "lat": 18.25919452243723,
+        "lng": 79.8930650496421
+      },
+      {
+        "lat": 18.25919452243723,
+        "lng": 79.9930650496421
+      },
+      {
+        "lat": 18.15919452243723,
+        "lng": 79.9930650496421
+      },
+      {
+        "lat": 18.15919452243723,
+        "lng": 79.8930650496421
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 116/2024 Madhapur PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. V. Kumar"
+  },
+  {
+    "id": "h-PS-NAG-170",
+    "prisonerName": "V. Krishna Gari",
+    "fatherName": "A. Vijay Setty",
+    "age": 43,
+    "gender": "Male",
+    "psCode": "PS-NAG-170",
+    "psName": "Jubilee Hills PS",
+    "district": "Nagarkurnool",
+    "pinLocation": {
+      "lat": 16.461683993411103,
+      "lng": 78.33935173782571
+    },
+    "boundingZones": [
+      {
+        "lat": 16.511683993411104,
+        "lng": 78.28935173782571
+      },
+      {
+        "lat": 16.511683993411104,
+        "lng": 78.3893517378257
+      },
+      {
+        "lat": 16.411683993411103,
+        "lng": 78.3893517378257
+      },
+      {
+        "lat": 16.411683993411103,
+        "lng": 78.28935173782571
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 117/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. S. Naidu"
+  },
+  {
+    "id": "h-PS-NAL-180",
+    "prisonerName": "Shiva Rao",
+    "fatherName": "B. Harish Babu",
+    "age": 49,
+    "gender": "Male",
+    "psCode": "PS-NAL-180",
+    "psName": "Banjara Hills PS",
+    "district": "Nalgonda",
+    "pinLocation": {
+      "lat": 17.069693451590492,
+      "lng": 79.24617105123218
+    },
+    "boundingZones": [
+      {
+        "lat": 17.119693451590493,
+        "lng": 79.19617105123218
+      },
+      {
+        "lat": 17.119693451590493,
+        "lng": 79.29617105123218
+      },
+      {
+        "lat": 17.01969345159049,
+        "lng": 79.29617105123218
+      },
+      {
+        "lat": 17.01969345159049,
+        "lng": 79.19617105123218
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 118/2024 Banjara Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. M. Rao"
+  },
+  {
+    "id": "h-PS-NAR-190",
+    "prisonerName": "T. Mohan Kumar",
+    "fatherName": "S. Ravi Naidu",
+    "age": 48,
+    "gender": "Male",
+    "psCode": "PS-NAR-190",
+    "psName": "Madhapur PS",
+    "district": "Narayanpet",
+    "pinLocation": {
+      "lat": 16.737858965135317,
+      "lng": 77.4838696817493
+    },
+    "boundingZones": [
+      {
+        "lat": 16.787858965135317,
+        "lng": 77.4338696817493
+      },
+      {
+        "lat": 16.787858965135317,
+        "lng": 77.5338696817493
+      },
+      {
+        "lat": 16.687858965135316,
+        "lng": 77.5338696817493
+      },
+      {
+        "lat": 16.687858965135316,
+        "lng": 77.4338696817493
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 119/2024 Madhapur PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. P. Sharma"
+  },
+  {
+    "id": "h-PS-NIR-200",
+    "prisonerName": "T. Vijay Naidu",
+    "fatherName": "A. Rajesh Reddy",
+    "age": 32,
+    "gender": "Male",
+    "psCode": "PS-NIR-200",
+    "psName": "Panjagutta PS",
+    "district": "Nirmal",
+    "pinLocation": {
+      "lat": 19.089751112178856,
+      "lng": 78.34152062566719
+    },
+    "boundingZones": [
+      {
+        "lat": 19.139751112178857,
+        "lng": 78.29152062566719
+      },
+      {
+        "lat": 19.139751112178857,
+        "lng": 78.39152062566718
+      },
+      {
+        "lat": 19.039751112178855,
+        "lng": 78.39152062566718
+      },
+      {
+        "lat": 19.039751112178855,
+        "lng": 78.29152062566719
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 120/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. M. Rao"
+  },
+  {
+    "id": "h-PS-NIZ-210",
+    "prisonerName": "Naresh Choudary",
+    "fatherName": "G. Vijay Naidu",
+    "age": 39,
+    "gender": "Male",
+    "psCode": "PS-NIZ-210",
+    "psName": "Jubilee Hills PS",
+    "district": "Nizamabad",
+    "pinLocation": {
+      "lat": 18.680353691275158,
+      "lng": 78.0926587941893
+    },
+    "boundingZones": [
+      {
+        "lat": 18.73035369127516,
+        "lng": 78.04265879418931
+      },
+      {
+        "lat": 18.73035369127516,
+        "lng": 78.1426587941893
+      },
+      {
+        "lat": 18.630353691275158,
+        "lng": 78.1426587941893
+      },
+      {
+        "lat": 18.630353691275158,
+        "lng": 78.04265879418931
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 121/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-PED-220",
+    "prisonerName": "K. Praveen Naidu",
+    "fatherName": "B. Sunil Reddy",
+    "age": 36,
+    "gender": "Male",
+    "psCode": "PS-PED-220",
+    "psName": "Panjagutta PS",
+    "district": "Peddapalli",
+    "pinLocation": {
+      "lat": 18.60968423483578,
+      "lng": 79.36137989190298
+    },
+    "boundingZones": [
+      {
+        "lat": 18.65968423483578,
+        "lng": 79.31137989190299
+      },
+      {
+        "lat": 18.65968423483578,
+        "lng": 79.41137989190298
+      },
+      {
+        "lat": 18.55968423483578,
+        "lng": 79.41137989190298
+      },
+      {
+        "lat": 18.55968423483578,
+        "lng": 79.31137989190299
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 122/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. K. Reddy"
+  },
+  {
+    "id": "h-PS-RAJ-230",
+    "prisonerName": "P. Raju Kumar",
+    "fatherName": "B. Kiran Rao",
+    "age": 39,
+    "gender": "Male",
+    "psCode": "PS-RAJ-230",
+    "psName": "Madhapur PS",
+    "district": "Rajanna Sircilla",
+    "pinLocation": {
+      "lat": 18.396917080850756,
+      "lng": 78.84737999949438
+    },
+    "boundingZones": [
+      {
+        "lat": 18.446917080850756,
+        "lng": 78.79737999949438
+      },
+      {
+        "lat": 18.446917080850756,
+        "lng": 78.89737999949438
+      },
+      {
+        "lat": 18.346917080850755,
+        "lng": 78.89737999949438
+      },
+      {
+        "lat": 18.346917080850755,
+        "lng": 78.79737999949438
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 123/2024 Madhapur PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. G. Varma"
+  },
+  {
+    "id": "h-PS-RAN-240",
+    "prisonerName": "V. Sandeep Setty",
+    "fatherName": "P. Ravi Choudary",
+    "age": 34,
+    "gender": "Male",
+    "psCode": "PS-RAN-240",
+    "psName": "SR Nagar PS",
+    "district": "Ranga Reddy",
+    "pinLocation": {
+      "lat": 17.32938194886838,
+      "lng": 78.09612305711278
+    },
+    "boundingZones": [
+      {
+        "lat": 17.37938194886838,
+        "lng": 78.04612305711278
+      },
+      {
+        "lat": 17.37938194886838,
+        "lng": 78.14612305711277
+      },
+      {
+        "lat": 17.27938194886838,
+        "lng": 78.14612305711277
+      },
+      {
+        "lat": 17.27938194886838,
+        "lng": 78.04612305711278
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 124/2024 SR Nagar PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-SAN-250",
+    "prisonerName": "Ch. Harish Sharma",
+    "fatherName": "P. Santosh Varma",
+    "age": 43,
+    "gender": "Male",
+    "psCode": "PS-SAN-250",
+    "psName": "Cyberabad PS",
+    "district": "Sangareddy",
+    "pinLocation": {
+      "lat": 17.63635172063465,
+      "lng": 78.08580064999761
+    },
+    "boundingZones": [
+      {
+        "lat": 17.68635172063465,
+        "lng": 78.03580064999761
+      },
+      {
+        "lat": 17.68635172063465,
+        "lng": 78.1358006499976
+      },
+      {
+        "lat": 17.58635172063465,
+        "lng": 78.1358006499976
+      },
+      {
+        "lat": 17.58635172063465,
+        "lng": 78.03580064999761
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 125/2024 Cyberabad PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. T. Goud"
+  },
+  {
+    "id": "h-PS-SID-260",
+    "prisonerName": "N. Satish Kumar",
+    "fatherName": "A. Karthik Sharma",
+    "age": 45,
+    "gender": "Male",
+    "psCode": "PS-SID-260",
+    "psName": "Panjagutta PS",
+    "district": "Siddipet",
+    "pinLocation": {
+      "lat": 18.08447961694574,
+      "lng": 78.82612078472918
+    },
+    "boundingZones": [
+      {
+        "lat": 18.13447961694574,
+        "lng": 78.77612078472919
+      },
+      {
+        "lat": 18.13447961694574,
+        "lng": 78.87612078472918
+      },
+      {
+        "lat": 18.034479616945738,
+        "lng": 78.87612078472918
+      },
+      {
+        "lat": 18.034479616945738,
+        "lng": 78.77612078472919
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 126/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. P. Sharma"
+  },
+  {
+    "id": "h-PS-SUR-270",
+    "prisonerName": "Sandeep Kumar",
+    "fatherName": "A. Ramesh Reddy",
+    "age": 44,
+    "gender": "Male",
+    "psCode": "PS-SUR-270",
+    "psName": "Jubilee Hills PS",
+    "district": "Suryapet",
+    "pinLocation": {
+      "lat": 17.141940848937885,
+      "lng": 79.63321975996836
+    },
+    "boundingZones": [
+      {
+        "lat": 17.191940848937886,
+        "lng": 79.58321975996836
+      },
+      {
+        "lat": 17.191940848937886,
+        "lng": 79.68321975996835
+      },
+      {
+        "lat": 17.091940848937885,
+        "lng": 79.68321975996835
+      },
+      {
+        "lat": 17.091940848937885,
+        "lng": 79.58321975996836
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 127/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. V. Kumar"
+  },
+  {
+    "id": "h-PS-VIK-280",
+    "prisonerName": "Mohan Goud",
+    "fatherName": "M. Santosh Gari",
+    "age": 39,
+    "gender": "Male",
+    "psCode": "PS-VIK-280",
+    "psName": "Panjagutta PS",
+    "district": "Vikarabad",
+    "pinLocation": {
+      "lat": 17.31389509624082,
+      "lng": 77.91163667867472
+    },
+    "boundingZones": [
+      {
+        "lat": 17.36389509624082,
+        "lng": 77.86163667867473
+      },
+      {
+        "lat": 17.36389509624082,
+        "lng": 77.96163667867472
+      },
+      {
+        "lat": 17.26389509624082,
+        "lng": 77.96163667867472
+      },
+      {
+        "lat": 17.26389509624082,
+        "lng": 77.86163667867473
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 128/2024 Panjagutta PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. K. Reddy"
+  },
+  {
+    "id": "h-PS-WAN-290",
+    "prisonerName": "Anil Goud",
+    "fatherName": "M. Shiva Yadav",
+    "age": 30,
+    "gender": "Male",
+    "psCode": "PS-WAN-290",
+    "psName": "Gachibowli PS",
+    "district": "Wanaparthy",
+    "pinLocation": {
+      "lat": 16.37944390668882,
+      "lng": 78.0762897320945
+    },
+    "boundingZones": [
+      {
+        "lat": 16.42944390668882,
+        "lng": 78.0262897320945
+      },
+      {
+        "lat": 16.42944390668882,
+        "lng": 78.12628973209449
+      },
+      {
+        "lat": 16.32944390668882,
+        "lng": 78.12628973209449
+      },
+      {
+        "lat": 16.32944390668882,
+        "lng": 78.0262897320945
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 129/2024 Gachibowli PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. V. Kumar"
+  },
+  {
+    "id": "h-PS-WAR-300",
+    "prisonerName": "Suresh Naidu",
+    "fatherName": "B. Mohan Babu",
+    "age": 48,
+    "gender": "Male",
+    "psCode": "PS-WAR-300",
+    "psName": "Jubilee Hills PS",
+    "district": "Warangal Rural",
+    "pinLocation": {
+      "lat": 17.985806489701588,
+      "lng": 79.81189737276767
+    },
+    "boundingZones": [
+      {
+        "lat": 18.03580648970159,
+        "lng": 79.76189737276768
+      },
+      {
+        "lat": 18.03580648970159,
+        "lng": 79.86189737276767
+      },
+      {
+        "lat": 17.935806489701587,
+        "lng": 79.86189737276767
+      },
+      {
+        "lat": 17.935806489701587,
+        "lng": 79.76189737276768
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 130/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. K. Reddy"
+  },
+  {
+    "id": "h-PS-WAR-310",
+    "prisonerName": "N. Venkatesh Setty",
+    "fatherName": "G. Ramu Goud",
+    "age": 44,
+    "gender": "Male",
+    "psCode": "PS-WAR-310",
+    "psName": "Banjara Hills PS",
+    "district": "Warangal Urban",
+    "pinLocation": {
+      "lat": 18.009700147256183,
+      "lng": 79.59833634681563
+    },
+    "boundingZones": [
+      {
+        "lat": 18.059700147256184,
+        "lng": 79.54833634681563
+      },
+      {
+        "lat": 18.059700147256184,
+        "lng": 79.64833634681563
+      },
+      {
+        "lat": 17.959700147256182,
+        "lng": 79.64833634681563
+      },
+      {
+        "lat": 17.959700147256182,
+        "lng": 79.54833634681563
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 131/2024 Banjara Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. S. Naidu"
+  },
+  {
+    "id": "h-PS-YAD-320",
+    "prisonerName": "K. Satish Setty",
+    "fatherName": "K. Naresh Sharma",
+    "age": 43,
+    "gender": "Male",
+    "psCode": "PS-YAD-320",
+    "psName": "Jubilee Hills PS",
+    "district": "Yadadri Bhuvanagiri",
+    "pinLocation": {
+      "lat": 17.52251533266808,
+      "lng": 78.85852153358036
+    },
+    "boundingZones": [
+      {
+        "lat": 17.57251533266808,
+        "lng": 78.80852153358036
+      },
+      {
+        "lat": 17.57251533266808,
+        "lng": 78.90852153358036
+      },
+      {
+        "lat": 17.472515332668078,
+        "lng": 78.90852153358036
+      },
+      {
+        "lat": 17.472515332668078,
+        "lng": 78.80852153358036
+      }
+    ],
+    "admissionDate": "10/01/2022",
+    "releaseDate": "10/08/2026",
+    "sectionsOfLaw": "IPC 395",
+    "caseDetails": "Cr.No. 132/2024 Jubilee Hills PS",
+    "status": "Released / Alert Active",
+    "riskTier": "Orange",
+    "surveillanceOfficer": "Insp. P. Sharma"
+  }
+]

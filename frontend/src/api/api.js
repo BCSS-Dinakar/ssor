@@ -17,7 +17,14 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // We can handle specific global errors here, e.g., redirect to login on 401
+    // Handle specific global errors here, e.g., redirect to login on 401
+    if (error.response && error.response.status === 401) {
+      const url = error.config?.url || '';
+      // Exclude auth check/login endpoints to prevent redirect loops or hiding login failures
+      if (!url.includes('/auth/me') && !url.includes('/auth/login') && !url.includes('/auth/login-otp')) {
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );

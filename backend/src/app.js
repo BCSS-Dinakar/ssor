@@ -42,9 +42,9 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Global Middlewares
-const corsOrigin = process.env.NODE_ENV === 'production' 
-  ? (process.env.FRONTEND_URL || false) // In prod, strictly use env var (or fail securely)
-  : (process.env.FRONTEND_URL || 'http://localhost:3000'); // In dev, default to localhost
+const corsOrigin = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : (process.env.NODE_ENV === 'production' ? false : 'http://localhost:3000');
 
 app.use(cors({
   origin: corsOrigin,
