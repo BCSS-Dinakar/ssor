@@ -29,6 +29,7 @@ export const requireAuth = async (req, res, next) => {
     req.user = user; // { id, role, status }
     next();
   } catch (error) {
+    console.error('requireAuth Error:', error);
     return res.status(401).json({ success: false, message: 'Invalid or expired token. Please log in again.' });
   }
 };
