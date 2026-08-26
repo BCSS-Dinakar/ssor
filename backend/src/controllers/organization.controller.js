@@ -130,7 +130,7 @@ export const getVerificationById = async (req, res) => {
     const { id } = req.params;
     const verification = await prisma.candidateVerification.findFirst({
       where: {
-        id,
+        id: parseInt(id, 10),
         organizationId: req.user.id
       }
     });
@@ -311,7 +311,7 @@ export const addTicketMessage = async (req, res) => {
 
     // Verify ownership
     const ticket = await prisma.supportTicket.findUnique({
-      where: { id }
+      where: { id: parseInt(id, 10) }
     });
 
     if (!ticket || ticket.organizationId !== req.user.id) {
@@ -499,7 +499,7 @@ export const generateClearanceCertificate = async (req, res) => {
     const { id } = req.params;
     const verification = await prisma.candidateVerification.findFirst({
       where: {
-        id,
+        id: parseInt(id, 10),
         ...(req.user.role === 'organization' ? { organizationId: req.user.id } : {})
       }
     });
@@ -652,7 +652,7 @@ export const generateClearanceCertificate = async (req, res) => {
     // Left Box: Digital Security Hash Box (Stroke border only)
     doc.rect(40, contentSigY, 220, 65).lineWidth(1).stroke('#cbd5e1');
     doc.font('Helvetica-Bold').fontSize(8).fillColor('#1e3a8a').text('DIGITAL AUDIT VERIFICATION', 48, contentSigY + 8);
-    doc.font('Helvetica').fontSize(7.5).fillColor('#475569').text(`SECURITY HASH: TS-SSOR-${verification.id.slice(0, 13).toUpperCase()}`, 48, contentSigY + 20);
+    doc.font('Helvetica').fontSize(7.5).fillColor('#475569').text(`SECURITY HASH: TS-SSOR-${String(verification.id).slice(0, 13).toUpperCase()}`, 48, contentSigY + 20);
     doc.font('Helvetica').fontSize(7.5).fillColor('#475569').text(`ISSUED DATE: ${new Date(verification.updatedAt || verification.createdAt).toLocaleDateString('en-IN')}`, 48, contentSigY + 32);
     doc.font('Helvetica').fontSize(7.5).fillColor('#047857').text('VALIDITY: 1 YEAR FROM ISSUE DATE', 48, contentSigY + 44);
 

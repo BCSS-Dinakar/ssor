@@ -1,6 +1,8 @@
 import prisma from '../config/db.js';
-import { sendText } from './whatsapp.service.js';
+import { sendText, sendTemplateByKey } from './whatsapp.service.js';
 import logger from '../utils/logger.js';
+
+const RELEASE_ALERT_TEMPLATE_KEY = 'ssor_release_alert';
 
 /**
  * Determine the district code for a given police station name
@@ -38,11 +40,12 @@ function extractPSFromCaseDetails(caseDetails) {
 /**
  * Build the WhatsApp free-form text message for a release alert.
  */
-function buildAlertMessage(record, distName) {
+function buildAlertMessage(record, distName, policeStation) {
   const lines = [
     `🚨 *PRISONER RELEASE ALERT*`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `*District:* ${distName || 'N/A'}`,
+    `*Police Station:* ${policeStation || 'N/A'}`,
     `*Prisoner:* ${record.prisonerName || 'N/A'}`,
     record.fatherName ? `*Father's Name:* ${record.fatherName}` : null,
     `*Prison:* ${record.jailName || 'N/A'}`,
@@ -56,6 +59,26 @@ function buildAlertMessage(record, distName) {
   ].filter(Boolean).join('\n');
 
   return lines;
+}
+
+/**
+ * Build the named-parameter payload for the ssor_release_alert template.
+ * Templates can't omit a variable slot conditionally, so optional fields
+ * fall back to 'N/A' the same way the free-text fields already do.
+ */
+function buildTemplateParams(record, distName, policeStation) {
+  return {
+    district: distName || 'N/A',
+    police_station: policeStation || 'N/A',
+    prisoner_name: record.prisonerName || 'N/A',
+    father_name: record.fatherName || 'N/A',
+    prison_name: record.jailName || 'N/A',
+    release_date: record.releaseDate || 'N/A',
+    case_details: record.caseDetails || 'N/A',
+    sections: record.sectionsOfLaw || 'N/A',
+    surveillance_officer: record.surveillanceOfficer || 'N/A',
+    status: record.status || 'Released',
+  };
 }
 
 /**
@@ -138,8 +161,10 @@ export async function sendReleaseAlert(record, isTest = false) {
       return result;
     }
 
-    // 4. Build message
-    const message = buildAlertMessage(record, districtRow.distName);
+    // 4. Build message (template params for the proactive send, free-text as fallback)
+    const policeStation = extractPSFromCaseDetails(record.caseDetails) || record.district || null;
+    const templateParams = buildTemplateParams(record, districtRow.distName, policeStation);
+    const message = buildAlertMessage(record, districtRow.distName, policeStation);
 
     // 5. Send to each number and log
     for (const number of numbers) {
@@ -148,15 +173,29 @@ export async function sendReleaseAlert(record, isTest = false) {
       let errorMessage = null;
 
       try {
-        const waResult = await sendText(number, message);
+        // Prefer the approved template — it works outside the 24h session
+        // window, which matters since these are business-initiated alerts.
+        const waResult = await sendTemplateByKey(number, RELEASE_ALERT_TEMPLATE_KEY, templateParams);
         apiResponse = JSON.stringify(waResult);
-        logger.info(`[ReleaseAlert] Alert sent to ${number} for district ${distCode}`);
-        result.sent.push({ number, distCode });
-      } catch (err) {
-        status = 'failed';
-        errorMessage = err.message;
-        logger.error(`[ReleaseAlert] Failed to send to ${number}: ${err.message}`);
-        result.failed.push({ number, distCode, error: err.message });
+        logger.info(`[ReleaseAlert] Template alert sent to ${number} for district ${distCode}`);
+        result.sent.push({ number, distCode, via: 'template' });
+      } catch (templateErr) {
+        // Template not approved yet / rejected / API error — fall back to
+        // free-form text so the alert still lands for anyone inside the
+        // 24h window instead of silently failing.
+        logger.warn(`[ReleaseAlert] Template send failed for ${number}, falling back to text: ${templateErr.message}`);
+        try {
+          const waResult = await sendText(number, message);
+          apiResponse = JSON.stringify(waResult);
+          errorMessage = `Template fallback: ${templateErr.message}`;
+          logger.info(`[ReleaseAlert] Fallback text alert sent to ${number} for district ${distCode}`);
+          result.sent.push({ number, distCode, via: 'text-fallback' });
+        } catch (textErr) {
+          status = 'failed';
+          errorMessage = `Template failed: ${templateErr.message}; Text fallback failed: ${textErr.message}`;
+          logger.error(`[ReleaseAlert] Both template and text failed for ${number}: ${textErr.message}`);
+          result.failed.push({ number, distCode, error: errorMessage });
+        }
       }
 
       // Always log to history
@@ -167,7 +206,7 @@ export async function sendReleaseAlert(record, isTest = false) {
             prisonerId: String(record.id || ''),
             caseNumber: record.caseDetails?.split(',')[0]?.trim() || null,
             prisonerName: record.prisonerName || null,
-            policeStation: extractPSFromCaseDetails(record.caseDetails) || record.district || null,
+            policeStation,
             prisonName: record.jailName || null,
             releaseDate: record.releaseDate || null,
             recipient: number,
