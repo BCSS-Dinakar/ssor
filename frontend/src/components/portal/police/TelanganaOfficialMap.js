@@ -47,7 +47,6 @@ const getTierColor = (tier) => {
 };
 
 const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
-  const [activeSlide, setActiveSlide] = useState('offenders'); // 'offenders' | 'eprisons'
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedMandal, setSelectedMandal] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,48 +54,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const [hoveredEntity, setHoveredEntity] = useState(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
 
-  // ePrisons Releases & Alerts States
   const normDist = (s) => (s || '').toLowerCase().replace(/[-_]/g, ' ').trim();
-  const [stationsList, setStationsList] = useState([]);
-  const [releasesList, setReleasesList] = useState([]);
-  const [loadingReleases, setLoadingReleases] = useState(false);
-  const [selectedStationCode, setSelectedStationCode] = useState('ALL');
-  const [selectedEprisonsDistrict, setSelectedEprisonsDistrict] = useState('ALL');
-  const [selectedStationMarker, setSelectedStationMarker] = useState(null);
-  const [expandedCardId, setExpandedCardId] = useState(null);
-  const [popupStationCode, setPopupStationCode] = useState(null);
 
-  // Fetch today's ePrisons stations and releases when switching to the ePrisons slide.
-  // Station/district filters are applied client-side via releasesByDistrict below.
-  useEffect(() => {
-    if (activeSlide === 'eprisons') {
-      fetchEprisonsData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSlide]);
 
-  const fetchEprisonsData = async () => {
-    setLoadingReleases(true);
-    try {
-      const [stationsRes, releasesRes] = await Promise.all([
-        policeApi.getEprisonsStations(),
-        policeApi.getEprisonsToday()
-      ]);
-
-      if (stationsRes && stationsRes.success && stationsRes.data) {
-        setStationsList(stationsRes.data);
-      }
-      if (releasesRes && releasesRes.success && releasesRes.data) {
-        setReleasesList(releasesRes.data);
-      } else {
-        setReleasesList([]);
-      }
-    } catch (err) {
-      console.error('Failed fetching ePrisons releases:', err);
-    } finally {
-      setLoadingReleases(false);
-    }
-  };
 
 
   // Helper to determine dynamic district tier based on live stats
@@ -166,17 +126,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
   // Current SVG viewBox based on selected district / zone zoom
   const activeViewBox = useMemo(() => {
-    if (selectedDistrict && selectedDistrict.path && activeSlide === 'offenders') {
+    if (selectedDistrict && selectedDistrict.path) {
       return calcBoundingBox(selectedDistrict.path, 60);
-    }
-    // ePrisons: zoom into the selected district so its PS boundaries are legible
-    if (activeSlide === 'eprisons' && selectedEprisonsDistrict !== 'ALL') {
-      const d = TELANGANA_DISTRICTS.find((dd) => normDist(dd.name) === normDist(selectedEprisonsDistrict));
-      if (d && d.path) return calcBoundingBox(d.path, 40);
     }
     return TELANGANA_BOUNDS.viewBox;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDistrict, activeSlide, selectedEprisonsDistrict]);
+  }, [selectedDistrict]);
 
   // Filter districts based on search query or risk tier
   const filteredDistricts = useMemo(() => {
@@ -192,122 +147,20 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     });
   }, [searchQuery, tierFilter, stateStats?.districtStats]);
 
-  // Filtered releases based on active selection
-  const releasesByDistrict = useMemo(() => {
-    let list = releasesList;
-    if (activeSlide === 'eprisons') {
-      if (selectedStationCode && selectedStationCode !== 'ALL') {
-        list = list.filter(r => r.psCode === selectedStationCode);
-      } else if (selectedStationMarker) {
-        list = list.filter(r => r.psCode === selectedStationMarker.code);
-      }
-      if (selectedEprisonsDistrict && selectedEprisonsDistrict !== 'ALL') {
-        list = list.filter(r => normDist(r.district) === normDist(selectedEprisonsDistrict));
-      }
-    }
-    return list;
-  }, [releasesList, selectedStationMarker, selectedEprisonsDistrict, activeSlide, selectedStationCode]);
 
-  // Active release counts keyed by (normalized) district name. Releases carry
-  // their releasing jail's district, which matches an offenders-map district.
-  const releaseCountByDistrict = useMemo(() => {
-    const m = {};
-    (releasesList || []).forEach((r) => {
-      const k = normDist(r.district);
-      if (k) m[k] = (m[k] || 0) + 1;
-    });
-    return m;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [releasesList]);
-
-  // PS boundary layer — only drawn AFTER drilling into a district (clicking it),
-  // exactly the way the offenders map reveals mandals. Shows just the police
-  // stations that fall inside the selected district (svgDistrict), clean borders.
-  const psLayer = useMemo(() => {
-    if (activeSlide !== 'eprisons' || selectedEprisonsDistrict === 'ALL') return null;
-    const sel = normDist(selectedEprisonsDistrict);
-    // Colour each PS like the offenders mandals — a filled choropleth so adjacent
-    // stations read distinctly. Deterministic tier per PS name keeps it stable.
-    const tiers = ['Green', 'Orange', 'Red'];
-    const psTier = (name) => {
-      let h = 0;
-      const s = name || '';
-      for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-      return tiers[Math.abs(h) % tiers.length];
-    };
-
-    return TELANGANA_POLICE_STATIONS
-      .filter((ps) => normDist(ps.svgDistrict) === sel)
-      .map((ps, idx) => {
-        const colors = getTierColor(psTier(ps.ps_name));
-        return (
-          <path
-            key={`ps-${idx}`}
-            d={ps.d}
-            fill={colors.fill}
-            stroke="#1E334D"
-            strokeWidth={0.7}
-            className="transition-all duration-150 cursor-pointer hover:brightness-95"
-            onMouseMove={(e) => handleMouseMove(e, { ...ps, id: `ps-${idx}`, releaseCount: releaseCountByDistrict[sel] || 0 }, 'PS')}
-            onMouseLeave={handleMouseLeave}
-          />
-        );
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSlide, selectedEprisonsDistrict, releaseCountByDistrict]);
-
-  // Alert markers — only on districts with active releases (a blinking red point,
-  // like the old jail pins). Quiet districts show nothing. Hidden once drilled in.
-  const alertMarkers = useMemo(() => {
-    if (activeSlide !== 'eprisons' || selectedEprisonsDistrict !== 'ALL') return null;
-    return TELANGANA_DISTRICTS.map((d) => {
-      const count = releaseCountByDistrict[normDist(d.name)] || 0;
-      if (count === 0) return null; // no marker where there are no alerts
-      const c = d.svgCenter || d.center;
-      const x = c?.x ?? (Array.isArray(c) ? c[0] : null);
-      const y = c?.y ?? (Array.isArray(c) ? c[1] : null);
-      if (x == null || y == null) return null;
-      return (
-        <g
-          key={`marker-${d.id}`}
-          transform={`translate(${x}, ${y})`}
-          onClick={() => handleMapClick(d)}
-          onMouseMove={(e) => { e.stopPropagation(); handleMouseMove(e, { ...d, releaseCount: count }, 'ALERT'); }}
-          onMouseLeave={handleMouseLeave}
-          className="cursor-pointer"
-        >
-          {/* blinking alert ping — same style as the old jail pins */}
-          <circle r="15" fill="#EF4444" opacity="0.4" className="animate-ping" />
-          <circle r="6" fill="#DC2626" stroke="#FFFFFF" strokeWidth="2" />
-          <g transform="translate(6, -12)">
-            <rect rx="6" width={count > 9 ? 19 : 15} height="13" fill="#1E293B" stroke="#FFFFFF" strokeWidth="1.1" />
-            <text x={count > 9 ? 9.5 : 7.5} y="9" textAnchor="middle" fill="#F8FAFC" fontSize="8" fontWeight="bold" fontFamily="monospace">
-              {count}
-            </text>
-          </g>
-        </g>
-      );
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSlide, selectedEprisonsDistrict, releaseCountByDistrict]);
 
   // Handle clicking a district
   const handleMapClick = (district) => {
-    if (activeSlide === 'eprisons') {
-      setSelectedEprisonsDistrict(district.name);
-    } else {
-      setSelectedDistrict(district);
-      setSelectedMandal(null);
-      if (onSelectJurisdiction) {
-        onSelectJurisdiction({ type: 'DISTRICT', data: district });
-      }
+    setSelectedDistrict(district);
+    setSelectedMandal(null);
+    if (onSelectJurisdiction) {
+      onSelectJurisdiction({ type: 'DISTRICT', data: district });
     }
   };
 
   // Handle clicking a mandal
   const handleMandalClick = (e, mandal, district) => {
     e.stopPropagation();
-    if (activeSlide === 'eprisons') return;
     setSelectedMandal(mandal);
     if (onSelectJurisdiction) {
       onSelectJurisdiction({ type: 'MANDAL', data: { ...mandal, parentDistrict: district.name } });
@@ -316,13 +169,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
   // Reset view to entire state
   const handleResetZoom = () => {
-    if (activeSlide === 'eprisons') {
-      setSelectedStationMarker(null);
-      setSelectedStationCode('ALL');
-      setSelectedEprisonsDistrict('ALL');
-      setSearchQuery('');
-      return;
-    }
     setSelectedDistrict(null);
     setSelectedMandal(null);
     setSearchQuery('');
@@ -330,13 +176,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     if (onSelectJurisdiction) {
       onSelectJurisdiction({ type: 'STATE', data: null });
     }
-  };
-
-  // Reset the police-station filter back to all stations
-  const handleResetToToday = () => {
-    setSelectedStationMarker(null);
-    setSelectedStationCode('ALL');
-    setSelectedEprisonsDistrict('ALL');
   };
 
   return (
@@ -347,7 +186,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             <div className="flex items-center gap-1.5">
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span className="font-mono text-[11px] font-bold tracking-wider text-secondary uppercase">
-                Statutory GIS Engine v3.8 — Puttaswamy & ePrisons Gateway
+                Statutory GIS Engine v3.8 — Puttaswamy
               </span>
             </div>
             <CardTitle className="mt-0.5 flex items-center gap-2 text-lg font-extrabold text-slate-900">
@@ -356,46 +195,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             </CardTitle>
           </div>
 
-          {/* Top Presenter Slide Switcher */}
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-inner">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveSlide('offenders');
-                  setSelectedStationMarker(null);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${activeSlide === 'offenders'
-                  ? 'bg-white text-secondary shadow-xs ring-1 ring-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
-                  }`}
-              >
-                <Layers className="h-3.5 w-3.5" />
-                Offenders Data
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveSlide('eprisons');
-                  setSelectedDistrict(null);
-                  setSelectedMandal(null);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${activeSlide === 'eprisons'
-                  ? 'bg-red-600 text-white shadow-xs ring-1 ring-red-700'
-                  : 'text-slate-600 hover:text-red-600'
-                  }`}
-              >
-                <ShieldAlert className="h-3.5 w-3.5 animate-pulse" />
-                ePrisons Releases & Alerts
-                {releasesList.length > 0 && activeSlide === 'eprisons' && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
-                    {releasesList.length}
-                  </span>
-                )}
-              </button>
-            </div>
 
-            {(selectedDistrict || searchQuery || tierFilter !== 'ALL' || selectedStationMarker || selectedEprisonsDistrict !== 'ALL') && (
+          <div className="flex flex-wrap items-center gap-2">
+            {(selectedDistrict || searchQuery || tierFilter !== 'ALL') && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -413,8 +215,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       <CardContent className="p-0 bg-white">
         <div className="grid grid-cols-1 xl:grid-cols-12 bg-white">
 
-          {/* 1. LEFT SECTION: Slide 1 (Offenders Data) only — Slide 2 (ePrisons) uses map + records only, no left box */}
-          {activeSlide === 'offenders' && (
           <div className="col-span-1 xl:col-span-3 bg-white flex flex-col justify-between border-b xl:border-b-0 xl:border-r border-slate-100">
             {(
               selectedDistrict ? (
@@ -565,10 +365,9 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
               💡 Click any district on the map or list to inspect local police divisions and offenders.
             </div>
           </div>
-          )}
 
           {/* 2. MIDDLE SECTION: Clean White SVG Map Viewport */}
-          <div className={`col-span-1 ${activeSlide === 'eprisons' ? 'xl:col-span-8' : 'xl:col-span-6'} bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]`}>
+          <div className="col-span-1 xl:col-span-6 bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]">
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
             <svg
@@ -582,58 +381,27 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     into its PS boundaries (below), like offenders reveals mandals. */}
                 {filteredDistricts.map((d) => {
                   const isHovered = hoveredEntity && hoveredEntity.id === d.id && hoveredEntity.type === 'DISTRICT';
-                  const isSelected = selectedDistrict && selectedDistrict.id === d.id && activeSlide === 'offenders';
-                  const isEprisonsSelected = activeSlide === 'eprisons' && selectedEprisonsDistrict.toLowerCase() === d.name.toLowerCase();
-                  const isNeighborBlackout = (selectedDistrict && !isSelected && activeSlide === 'offenders') ||
-                    (activeSlide === 'eprisons' && selectedEprisonsDistrict !== 'ALL' && !isEprisonsSelected);
+                  const isSelected = selectedDistrict && selectedDistrict.id === d.id;
+                  
+                  const isNeighborBlackout = selectedDistrict && !isSelected;
                   const tierStyle = getTierColor(getDistrictDynamicTier(d.name));
 
-                  if (selectedDistrict && selectedMandal && activeSlide === 'offenders') return null;
+                  if (selectedDistrict && selectedMandal) return null;
 
-                  // In ePrisons mode, check if this district has stations with active releases
-                  const districtHasReleases = activeSlide === 'eprisons' && releasesList.some(
-                    (r) => normDist(r.district) === normDist(d.name)
-                  );
+                  
 
                   return (
                     <path
                       key={d.id}
                       d={d.path}
-                      fill={
-                        isSelected
-                          ? tierStyle.fill
-                          : isEprisonsSelected
-                            ? '#F8FAFC' // Neutral base under the PS choropleth when drilled in
-                            : isNeighborBlackout
-                              ? '#F8FAFC'
-                              : isHovered
-                                ? '#BFDBFE'
-                                : activeSlide === 'eprisons' && districtHasReleases
-                                  ? '#FEF2F2' // Subtle crimson wash for jail districts
-                                  : activeSlide === 'eprisons'
-                                    ? '#F1F5F9'
-                                    : tierStyle.fill
-                      }
-                      stroke={
-                        isSelected || isEprisonsSelected
-                          ? '#1E334D'
-                          : isNeighborBlackout
-                            ? '#CBD5E1'
-                            : activeSlide === 'eprisons' && districtHasReleases
-                              ? '#EF4444'
-                              : '#1E334D'
-                      }
-                      strokeWidth={isSelected || isEprisonsSelected ? 1.8 : isHovered ? 1.4 : 1.0}
+                      fill={isSelected ? tierStyle.fill : isNeighborBlackout ? '#F8FAFC' : isHovered ? '#BFDBFE' : tierStyle.fill}
+                      stroke={isSelected ? '#1E334D' : isNeighborBlackout ? '#CBD5E1' : '#1E334D'}
+                      strokeWidth={isSelected ? 1.8 : isHovered ? 1.4 : 1.0}
                       opacity={isNeighborBlackout ? 0.45 : 1}
                       className="transition-all duration-300 cursor-pointer"
                       onClick={() => handleMapClick(d)}
                       onMouseMove={(e) => {
-                        if (activeSlide === 'eprisons') {
-                          const count = releaseCountByDistrict[normDist(d.name)] || 0;
-                          handleMouseMove(e, { ...d, releaseCount: count, dynamicTotal: getDistrictDynamicTotal(d.name), dynamicRiskTier: getDistrictDynamicTier(d.name) }, 'ALERT');
-                        } else {
                           handleMouseMove(e, { ...d, dynamicTotal: getDistrictDynamicTotal(d.name), dynamicRiskTier: getDistrictDynamicTier(d.name) }, 'DISTRICT');
-                        }
                       }}
                       onMouseLeave={handleMouseLeave}
                     />
@@ -641,7 +409,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 })}
 
                 {/* Zoomed Mandals view inside selected district (only in Offenders mode) */}
-                {selectedDistrict && activeSlide === 'offenders' &&
+                {selectedDistrict &&
                   selectedDistrict.mandals.map((m) => {
                     const isMandalSelected = selectedMandal && selectedMandal.id === m.id;
                     const isMandalHovered = hoveredEntity && hoveredEntity.id === m.id && hoveredEntity.type === 'MANDAL';
@@ -668,12 +436,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     );
                   })}
 
-                {/* ePrisons: PS boundaries of the drilled-into district (like the
-                    offenders mandals view), shown only when a district is selected. */}
-                {psLayer}
 
-                {/* ePrisons: blinking alert markers per district in the overview map */}
-                {alertMarkers}
               </g>
             </svg>
 
@@ -686,42 +449,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   top: hoverPos.y - 15,
                 }}
               >
-                {hoveredEntity.type === 'ALERT' ? (
-                  <div>
-                    <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1 mb-1">
-                      <span className={`h-2 w-2 rounded-full ${hoveredEntity.releaseCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-slate-400'}`} />
-                      <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.name} District</span>
-                    </div>
-                    <div className="text-[10px] text-slate-600 font-mono">
-                      <div className="mb-1">Offenders: <strong>{hoveredEntity.dynamicTotal || 0} ({hoveredEntity.dynamicRiskTier || 'N/A'})</strong></div>
-                      {hoveredEntity.releaseCount > 0 ? (
-                        <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
-                          🚨 {hoveredEntity.releaseCount} Prisoner Release{hoveredEntity.releaseCount > 1 ? 's' : ''} — click to view PS
-                        </div>
-                      ) : (
-                        <div className="mt-1 text-slate-500">No active releases · click to view PS</div>
-                      )}
-                    </div>
-                  </div>
-                ) : hoveredEntity.type === 'PS' ? (
-                  <div>
-                    <div className="flex items-center gap-1.5 border-b border-slate-100 pb-1 mb-1">
-                      <span className={`h-2 w-2 rounded-full ${hoveredEntity.releaseCount > 0 ? 'bg-red-600 animate-pulse' : 'bg-slate-400'}`} />
-                      <span className="font-extrabold text-slate-900 text-xs">{hoveredEntity.ps_name} PS</span>
-                    </div>
-                    <div className="text-[10px] text-slate-600 font-mono">
-                      <div>District: <strong>{hoveredEntity.district || '—'}</strong></div>
-                      <div>Zone: <strong>{hoveredEntity.commissionerate === 'District_PS' ? 'District Police' : hoveredEntity.commissionerate || '—'}</strong></div>
-                      {hoveredEntity.releaseCount > 0 ? (
-                        <div className="mt-1 font-bold text-red-700 bg-red-50 p-1 rounded border border-red-100">
-                          🚨 {hoveredEntity.releaseCount} Release{hoveredEntity.releaseCount > 1 ? 's' : ''} in this district
-                        </div>
-                      ) : (
-                        <div className="mt-1 text-slate-500">No active releases</div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
                   <div>
                     <div className="flex items-center gap-1">
                       <span className={`h-1.5 w-1.5 rounded-full ${hoveredEntity.dynamicRiskTier === 'Red' ? 'bg-red-500' : hoveredEntity.dynamicRiskTier === 'Orange' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
@@ -731,25 +458,15 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       {hoveredEntity.dynamicTotal} Cases ({hoveredEntity.dynamicRiskTier})
                     </div>
                   </div>
-                )}
               </div>
             )}
 
             {/* Top-Right Location Indicator */}
             <div className="absolute top-3.5 right-3.5 z-20">
-              {selectedDistrict && activeSlide === 'offenders' ? (
+              {selectedDistrict ? (
                 <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/95 px-3 py-1.5 text-xs font-bold text-slate-800 shadow-xs backdrop-blur-xs">
                   <MapPin className="h-3.5 w-3.5 text-secondary" />
                   <span>{selectedDistrict.name.toUpperCase()}</span>
-                </div>
-              ) : activeSlide === 'eprisons' ? (
-                <div className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-white/95 px-3 py-1.5 text-xs font-extrabold text-red-700 shadow-xs backdrop-blur-xs">
-                  <ShieldAlert className="h-3.5 w-3.5 text-red-600 animate-pulse" />
-                  <span>
-                    {selectedEprisonsDistrict !== 'ALL'
-                      ? `${selectedEprisonsDistrict.toUpperCase()} — PS BOUNDARIES`
-                      : 'ALL TELANGANA DISTRICTS'}
-                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white/90 px-2.5 py-1 text-xs font-medium text-slate-500 shadow-xs">
@@ -761,9 +478,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
           </div>
 
           {/* 3. RIGHT SECTION: Slide 1 Metrics vs Slide 2 Release Intelligence Feed */}
-          <div className={`col-span-1 ${activeSlide === 'eprisons' ? 'xl:col-span-4' : 'xl:col-span-3'} bg-white p-5 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-slate-100`}>
-            {activeSlide === 'offenders' ? (
-              selectedDistrict ? (
+          <div className="col-span-1 xl:col-span-3 bg-white p-5 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-slate-100">
+            {selectedDistrict ? (
                 /* District Specific Metrics */
                 (() => {
                   const total = selectedDistrict.totalOffenders || 0;
@@ -909,260 +625,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   </Link>
                 </div>
               )
-            ) : (
-              /* Slide 2: Real-Time Prisoner Release Intelligence Table / Feed */
-              <div className="space-y-3 flex flex-col h-full justify-between">
-                <div>
-                  <div className="pb-2 border-b border-slate-100">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">
-                          Statutory Release Feed
-                        </span>
-                        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5 leading-snug truncate">
-                          {selectedStationMarker
-                            ? selectedStationMarker.name
-                            : selectedEprisonsDistrict !== 'ALL'
-                              ? `${selectedEprisonsDistrict} Releases`
-                              : "Today's Prisoner Alerts"}
-                        </h3>
-                      </div>
-                      <div className="shrink-0 flex items-center">
-                        <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 shadow-2xs">
-                          {releasesByDistrict.length}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
-                      Select Police Station / Facility Code
-                    </label>
-                    <SearchableCombobox
-                      options={stationsList.map(j => ({
-                        value: j.code,
-                        label: `${j.name} (${j.code})`,
-                        description: j.district
-                      }))}
-                      value={selectedStationCode}
-                      onChange={(val) => {
-                        setSelectedStationCode(val);
-                        setSelectedStationMarker(null);
-                      }}
-                      defaultLabel={`ALL - All Telangana Police Stations (${stationsList.length} Facilities)`}
-                      placeholder="Search for a Police Station..."
-                    />
-                  </div>
-
-                  <div className="mt-3 space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                    {loadingReleases ? (
-                      <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
-                        <RefreshCw className="h-7 w-7 animate-spin text-red-600" />
-                        <span className="text-sm font-semibold">Connecting to ePrisons Gateway...</span>
-                      </div>
-                    ) : releasesByDistrict.length === 0 ? (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-6 text-center text-slate-500 text-sm font-medium">
-                        No prisoner release alerts active for today at this station.
-                      </div>
-                    ) : (
-                      releasesByDistrict.map((r) => {
-                        const tierColor = r.riskTier === 'Red'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : r.riskTier === 'Orange'
-                            ? 'bg-orange-50 text-orange-700 border-orange-200'
-                            : 'bg-green-50 text-green-700 border-green-200';
-
-                        const isExpanded = expandedCardId === r.id;
-
-                        return (
-                          <div
-                            key={r.id}
-                            onClick={() => setExpandedCardId(isExpanded ? null : r.id)}
-                            className={`group cursor-pointer rounded-xl border border-slate-200 bg-white p-3 hover:border-slate-300 hover:shadow-md transition-all duration-200`}
-                          >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div className="flex items-start gap-2.5 min-w-0">
-                                {/* Status Indicator Dot */}
-                                <div className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
-                                  r.riskTier === 'Red' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
-                                  r.riskTier === 'Orange' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' :
-                                  'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                                }`} />
-                                <div className="min-w-0">
-                                  <h4 className="truncate text-sm font-bold text-slate-900">{r.prisonerName}</h4>
-                                  <div 
-                                    onClick={(e) => { e.stopPropagation(); setPopupStationCode(r); }}
-                                    className="truncate text-xs font-semibold text-secondary hover:text-blue-700 hover:underline mt-0.5 flex items-center gap-1 cursor-pointer transition-colors"
-                                  >
-                                    <span className="text-slate-400 no-underline">🏛️</span> {r.psName || r.psCode}
-                                  </div>
-                                </div>
-                              </div>
-                              <span className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${tierColor}`}>
-                                {r.riskTier || 'High Risk'}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs mt-3">
-                              <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                                <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                                {r.releaseDate}
-                              </div>
-                              <div className="text-secondary font-semibold hover:text-secondary/80 flex items-center gap-1 transition-colors">
-                                {isExpanded ? 'Hide Details' : 'Show Details'}
-                              </div>
-                            </div>
-
-                            {/* Collapsed Details */}
-                            {isExpanded && (
-                              <div className="mt-3 pt-3 border-t border-slate-100/80 space-y-2 animate-fadeIn cursor-default" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Father</span>
-                                  <span className="text-xs font-semibold text-slate-800">{r.fatherName || 'N/A'}</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Age</span>
-                                  <span className="text-xs font-semibold text-slate-800">{r.age ? `${r.age} Yrs` : 'N/A'}</span>
-                                </div>
-                                
-                                <div className="pt-2">
-                                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Sections of Law</span>
-                                  <span className="text-[11px] font-medium text-slate-700 leading-snug">{r.sectionsOfLaw || 'N/A'}</span>
-                                </div>
-
-                                {r.caseDetails && (
-                                  <div className="pt-1.5">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Case Details</span>
-                                    <div className="text-[11px] font-medium text-slate-600 bg-slate-50 p-2 rounded-md border border-slate-100/60 leading-relaxed">
-                                      {r.caseDetails}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {r.surveillanceOfficer && (
-                                  <div className="mt-2 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tracking Officer</span>
-                                    <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-2 py-1 rounded-md">
-                                      {r.surveillanceOfficer}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Reset view / back button at bottom */}
-                <div className="mt-4 border-t border-slate-100 pt-3 flex flex-col justify-end">
-                  {activeSlide === 'offenders' ? (
-                    (selectedDistrict || searchQuery || tierFilter !== 'ALL') ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleResetZoom}
-                        className="w-full font-bold border-slate-200 text-slate-700 hover:bg-slate-50 text-xs py-1 h-8.5 cursor-pointer transition-all animate-fadeIn"
-                      >
-                        <ZoomOut className="mr-1.5 h-3.5 w-3.5" /> Back to State View
-                      </Button>
-                    ) : (
-                      <div className="text-[10px] text-center text-slate-400 font-mono">
-                        SSOR Portal Core v3.8
-                      </div>
-                    )
-                  ) : (
-                    (selectedStationCode !== 'ALL' || selectedEprisonsDistrict !== 'ALL' || selectedStationMarker) ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleResetToToday}
-                        className="w-full font-bold border-red-200 text-red-700 hover:bg-red-50 text-xs py-1 h-8.5 cursor-pointer transition-all animate-fadeIn"
-                      >
-                        <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Reset ePrisons View
-                      </Button>
-                    ) : (
-                      <div className="text-[10px] text-center text-slate-400 font-mono">
-                        NIC ePrisons Live API Gateway
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            )}
+            }
           </div>
         </div>
       </CardContent>
 
-      {/* Police Station Alerts Popup Modal */}
-      <Dialog open={!!popupStationCode} onOpenChange={(open) => !open && setPopupStationCode(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 border-0 overflow-hidden bg-slate-50/50">
-          <DialogHeader className="bg-white border-b border-slate-100 px-6 py-4 shadow-sm z-10">
-            <DialogTitle className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <span className="bg-secondary/10 p-1.5 rounded-lg text-secondary">🏛️</span>
-              {popupStationCode?.psName || popupStationCode?.psCode}
-            </DialogTitle>
-            <div className="text-xs text-slate-500 mt-1 font-medium">All active alerts mapped to this Police Station</div>
-          </DialogHeader>
-          <DialogBody className="p-0 sm:p-0 overflow-y-auto bg-white">
-            {releasesList.filter(r => r.psCode === popupStationCode?.psCode).length === 0 ? (
-              <div className="text-center text-sm text-slate-500 py-10">No alerts found for this station.</div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold text-slate-500 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Offender</th>
-                    <th className="px-6 py-3 font-medium">Case Info</th>
-                    <th className="px-6 py-3 font-medium">Tracking Officer</th>
-                    <th className="px-6 py-3 font-medium text-right">Risk & Release</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {releasesList
-                    .filter(r => r.psCode === popupStationCode?.psCode)
-                    .map(r => (
-                      <tr key={r.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm border border-slate-200">
-                              {r.prisonerName.charAt(0)}
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-sm font-medium text-slate-900">{r.prisonerName}</div>
-                              <div className="text-xs text-slate-500">{r.age ? `${r.age} yrs` : 'N/A'} • Father: {r.fatherName || 'N/A'}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-slate-900 font-medium">{r.sectionsOfLaw || 'N/A'}</div>
-                          {r.caseDetails && (
-                            <div className="text-xs text-slate-500 mt-0.5 max-w-[200px]" title={r.caseDetails}>{r.caseDetails}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-700">
-                            {r.surveillanceOfficer || <span className="text-slate-400 italic">Unassigned</span>}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-2 mb-1">
-                            <span className="text-sm font-medium text-slate-900">{r.riskTier === 'Red' ? 'High Risk' : r.riskTier === 'Orange' ? 'Medium Risk' : 'Low Risk'}</span>
-                            <div className={`h-2 w-2 rounded-full ${r.riskTier === 'Red' ? 'bg-red-500' : r.riskTier === 'Orange' ? 'bg-orange-500' : 'bg-emerald-500'}`} />
-                          </div>
-                          <div className="text-xs text-slate-500">{r.releaseDate}</div>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            )}
-          </DialogBody>
-        </DialogContent>
-      </Dialog>
+      
     </Card>
   );
 };

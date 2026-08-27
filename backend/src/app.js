@@ -15,7 +15,6 @@ import verifyRoutes from './routes/verify.route.js';
 import adminRoutes from './routes/admin.routes.js';
 import districtRoutes from './routes/district.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
-import jrmsProviderRoutes from './routes/jrmsProvider.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from './utils/logger.js';
@@ -70,8 +69,6 @@ app.use('/api/e-petty', epettyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/districts', districtRoutes);
 app.use('/api/notifications', notificationRoutes);
-// APIs exposed to the JRMS third-party integration — see jrmsProvider.routes.js
-app.use('/api', jrmsProviderRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });

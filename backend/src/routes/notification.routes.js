@@ -1,5 +1,5 @@
 import express from 'express';
-import { getSettings, upsertSettings, getHistory, sendTestAlert } from '../controllers/notification.controller.js';
+import { getSettings, upsertSettings, getHistory } from '../controllers/notification.controller.js';
 import { requireAuth, requireRoles } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -14,7 +14,5 @@ router.put('/settings', upsertSettings);
 // History
 router.get('/history', getHistory);
 
-// Test alert (STATE_ADMIN only)
-router.post('/test', requireRoles(['STATE_ADMIN']), sendTestAlert);
 
 export default router;

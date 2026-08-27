@@ -1,5 +1,4 @@
 import prisma from '../config/db.js';
-import { sendReleaseAlert } from '../services/release-alert.service.js';
 
 // GET /api/notifications/settings
 // - DISTRICT_USER: returns own district settings
@@ -119,25 +118,3 @@ export const getHistory = async (req, res) => {
   }
 };
 
-// POST /api/notifications/test  — manually trigger a test alert (STATE_ADMIN only)
-export const sendTestAlert = async (req, res) => {
-  try {
-    const { distCode } = req.body;
-    if (!distCode) return res.status(400).json({ success: false, message: 'distCode required.' });
-
-    const result = await sendReleaseAlert({
-      id: 'test-alert',
-      prisonerName: 'Test Prisoner (Alert Check)',
-      jailName: 'Test Prison',
-      district: distCode,
-      distCode,
-      caseDetails: 'Cr.No. TEST/2025',
-      releaseDate: new Date().toLocaleDateString('en-IN'),
-      sectionsOfLaw: 'Test Section',
-    }, true);
-
-    res.status(200).json({ success: true, message: 'Test alert dispatched.', result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
-  }
-};
