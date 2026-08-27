@@ -131,14 +131,7 @@ function DataTable({
       </div>
 
       <div className={`overflow-x-auto ${minHeight} flex flex-col relative bg-white`}>
-        {loading && (
-          <div className="absolute inset-0 z-20 bg-white/70 backdrop-blur-md flex items-center justify-center transition-all duration-300">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-10 h-10 text-secondary animate-spin" />
-              <span className="text-base font-bold text-slate-600 animate-pulse">Loading data...</span>
-            </div>
-          </div>
-        )}
+
 
         <table className="w-full h-full whitespace-nowrap text-left text-base border-collapse">
           <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50">
@@ -150,8 +143,18 @@ function DataTable({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {data.length === 0 && !loading ? (
+          <tbody className={`divide-y divide-slate-100 ${loading && data.length > 0 ? 'opacity-50 pointer-events-none transition-opacity duration-300' : ''}`}>
+            {loading && data.length === 0 ? (
+              Array.from({ length: 8 }).map((_, rowIndex) => (
+                <tr key={`skeleton-${rowIndex}`} className="animate-pulse">
+                  {columns.map((col, colIndex) => (
+                    <td key={`skel-col-${colIndex}`} className="px-3 py-4">
+                      <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : data.length === 0 && !loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-12 text-center text-slate-500">
                   <EmptyIcon className="mx-auto mb-3 h-12 w-12 text-slate-300" aria-hidden="true" />
