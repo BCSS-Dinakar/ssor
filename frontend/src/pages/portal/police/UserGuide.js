@@ -124,7 +124,7 @@ function UserGuide() {
               <div className="space-y-1 pb-4">
                 <h3 className="text-sm font-bold text-slate-900 leading-tight">Database Matching</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  The SSOR engine automatically runs background queries across CCTNS, ePetty Cases, and the ePrisons release gateway.
+                  The SSOR engine automatically runs background queries across CCTNS and ePetty Cases databases.
                 </p>
               </div>
             </div>
@@ -183,23 +183,7 @@ function UserGuide() {
           </ul>
         </section>
 
-        {/* Section 2 */}
-        <section className="space-y-3 border-l-3 border-red-500 pl-4">
-          <h2 className="text-base font-bold text-slate-900">
-            2. ePrisons Real-Time Release Monitoring
-          </h2>
-          <p className="text-slate-600 text-xs leading-relaxed">
-            A direct API gateway connects the portal with the NIC ePrisons database, facilitating the real-time tracking of active and upcoming prisoner releases.
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-slate-700 text-xs leading-relaxed">
-            <li>
-              <strong>Release Alerts:</strong> Blinking markers on the map highlight districts with recent release entries.
-            </li>
-            <li>
-              <strong>Detailed Surveillance:</strong> Hovering or clicking on districts displays the released prisoner's name, parentage, release date, sections of law, and the assigned tracking task force.
-            </li>
-          </ul>
-        </section>
+
 
         {/* Section 3 */}
         <section className="space-y-3 border-l-3 border-emerald-500 pl-4">
@@ -241,7 +225,7 @@ function UserGuide() {
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-slate-700 text-xs leading-relaxed">
             <li>
-              <strong>Triple DB Matching:</strong> The engine queries CCTNS, ePetty Cases, and ePrisons databases.
+              <strong>Double DB Matching:</strong> The engine queries CCTNS and ePetty Cases databases.
             </li>
             <li>
               <strong>Review & Decision:</strong> Compare candidate details against matching records across database tabs. Make a vetting decision by selecting 'Issue Clearance' or 'Deny Clearance'.
