@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { MapPin, Search, ZoomOut, RotateCcw, Layers, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
+import { MapPin, ZoomOut, RotateCcw, Layers, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
 import { TELANGANA_DISTRICTS, TELANGANA_BOUNDS } from '../../../utils/data/telanganaDistrictsMandals';
 import { TELANGANA_POLICE_STATIONS } from '../../../utils/data/telanganaPoliceStations';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
@@ -56,16 +56,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
 
   // ePrisons Releases & Alerts States
-  const getTodayFormatted = () => {
-    const now = new Date();
-    const d = String(now.getDate()).padStart(2, '0');
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const y = now.getFullYear();
-    return `${y}-${m}-${d}`;
-  };
   const normDist = (s) => (s || '').toLowerCase().replace(/[-_]/g, ' ').trim();
-  const [fromDate, setFromDate] = useState(getTodayFormatted());
-  const [toDate, setToDate] = useState(getTodayFormatted());
   const [stationsList, setStationsList] = useState([]);
   const [releasesList, setReleasesList] = useState([]);
   const [loadingReleases, setLoadingReleases] = useState(false);
@@ -75,8 +66,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [popupStationCode, setPopupStationCode] = useState(null);
 
-  // Fetch ePrisons stations and releases when switching to the ePrisons slide.
-  // Filter/date changes call fetchEprisonsData() explicitly to avoid stale closures.
+  // Fetch today's ePrisons stations and releases when switching to the ePrisons slide.
+  // Station/district filters are applied client-side via releasesByDistrict below.
   useEffect(() => {
     if (activeSlide === 'eprisons') {
       fetchEprisonsData();
@@ -84,36 +75,19 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSlide]);
 
-  // fetchEprisonsData always receives dates explicitly to avoid React stale state closure bugs
-  const fetchEprisonsData = async (customStationCode, customDistrict, customFromDate, customToDate) => {
+  const fetchEprisonsData = async () => {
     setLoadingReleases(true);
     try {
-      const activeCode = customStationCode !== undefined ? customStationCode : selectedStationCode;
-      const activeDist = customDistrict !== undefined ? customDistrict : selectedEprisonsDistrict;
-      const activeFrom = customFromDate !== undefined ? customFromDate : fromDate;
-      const activeTo = customToDate !== undefined ? customToDate : toDate;
-
-      const isTodayOnly = activeFrom === getTodayFormatted() && activeTo === getTodayFormatted();
-      const isDefault = isTodayOnly && activeCode === 'ALL' && activeDist === 'ALL';
-
       const [stationsRes, releasesRes] = await Promise.all([
         policeApi.getEprisonsStations(),
-        isDefault ? policeApi.getEprisonsToday() : policeApi.getEprisonsHistory({
-          psCode: activeCode,
-          fromDate: activeFrom,
-          toDate: activeTo,
-          district: activeDist
-        })
+        policeApi.getEprisonsToday()
       ]);
-      
-      if (stationsRes && stationsRes.status && stationsRes.data) {
+
+      if (stationsRes && stationsRes.success && stationsRes.data) {
         setStationsList(stationsRes.data);
       }
-      if (releasesRes && releasesRes.status && releasesRes.data) {
+      if (releasesRes && releasesRes.success && releasesRes.data) {
         setReleasesList(releasesRes.data);
-        if (releasesRes.stations && releasesRes.stations.length > 0 && stationsList.length === 0) {
-          setStationsList(releasesRes.stations);
-        }
       } else {
         setReleasesList([]);
       }
@@ -321,8 +295,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const handleMapClick = (district) => {
     if (activeSlide === 'eprisons') {
       setSelectedEprisonsDistrict(district.name);
-      // Reset Station marker when clicking a district
-      fetchEprisonsData(selectedStationCode, district.name);
     } else {
       setSelectedDistrict(district);
       setSelectedMandal(null);
@@ -349,7 +321,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       setSelectedStationCode('ALL');
       setSelectedEprisonsDistrict('ALL');
       setSearchQuery('');
-      fetchEprisonsData('ALL', 'ALL', fromDate, toDate);
       return;
     }
     setSelectedDistrict(null);
@@ -361,15 +332,11 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
     }
   };
 
-  // Reset to today's date range and refetch
+  // Reset the police-station filter back to all stations
   const handleResetToToday = () => {
-    const t = getTodayFormatted();
-    setFromDate(t);
-    setToDate(t);
     setSelectedStationMarker(null);
     setSelectedStationCode('ALL');
     setSelectedEprisonsDistrict('ALL');
-    fetchEprisonsData('ALL', 'ALL', t, t);
   };
 
   return (
@@ -446,9 +413,10 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       <CardContent className="p-0 bg-white">
         <div className="grid grid-cols-1 xl:grid-cols-12 bg-white">
 
-          {/* 1. LEFT SECTION: Slide 1 (Offenders Data) vs Slide 2 (ePrisons Controls) */}
+          {/* 1. LEFT SECTION: Slide 1 (Offenders Data) only — Slide 2 (ePrisons) uses map + records only, no left box */}
+          {activeSlide === 'offenders' && (
           <div className="col-span-1 xl:col-span-3 bg-white flex flex-col justify-between border-b xl:border-b-0 xl:border-r border-slate-100">
-            {activeSlide === 'offenders' ? (
+            {(
               selectedDistrict ? (
                 /* District Zoom List View */
                 <div className="space-y-3.5">
@@ -591,127 +559,16 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                   </div>
                 </div>
               )
-            ) : (
-              /* Slide 2: ePrisons Date Range & Police Station Search Control Bar */
-              <div className="space-y-5 bg-white p-5 h-full">
-                <div className="pb-2.5 border-b border-slate-100">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping" />
-                    NIC ePrisons Live Gateway (.env)
-                  </span>
-                  <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
-                    Release Date Range Search
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
-                      Select Police Station / Facility Code
-                    </label>
-                    <SearchableCombobox
-                      options={stationsList.map(j => ({
-                        value: j.code,
-                        label: `${j.name} (${j.code})`,
-                        description: j.district
-                      }))}
-                      value={selectedStationCode}
-                      onChange={(val) => {
-                        setSelectedStationCode(val);
-                        setSelectedStationMarker(null);
-                      }}
-                      defaultLabel={`ALL - All Telangana Police Stations (${stationsList.length} Facilities)`}
-                      placeholder="Search for a Police Station..."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1 flex items-center justify-between">
-                        <span>From Date</span>
-                        <Calendar className="h-3 w-3 text-red-600" />
-                      </label>
-                      <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none cursor-pointer"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1 flex items-center justify-between">
-                        <span>To Date</span>
-                        <Calendar className="h-3 w-3 text-red-600" />
-                      </label>
-                      <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-xs font-semibold text-slate-800 shadow-xs focus:border-red-500 focus:outline-none cursor-pointer"
-                      />
-                    </div>
-                  </div>
-
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fetchEprisonsData(selectedStationCode, selectedEprisonsDistrict, fromDate, toDate)}
-                      disabled={loadingReleases}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg py-2 text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      {loadingReleases ? (
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Search className="h-3.5 w-3.5" />
-                      )}
-                      {loadingReleases ? 'Querying...' : 'Search'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResetToToday}
-                      disabled={loadingReleases}
-                      title="Reset to today's data"
-                      className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs border border-slate-300 transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50 shrink-0"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      Today
-                    </button>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-red-100 bg-red-50/60 p-3 space-y-2">
-                  <div className="text-[11px] font-extrabold text-red-900 flex items-center justify-between">
-                    <span>Active Release Alerts</span>
-                    <span className="px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] font-semibold">
-                      {releasesByDistrict.length} Plotted
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-red-700 leading-relaxed">
-                    Statutory real-time alerts mapped onto Telangana's districts. Blinking markers flag districts with active prisoner releases. Click a district to drill into its police-station (PS) boundaries.
-                  </p>
-                  {(selectedEprisonsDistrict !== 'ALL' || selectedStationMarker || selectedStationCode !== 'ALL') && (
-                    <button
-                      type="button"
-                      onClick={() => handleResetZoom()}
-                      className="text-[10px] font-bold text-red-800 underline block cursor-pointer hover:text-red-950"
-                    >
-                      Reset map filters ({selectedStationMarker ? selectedStationMarker.code : selectedEprisonsDistrict !== 'ALL' ? selectedEprisonsDistrict : selectedStationCode})
-                    </button>
-                  )}
-                </div>
-              </div>
             )}
 
             <div className="mt-4 text-[9px] text-slate-400 bg-slate-50/70 p-2 rounded-lg border border-slate-100">
-              {activeSlide === 'offenders'
-                ? "💡 Click any district on the map or list to inspect local police divisions and offenders."
-                : "💡 Blinking markers flag districts with active releases. Click a district to drill into its PS boundaries."}
+              💡 Click any district on the map or list to inspect local police divisions and offenders.
             </div>
           </div>
+          )}
 
-          {/* 2. MIDDLE SECTION: Clean White SVG Map Viewport (col-span-6) */}
-          <div className="col-span-1 xl:col-span-6 bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]">
+          {/* 2. MIDDLE SECTION: Clean White SVG Map Viewport */}
+          <div className={`col-span-1 ${activeSlide === 'eprisons' ? 'xl:col-span-8' : 'xl:col-span-6'} bg-white p-3 flex flex-col justify-between items-center relative min-h-[440px]`}>
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
             <svg
@@ -904,7 +761,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
           </div>
 
           {/* 3. RIGHT SECTION: Slide 1 Metrics vs Slide 2 Release Intelligence Feed */}
-          <div className="col-span-1 xl:col-span-3 bg-white p-5 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-slate-100">
+          <div className={`col-span-1 ${activeSlide === 'eprisons' ? 'xl:col-span-4' : 'xl:col-span-3'} bg-white p-5 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-slate-100`}>
             {activeSlide === 'offenders' ? (
               selectedDistrict ? (
                 /* District Specific Metrics */
@@ -1067,15 +924,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                             ? selectedStationMarker.name
                             : selectedEprisonsDistrict !== 'ALL'
                               ? `${selectedEprisonsDistrict} Releases`
-                              : 'State-wide Prisoner Alerts'}
+                              : "Today's Prisoner Alerts"}
                         </h3>
-                        {/* Active date range indicator */}
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500">
-                          <Calendar className="h-3 w-3 text-red-500" />
-                          <span className="font-semibold text-red-700">{fromDate}</span>
-                          <span>→</span>
-                          <span className="font-semibold text-red-700">{toDate}</span>
-                        </div>
                       </div>
                       <div className="shrink-0 flex items-center">
                         <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 shadow-2xs">
@@ -1085,7 +935,27 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                  <div className="mt-3">
+                    <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                      Select Police Station / Facility Code
+                    </label>
+                    <SearchableCombobox
+                      options={stationsList.map(j => ({
+                        value: j.code,
+                        label: `${j.name} (${j.code})`,
+                        description: j.district
+                      }))}
+                      value={selectedStationCode}
+                      onChange={(val) => {
+                        setSelectedStationCode(val);
+                        setSelectedStationMarker(null);
+                      }}
+                      defaultLabel={`ALL - All Telangana Police Stations (${stationsList.length} Facilities)`}
+                      placeholder="Search for a Police Station..."
+                    />
+                  </div>
+
+                  <div className="mt-3 space-y-3 max-h-[380px] overflow-y-auto pr-1">
                     {loadingReleases ? (
                       <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-3">
                         <RefreshCw className="h-7 w-7 animate-spin text-red-600" />
@@ -1093,7 +963,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       </div>
                     ) : releasesByDistrict.length === 0 ? (
                       <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-6 text-center text-slate-500 text-sm font-medium">
-                        No prisoner release alerts active for this date window / location.
+                        No prisoner release alerts active for today at this station.
                       </div>
                     ) : (
                       releasesByDistrict.map((r) => {
@@ -1206,7 +1076,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       </div>
                     )
                   ) : (
-                    (fromDate !== getTodayFormatted() || toDate !== getTodayFormatted() || selectedStationCode !== 'ALL' || selectedEprisonsDistrict !== 'ALL' || selectedStationMarker) ? (
+                    (selectedStationCode !== 'ALL' || selectedEprisonsDistrict !== 'ALL' || selectedStationMarker) ? (
                       <Button
                         size="sm"
                         variant="outline"
@@ -1239,7 +1109,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             <div className="text-xs text-slate-500 mt-1 font-medium">All active alerts mapped to this Police Station</div>
           </DialogHeader>
           <DialogBody className="p-0 sm:p-0 overflow-y-auto bg-white">
-            {releasesList.filter(r => r.psName === popupStationCode?.psName).length === 0 ? (
+            {releasesList.filter(r => r.psCode === popupStationCode?.psCode).length === 0 ? (
               <div className="text-center text-sm text-slate-500 py-10">No alerts found for this station.</div>
             ) : (
               <table className="w-full text-left border-collapse">
@@ -1253,7 +1123,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {releasesList
-                    .filter(r => r.psName === popupStationCode?.psName)
+                    .filter(r => r.psCode === popupStationCode?.psCode)
                     .map(r => (
                       <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">

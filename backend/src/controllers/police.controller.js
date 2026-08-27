@@ -1,15 +1,18 @@
 import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
-import path from 'path';
-import fs from 'fs';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
 import { searchCctnsCandidate, shouldSkipEpettyAfterCctns } from '../services/cctns.service.js';
 import { generateClearanceReport } from '../services/gemini.service.js';
 import { streamDocument, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
 import { withVerificationUrls, withVerificationUrlsList, guardDocumentAccess } from '../services/media.service.js';
+import { TELANGANA_POLICE_STATIONS } from '../config/policeStations.js';
 import logger from '../utils/logger.js';
 
 const mvReadyCache = {};
+
+export const getEprisonsStations = async (req, res) => {
+  res.status(200).json({ success: true, data: TELANGANA_POLICE_STATIONS });
+};
 
 async function getActiveView(mvName, vName) {
   if (mvReadyCache[mvName]) return Prisma.raw(mvName);

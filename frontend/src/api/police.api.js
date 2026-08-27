@@ -83,17 +83,12 @@ export const policeApi = {
   },
 
   getEprisonsStations: async () => {
-    const response = await api.get('/eprisons/stations');
+    const response = await api.get('/police/eprisons-stations');
     return response.data;
   },
 
   getEprisonsToday: async () => {
-    const response = await api.get('/eprisons/today');
-    return response.data;
-  },
-
-  getEprisonsHistory: async (payload) => {
-    const response = await api.post('/eprisons/history', payload);
+    const response = await api.get('/eprisoners_release_alerts');
     return response.data;
   },
 

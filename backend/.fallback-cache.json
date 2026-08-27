@@ -6,5 +6,9 @@
   "otp:9087654321": {
     "value": "447319",
     "expiresAt": 1784714532556
+  },
+  "jrms:eprisoners_release_alerts": {
+    "value": "[{\"id\":\"ms-2\",\"prisonerName\":\"Multi Section\",\"psCode\":\"PS-HYD-20\",\"releaseDate\":\"27/08/2026\",\"sections\":[{\"actName\":\"ITPA\",\"sectionCode\":\"3\"},{\"actName\":\"BNS\",\"sectionCode\":\"63\"}],\"psName\":\"Hyderabad Town PS\",\"district\":\"Hyderabad\",\"riskTier\":\"Red\",\"sectionsOfLaw\":\"ITPA 3, BNS 63\"}]",
+    "expiresAt": 1787901027424
   }
 }
