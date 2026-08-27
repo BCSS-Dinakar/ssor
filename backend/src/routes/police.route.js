@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requireRoles } from '../middleware/auth.middleware.js';
-import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDocumentSignedUrl, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, getOffendersStats, generateVerificationReport, getEpettyRegistryList, getEpettyRegistryById, getEpettyRegistryStats } from '../controllers/police.controller.js';
+import { getLogs, getOrganizations, getOrganizationById, updateOrganizationStatus, getDocument, getDocumentSignedUrl, getDashboardStats, getVerifications, getVerificationById, updateVerificationStatus, getTickets, updateTicketStatus, addTicketMessage, scanVerificationById, getOffendersList, getOffenderById, getOffendersStats, generateVerificationReport, getEpettyRegistryList, getEpettyRegistryById, getEpettyRegistryStats, getEprisonsStations } from '../controllers/police.controller.js';
 
 const router = Router();
 
@@ -8,6 +8,7 @@ router.use(requireAuth);
 router.use(requireRoles(['STATE_ADMIN', 'DISTRICT_USER', 'police']));
 
 router.get('/dashboard', getDashboardStats);
+router.get('/eprisons-stations', getEprisonsStations);
 router.get('/offenders', getOffendersList);
 router.get('/offenders/stats', getOffendersStats);
 router.get('/offenders/:id', getOffenderById);

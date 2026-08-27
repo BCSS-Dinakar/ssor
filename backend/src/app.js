@@ -11,11 +11,11 @@ import policeRoutes from './routes/police.route.js';
 import organizationRoutes from './routes/organization.route.js';
 import mediaRoutes from './routes/media.route.js';
 import epettyRoutes from './routes/epetty.route.js';
-import eprisonsRoutes from './routes/eprisons.js';
 import verifyRoutes from './routes/verify.route.js';
 import adminRoutes from './routes/admin.routes.js';
 import districtRoutes from './routes/district.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
+import jrmsProviderRoutes from './routes/jrmsProvider.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from './utils/logger.js';
@@ -67,11 +67,11 @@ app.use('/api/organization', organizationRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/e-petty', epettyRoutes);
-app.use('/api/eprisons', eprisonsRoutes);
-app.use('/api/e-prisons', eprisonsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/districts', districtRoutes);
 app.use('/api/notifications', notificationRoutes);
+// APIs exposed to the JRMS third-party integration — see jrmsProvider.routes.js
+app.use('/api', jrmsProviderRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });
