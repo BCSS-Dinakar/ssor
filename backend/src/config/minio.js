@@ -6,7 +6,7 @@ let publicClient;
 
 /**
  * Lazily construct the MinIO client from environment configuration.
- * Mirrors the Redis pattern: a single shared instance, created on first use.
+ * Single shared instance, created on first use.
  * Used for all server-side operations (put/stat/get) over the INTERNAL endpoint.
  */
 export function getMinio() {
@@ -40,7 +40,7 @@ export const MINIO_BUCKET = process.env.MINIO_BUCKET || 'ssor-documents';
 /**
  * Ensure a bucket exists. Called once per bucket at startup.
  * Non-fatal: if MinIO is unreachable the server still boots (uploads will
- * error at request time), matching the graceful-degradation style used for Redis.
+ * error at request time); uploads fall back to local disk when MinIO is down.
  * @param {string} [bucket=MINIO_BUCKET] bucket to provision.
  */
 export async function ensureBucket(bucket = MINIO_BUCKET) {

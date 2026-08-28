@@ -16,7 +16,7 @@ import Settings from './pages/portal/Settings';
 import RegistryDatabase from './pages/portal/police/RegistryDatabase';
 import EpettyRegistry from './pages/portal/police/EpettyRegistry';
 import EpettyDetail from './pages/portal/police/EpettyDetail';
-import RiskTierGuide from './pages/portal/RiskTierGuide';
+import RiskTier from './pages/portal/RiskTier';
 import PendingVerifications from './pages/portal/police/PendingVerifications';
 import VerificationHistory from './pages/portal/police/VerificationHistory';
 import OrganizationApprovals from './pages/portal/police/OrganizationApprovals';
@@ -39,7 +39,7 @@ import VerificationDetails from './pages/portal/organization/VerificationDetails
 import LegalResources from './pages/portal/organization/LegalResources';
 import ComplianceAndSupport from './pages/portal/organization/ComplianceAndSupport';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
-import { ToastProvider } from './components/ui';
+import { ToastProvider } from './components/ui/Toast';
 
 
 function App() {
@@ -66,7 +66,7 @@ function App() {
             <Route index element={<PortalIndex />} />
             {/* Shared */}
             <Route path="profile" element={<Profile />} />
-            <Route path="tiers" element={<RiskTierGuide />} />
+            <Route path="tiers" element={<RiskTier />} />
             <Route element={<RoleProtectedRoute allowedRoles={['STATE_ADMIN', 'DISTRICT_USER']} />}>
               <Route path="settings" element={<Settings />} />
             </Route>

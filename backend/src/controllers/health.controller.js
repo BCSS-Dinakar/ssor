@@ -1,5 +1,4 @@
 import prisma from '../config/db.js';
-import getRedis from '../config/redis.js';
 import { getMinio, MINIO_BUCKET } from '../config/minio.js';
 
 const checkDatabase = async () => {
@@ -7,17 +6,11 @@ const checkDatabase = async () => {
   return 'Connected';
 };
 
-const checkRedis = async () => {
-  const pong = await getRedis().ping();
-  return pong === 'PONG' ? 'Connected' : `Unexpected reply: ${pong}`;
-};
-
 const checkMinio = async () => {
   const exists = await getMinio().bucketExists(MINIO_BUCKET);
   return exists ? `Connected (bucket: ${MINIO_BUCKET})` : `Connected (bucket "${MINIO_BUCKET}" missing)`;
 };
 
-// Resolve a check to { status, ok } without throwing.
 const settle = async (fn) => {
   try {
     return { status: await fn(), ok: true };
@@ -27,13 +20,12 @@ const settle = async (fn) => {
 };
 
 export const checkHealth = async (req, res) => {
-  const [database, redis, minio] = await Promise.all([
+  const [database, minio] = await Promise.all([
     settle(checkDatabase),
-    settle(checkRedis),
     settle(checkMinio),
   ]);
 
-  const allOk = database.ok && redis.ok && minio.ok;
+  const allOk = database.ok && minio.ok;
 
   return res.status(allOk ? 200 : 503).json({
     success: allOk,
@@ -42,7 +34,6 @@ export const checkHealth = async (req, res) => {
       : 'SSOR Backend running, but one or more dependencies are unavailable',
     services: {
       database: database.status,
-      redis: redis.status,
       minio: minio.status,
     },
     timestamp: new Date().toISOString(),

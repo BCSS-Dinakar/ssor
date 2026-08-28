@@ -227,7 +227,7 @@ function LoginPage() {
   const [mode, setMode] = useState(initialMode);
 
   const [initialCaptcha] = useState(makeCaptcha);
-  const [loginForm, setLoginForm] = useState({ userId: '', password: '', captcha: initialCaptcha });
+  const [loginForm, setLoginForm] = useState({ userId: '', password: '', captcha: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
@@ -340,9 +340,6 @@ function LoginPage() {
     return true;
   };
 
-  const validateOrgStep6 = () => true;
-
-
   const validateOrgStep7 = () => {
     if (!orgReg.acceptTerms || !orgReg.acceptPrivacy || !orgReg.confirmInfo) {
       return setRegAlert({ type: 'error', message: 'You must accept the terms and confirm the information.' });
@@ -361,7 +358,7 @@ function LoginPage() {
     else if (regStep === 3 && validateOrgStep3()) setRegStep(4);
     else if (regStep === 4 && validateOrgStep4()) setRegStep(5);
     else if (regStep === 5 && validateOrgStep5()) setRegStep(6);
-    else if (regStep === 6 && validateOrgStep6()) setRegStep(7);
+    else if (regStep === 6) setRegStep(7);
   };
 
   const prevStep = () => {

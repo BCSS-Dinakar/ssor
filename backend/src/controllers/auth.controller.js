@@ -37,9 +37,9 @@ export const register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Login ID, password, and role are required.' });
     }
 
-    if (!['STATE_ADMIN', 'DISTRICT_USER', 'police', 'organization'].includes(role)) {
+    if (role !== 'organization') {
       cleanupFiles(req.files);
-      return res.status(400).json({ success: false, message: 'Invalid role.' });
+      return res.status(403).json({ success: false, message: 'Only organization self-registration is allowed. Police accounts must be provisioned by an administrator.' });
     }
 
     const existingUser = await prisma.user.findUnique({ where: { loginId } });
@@ -51,67 +51,44 @@ export const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    let userData = {
+    const userData = {
       loginId,
       passwordHash,
-      role,
+      role: 'organization',
     };
 
-    if (['STATE_ADMIN', 'DISTRICT_USER', 'police'].includes(role)) {
-      userData.status = 'approved'; // Police/Admins are auto-approved for now
-      if (role === 'DISTRICT_USER' && req.body.distCode) {
-        userData.distCode = req.body.distCode;
-      }
-      const { name, badgeId, rank, empId, department, wing, jurisdiction, joiningDate, email, mobile, altPhone, station, district, state, country, clearanceLevel } = req.body;
-      if (!name) {
-        cleanupFiles(req.files);
-        return res.status(400).json({ success: false, message: 'Police name is required.' });
-      }
-      let docsMediaIds = [];
-      if (req.files && req.files.policeDocs) {
-        // Register each file in Media; store the reference ids (int).
-        docsMediaIds = await Promise.all(req.files.policeDocs.map(f => mediaFromFile(f, 'police_doc', null)));
-      }
+    const { orgName, orgType, country, state, district, city, address, pinCode, officialEmail, officialPhone, adminName, designation, empId, adminEmail, mobile, parentOrg, department, jurisdiction, altPhone, website } = req.body;
 
-      userData.policeProfile = {
-        create: { name, badgeId, rank, empId, department, wing, jurisdiction, joiningDate, email, mobile, altPhone, station, district, state, country, clearanceLevel, docsMediaIds }
-      };
-    } else if (role === 'organization') {
-      const { orgName, orgType, country, state, district, city, address, pinCode, officialEmail, officialPhone, adminName, designation, empId, adminEmail, mobile, parentOrg, department, jurisdiction, altPhone, website } = req.body;
-
-      if (!orgName || !orgType || !country || !state || !district || !city || !address || !pinCode || !officialEmail || !officialPhone || !adminName || !designation || !empId || !adminEmail || !mobile) {
-        cleanupFiles(req.files);
-        return res.status(400).json({ success: false, message: 'Missing required organization fields.' });
-      }
-
-      let authLetterMediaId = null;
-      let govCertMediaId = null;
-      let supportingDocsMediaIds = [];
-
-      if (req.files) {
-        // Register each file in Media; store the reference ids (int).
-        if (req.files.authLetter) authLetterMediaId = await mediaFromFile(req.files.authLetter[0], 'auth_letter', null);
-        if (req.files.govCert) govCertMediaId = await mediaFromFile(req.files.govCert[0], 'gov_cert', null);
-        if (req.files.supportingDocs) {
-          supportingDocsMediaIds = await Promise.all(req.files.supportingDocs.map(f => mediaFromFile(f, 'supporting_doc', null)));
-        }
-      }
-
-      // Look up distCode for the organization to enforce district-level access control
-      const districtMatch = await prisma.district.findFirst({
-        where: { distName: { equals: district, mode: 'insensitive' } }
-      });
-      if (districtMatch) {
-        userData.distCode = districtMatch.distCode;
-      }
-
-      userData.organizationProfile = {
-        create: {
-          orgName, orgType, parentOrg, department, jurisdiction, country, state, district, city, address, pinCode, officialEmail, officialPhone, altPhone, website, adminName, designation, empId, adminEmail, mobile,
-          authLetterMediaId, govCertMediaId, supportingDocsMediaIds
-        }
-      };
+    if (!orgName || !orgType || !country || !state || !district || !city || !address || !pinCode || !officialEmail || !officialPhone || !adminName || !designation || !empId || !adminEmail || !mobile) {
+      cleanupFiles(req.files);
+      return res.status(400).json({ success: false, message: 'Missing required organization fields.' });
     }
+
+    let authLetterMediaId = null;
+    let govCertMediaId = null;
+    let supportingDocsMediaIds = [];
+
+    if (req.files) {
+      if (req.files.authLetter) authLetterMediaId = await mediaFromFile(req.files.authLetter[0], 'auth_letter', null);
+      if (req.files.govCert) govCertMediaId = await mediaFromFile(req.files.govCert[0], 'gov_cert', null);
+      if (req.files.supportingDocs) {
+        supportingDocsMediaIds = await Promise.all(req.files.supportingDocs.map(f => mediaFromFile(f, 'supporting_doc', null)));
+      }
+    }
+
+    const districtMatch = await prisma.district.findFirst({
+      where: { distName: { equals: district, mode: 'insensitive' } }
+    });
+    if (districtMatch) {
+      userData.distCode = districtMatch.distCode;
+    }
+
+    userData.organizationProfile = {
+      create: {
+        orgName, orgType, parentOrg, department, jurisdiction, country, state, district, city, address, pinCode, officialEmail, officialPhone, altPhone, website, adminName, designation, empId, adminEmail, mobile,
+        authLetterMediaId, govCertMediaId, supportingDocsMediaIds
+      }
+    };
 
     const newUser = await prisma.user.create({
       data: userData,

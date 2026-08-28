@@ -236,8 +236,34 @@ export const autoSetup = async () => {
   console.log('⚙️  Ensuring Data Views & Schemas exist...');
   await ensureFdwAndViews();
 
-  await ensureDefaultUsers();
+  await ensureRiskTierDefinitions();
+
+  if (env.NODE_ENV !== 'production') {
+    await ensureDefaultUsers();
+  }
 };
+
+const DEFAULT_RISK_TIERS = [
+  { code: 'RED', name: 'Red', category: 'Dangerous / gang', description: 'Dangerous predator or gang offender. Applied to the most severe cases involving aggravated assault or gang involvement.', nature: 'Rape, aggravated rape, gang rape, rape causing death or persistent vegetative state.', retention: 'Lifetime', colorClass: 'bg-red-600', defaultRank: 100, sortOrder: 1 },
+  { code: 'ORANGE', name: 'Orange', category: 'Repeat offender', description: 'Repeat or habitual offender. Applied when any sexual offence is committed by a person with a prior conviction.', nature: 'Any sexual offence with a prior conviction history.', retention: '25 years', colorClass: 'bg-orange-500', defaultRank: 80, sortOrder: 2 },
+  { code: 'BLACK', name: 'Black', category: 'Trafficking', description: 'Organised crime or trafficking. Applied to rings, trafficking networks, and organized exploitation.', nature: 'Human trafficking, organized commercial exploitation, kidnapping for exploitation.', retention: 'Lifetime', colorClass: 'bg-neutral-800', defaultRank: 90, sortOrder: 3 },
+  { code: 'BLUE', name: 'Blue', category: 'Cyber sexual', description: 'Cyber sexual offender. Covers online offenses, non-consensual transmission, and digital exploitation.', nature: 'Online sexual abuse, CSAM, non-consensual capture/transmission, online stalking.', retention: '25 years', colorClass: 'bg-sky-600', defaultRank: 60, sortOrder: 4 },
+  { code: 'PINK', name: 'Pink', category: 'Harassment', description: 'Harassment and outraging modesty. Covers physical harassment and stalking offenses.', nature: 'Sexual harassment, outraging modesty, physical stalking, voyeurism.', retention: '15 years', colorClass: 'bg-pink-500', defaultRank: 40, sortOrder: 5 },
+  { code: 'GREEN', name: 'Green', category: 'Isolated / low', description: 'Isolated or low-severity offenders. Lower risk and shorter retention rather than a distinct offence category.', nature: 'Single, non-aggravated incident by a person with no earlier record.', retention: '15 years', colorClass: 'bg-green-600', defaultRank: 20, sortOrder: 6 },
+];
+
+async function ensureRiskTierDefinitions() {
+  try {
+    const count = await prisma.riskTierDefinition.count();
+    if (count > 0) return;
+
+    console.log('⚙️  Seeding default risk tier definitions...');
+    await prisma.riskTierDefinition.createMany({ data: DEFAULT_RISK_TIERS });
+    console.log('✅ Risk tier definitions seeded.');
+  } catch (err) {
+    console.error('❌ Error seeding risk tier definitions:', err);
+  }
+}
 
 /**
  * Ensures default users exist in the database for ease of testing.

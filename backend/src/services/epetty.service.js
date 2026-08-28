@@ -1,11 +1,7 @@
 
 import prisma from '../config/db.js';
 
-// The "list" view has no father_name/occupation-less-restricted columns for
-// filtering — buildSearchSteps() below generates steps keyed on father name,
-// occupation, and PS name too, so verification search must run against the
-// "details" view, which is the only one carrying father_name (99.97% filled)
-// and offender_sex/full address alongside occupation and ps_name.
+// Use the details view (has father_name, sex, full address); list view lacks those columns.
 let epettyMvReady = false;
 async function getEpettyView() {
   if (epettyMvReady) return 'public.mv_e_cases_details';
@@ -57,12 +53,7 @@ export const fetchEpettyFromDb = async (filters) => {
 
   const results = await prisma.$queryRawUnsafe(query, ...params);
 
-  // Standardize immediately so every downstream consumer (postFilterMatches,
-  // dedupeRecords, and the suspect mapping in police.controller.js) sees one
-  // consistent field shape (name/phone/recordId/offence/...). Previously this
-  // returned ad-hoc DB-column-named fields (offenderName/offdrMobileNo/...)
-  // that none of those consumers actually read, which silently broke matching
-  // end-to-end — see postFilterMatches below.
+  // Standardize to the shape expected by postFilterMatches, dedupeRecords, and police.controller.js.
   return results.map(r => standardizeEpettyRecord({
     ecaseNo: r.case_number,
     unitName: r.unit_name,
@@ -204,16 +195,7 @@ const isNameMatch = (searchStr, recordStr) => {
   return true;
 };
 
-// The external ePetty API frequently returns the same case row multiple times.
-// Collapse exact duplicates so the UI never renders repeated records.
-//
-// Keys here match standardizeEpettyRecord()'s output shape (recordId/name/
-// phone/fatherName/offence) — fetchEpettyFromDb() now standardizes every row
-// before returning it, so this and postFilterMatches below finally see the
-// same field names police.controller.js's suspect mapping already expects.
-// Previously fetchEpettyFromDb returned raw DB-column-named fields
-// (offenderName/offdrMobileNo/...) that these checks never matched, which
-// silently discarded every real match — see postFilterMatches.
+// Collapse duplicate case rows (keys match standardizeEpettyRecord output).
 const recordIdentityKey = (record) => [
   record.recordId,
   record.name,
@@ -233,14 +215,7 @@ const dedupeRecords = (records = []) => {
   });
 };
 
-// NOTE: field names here (name/phone) are standardizeEpettyRecord()'s output
-// shape, not the request-filter key names. Before fetchEpettyFromDb started
-// standardizing its rows, these read record.name/record.phone against
-// objects that never had those keys — so any step with a name or phone
-// filter (the high-priority steps buildSearchSteps tries first, i.e. almost
-// every real search) had every one of its rows silently discarded here,
-// regardless of what SQL found. Only father/occupation/case-number-only
-// steps ever survived.
+// postFilterMatches reads standardizeEpettyRecord field names (name, phone, fatherName).
 const postFilterMatches = (matches, filters) => {
   return matches.filter(record => {
     // Ensure the record name strictly includes the requested search name, allowing initials to match full words
@@ -328,8 +303,7 @@ export async function searchEpettyCandidate(input = {}, legacyPhone = '', legacy
     const { matches, lookupError } = await runLookup(step.filters);
     if (lookupError) return unavailable(lookupError);
 
-    // The external API often returns very broad matches.
-    // We post-filter locally to ensure the records strictly match the requested criteria (e.g. exactly 'sai kiran').
+    // FDW queries can be broad; tighten matches locally before returning.
     const strictMatches = dedupeRecords(postFilterMatches(matches, step.filters));
 
     if (strictMatches.length > 0) {

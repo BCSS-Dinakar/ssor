@@ -13,12 +13,8 @@ import epettyRoutes from './routes/epetty.route.js';
 import verifyRoutes from './routes/verify.route.js';
 import adminRoutes from './routes/admin.routes.js';
 import districtRoutes from './routes/district.routes.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import riskTierRoutes from './routes/riskTier.route.js';
 import logger from './utils/logger.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -52,9 +48,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Static files
-app.use(express.static(path.join(__dirname, '../public')));
-
 // Mount API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
@@ -65,6 +58,7 @@ app.use('/api/verify', verifyRoutes);
 app.use('/api/e-petty', epettyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/districts', districtRoutes);
+app.use('/api/risk-tiers', riskTierRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });

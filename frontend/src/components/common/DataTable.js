@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ChevronLeft, ChevronRight, Inbox, Filter, Loader2, ChevronDown } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Inbox, Filter, ChevronDown } from 'lucide-react';
 import MultiSelect from '../ui/MultiSelect';
 
 function DataTable({

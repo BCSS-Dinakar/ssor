@@ -8,7 +8,7 @@ This is the secure REST API layer for the State Sexual Offender Registry (SSOR).
 
 - **Node.js & Express**: The core web framework providing the API routes.
 - **Prisma ORM**: A next-generation Object-Relational Mapper ensuring type-safe database queries.
-- **SQLite**: A lightweight relational database for development.
+- **PostgreSQL**: Primary relational database (via Prisma) for all application data.
 - **JWT (JSON Web Tokens)**: Used for stateless, session-based authentication via HTTP-only cookies.
 - **Bcrypt.js**: For secure password hashing.
 - **Multer**: Middleware for handling `multipart/form-data` during document uploads.
@@ -52,14 +52,14 @@ Every uploaded file is registered in the central **`Media`** table, and the app 
 - **Inline resolution** — `resolveMediaUrl(id)` mints a signed URL on demand; `withVerificationUrls()` swaps the ids for URLs in API responses. The bucket stays private; an unsigned GET returns `403`.
 - The legacy `GET /api/*/documents/:ref` (stream) and `/:ref/url` (signed URL) endpoints accept a `Media.id` and resolve it via `resolveObjectKey()`.
 - **Applied via** `prisma/sql/2026_add_media_table.sql` (`prisma db execute`), **not** `prisma db push` — the Prisma schema only models a subset of this DB.
-- **Backfill** existing rows with `node scripts/backfill-media.js`, then `node scripts/backfill-media-metadata.js` (both idempotent).
+- **Backfill** existing rows with `node scripts/backfill-media-metadata.js` (idempotent).
 
 #### Access control (important)
 Media ids are sequential integers, so every document endpoint enforces ownership via `userCanAccessMedia()` / `guardDocumentAccess()`:
 - **organization** → only documents referenced by its own verifications / org profile,
 - **police** → any document (reviewers).
 
-Without this, ids would be trivially enumerable (IDOR). Covered by `npm test` (`test/media.test.js`).
+Without this, ids would be trivially enumerable (IDOR).
 
 #### Fallback & resilience
 The media layer degrades gracefully instead of hard-failing:
