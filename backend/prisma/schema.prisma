@@ -161,7 +161,8 @@ model Media {
   @@index([store])
 }
 
-model ssor_kb {
+/// Statutory act/section → risk tier mapping used in clearance search.
+model RiskTierSection {
   id            Int     @id @default(autoincrement())
   act_name      String
   section_code  String
@@ -172,7 +173,8 @@ model ssor_kb {
   @@unique([act_name, section_code])
 }
 
-model RiskTierDefinition {
+/// Master risk tier definitions (UI cards: RED, ORANGE, etc.).
+model RiskTier {
   id          Int      @id @default(autoincrement())
   code        String   @unique
   name        String

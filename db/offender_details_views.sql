@@ -15,7 +15,7 @@ SELECT
     (SELECT to_jsonb(a_inner.*) FROM cctns_etl.accused a_inner WHERE a_inner.person_id = p.person_id ORDER BY a_inner.seq_num DESC LIMIT 1) AS latest_physical_features,
     
     -- Highest Risk Tier across all their crimes
-    (SELECT kb.tier FROM cctns_etl.accused a_inner JOIN cctns_etl.crimes c_inner ON a_inner.crime_id = c_inner.crime_id JOIN ssor_kb kb ON c_inner.acts_sections ILIKE '%' || kb.section_code || '%' WHERE a_inner.person_id = p.person_id ORDER BY kb.severity_rank DESC LIMIT 1) AS highest_risk_tier,
+    (SELECT kb.tier FROM cctns_etl.accused a_inner JOIN cctns_etl.crimes c_inner ON a_inner.crime_id = c_inner.crime_id JOIN "RiskTierSection" kb ON c_inner.acts_sections ILIKE '%' || kb.section_code || '%' WHERE a_inner.person_id = p.person_id ORDER BY kb.severity_rank DESC LIMIT 1) AS highest_risk_tier,
 
     -- All FIRs / Crimes
     (SELECT jsonb_agg(to_jsonb(c.*)) FROM cctns_etl.crimes c JOIN cctns_etl.accused a2 ON c.crime_id = a2.crime_id WHERE a2.person_id = p.person_id) AS crimes,
@@ -56,7 +56,7 @@ WITH     q_latest_features AS (
         SELECT DISTINCT ON (a.person_id) a.person_id, kb.tier AS highest_risk_tier
         FROM cctns_etl.accused a
         JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
-        JOIN ssor_kb kb ON c.acts_sections ILIKE '%' || kb.section_code || '%'
+        JOIN "RiskTierSection" kb ON c.acts_sections ILIKE '%' || kb.section_code || '%'
         WHERE a.person_id IS NOT NULL AND a.person_id != ''
         ORDER BY a.person_id, kb.severity_rank DESC
     ),
@@ -249,7 +249,7 @@ WITH     q_latest_features AS (
         SELECT DISTINCT ON (a.person_id) a.person_id, kb.tier AS highest_risk_tier
         FROM cctns_etl.accused a
         JOIN cctns_etl.crimes c ON a.crime_id = c.crime_id
-        JOIN ssor_kb kb ON c.acts_sections ILIKE '%' || kb.section_code || '%'
+        JOIN "RiskTierSection" kb ON c.acts_sections ILIKE '%' || kb.section_code || '%'
         WHERE a.person_id IS NOT NULL AND a.person_id != ''
         ORDER BY a.person_id, kb.severity_rank DESC
     ),
