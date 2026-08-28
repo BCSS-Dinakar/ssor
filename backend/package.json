@@ -8,7 +8,6 @@
     "storage:migrate": "node scripts/migrate-storage-to-minio.js",
     "media:reconcile": "node scripts/reconcile-media.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
   "keywords": [],

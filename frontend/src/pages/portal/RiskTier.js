@@ -81,11 +81,11 @@ const emptyTierForm = () => ({
 
 const inputCls = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100';
 
-function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
+function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg', maxHeight = 'max-h-[90vh]' }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className={`flex w-full ${maxWidth} max-h-[90vh] flex-col rounded-2xl bg-white shadow-2xl`}>
+      <div className={`flex w-full ${maxWidth} ${maxHeight} flex-col rounded-2xl bg-white shadow-2xl`}>
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
@@ -644,11 +644,23 @@ function RiskTier() {
         </div>
       )}
 
-      <Modal open={createTierOpen} onClose={() => setCreateTierOpen(false)} title="New risk tier" maxWidth="max-w-xl">
+      <Modal
+        open={createTierOpen}
+        onClose={() => setCreateTierOpen(false)}
+        title="New risk tier"
+        maxWidth="max-w-2xl w-[90vw] md:w-[70vw]"
+        maxHeight="h-[85vh]"
+      >
         <TierForm form={tierForm} setForm={setTierForm} onSubmit={handleCreateTier} saving={saving} error={error} submitLabel="Create tier" />
       </Modal>
 
-      <Modal open={!!editTier} onClose={() => setEditTier(null)} title="Edit risk tier" maxWidth="max-w-xl">
+      <Modal
+        open={!!editTier}
+        onClose={() => setEditTier(null)}
+        title="Edit risk tier"
+        maxWidth="max-w-2xl w-[90vw] md:w-[70vw]"
+        maxHeight="h-[85vh]"
+      >
         <TierForm form={tierForm} setForm={setTierForm} onSubmit={handleUpdateTier} saving={saving} error={error} submitLabel="Save tier" codeLocked />
       </Modal>
 
