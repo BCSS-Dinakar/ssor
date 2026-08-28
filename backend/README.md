@@ -26,7 +26,7 @@ This is the secure REST API layer for the State Sexual Offender Registry (SSOR).
 ### 2. Route Protection (Middleware)
 Every route that accesses private data passes through middleware:
 - **`requireAuth`**: Validates the JWT cookie. If valid, it attaches the user object to `req.user`.
-- **`requirePolice`**: A secondary guard applied to sensitive routes (e.g., viewing logs or approving organizations) ensuring `req.user.role === 'police'`.
+- **`requireRoles(...)`**: Restricts access to specific roles (e.g. `police`, `STATE_ADMIN`, `DISTRICT_USER`).
 
 ### 3. File Uploads & Document Security
 - When an organization registers, they upload sensitive PDF/Image documents.
@@ -51,7 +51,7 @@ Every uploaded file is registered in the central **`Media`** table, and the app 
 - **Reference by id** — `CandidateVerification.candidateMediaId/consentMediaId`, `OrganizationProfile.authLetterMediaId/govCertMediaId/supportingDocsMediaIds[]`, and `PoliceProfile.docsMediaIds[]` all hold a `Media.id` (int).
 - **Inline resolution** — `resolveMediaUrl(id)` mints a signed URL on demand; `withVerificationUrls()` swaps the ids for URLs in API responses. The bucket stays private; an unsigned GET returns `403`.
 - The legacy `GET /api/*/documents/:ref` (stream) and `/:ref/url` (signed URL) endpoints accept a `Media.id` and resolve it via `resolveObjectKey()`.
-- **Applied via** `prisma/sql/2026_add_media_table.sql` (`prisma db execute`), **not** `prisma db push` — the Prisma schema only models a subset of this DB.
+- **Applied via** `schema.prisma` and `AUTO_DB_PUSH=true` (or `npx prisma db push`) — the `Media` model is part of the main app schema.
 - **Backfill** existing rows with `node scripts/backfill-media-metadata.js` (idempotent).
 
 #### Access control (important)

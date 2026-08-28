@@ -236,17 +236,6 @@ export const getMe = async (req, res) => {
   }
 };
 
-export const deleteAccount = async (req, res) => {
-  try {
-    // Allows user to delete their own account
-    await prisma.user.delete({ where: { id: req.user.id } });
-    res.clearCookie('token', COOKIE_OPTIONS);
-    res.status(200).json({ success: true, message: 'Account deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error.', error: process.env.NODE_ENV === 'development' ? error.message : undefined });
-  }
-};
-
 export const getDocument = async (req, res) => {
   try {
     const guard = await guardDocumentAccess(req.user, req.params.filename);

@@ -157,7 +157,8 @@ const ensureFdwAndViews = async () => {
       { mv_name: 'mv_offender_details', file: 'offender_details_views.sql' },
       { mv_name: 'mv_e_cases_list', file: 'e_cases_list_views.sql' },
       { mv_name: 'mv_e_cases_details', file: 'e_cases_details_views.sql' },
-      { mv_name: 'mv_clearance_accused_search', file: 'clearance_accused_search_view.sql' }
+      { mv_name: 'mv_clearance_accused_search', file: 'clearance_accused_search_view.sql' },
+      { mv_name: 'mv_districts', file: 'districts_view.sql', fullFile: true },
     ];
 
     console.log('⚙️  Creating standard views synchronously...');
@@ -209,9 +210,11 @@ const ensureFdwAndViews = async () => {
             const sqlPath = path.join(__dirname, '../../../db/', v.file);
             if (fs.existsSync(sqlPath)) {
               const sql = fs.readFileSync(sqlPath, 'utf-8');
-              const parts = sql.split(MV_SECTION_SPLIT);
-              if (parts.length > 1 && parts[1].trim().length > 0) {
-                await buildClient.query(parts[1]);
+              const mvSql = v.fullFile
+                ? sql
+                : sql.split(MV_SECTION_SPLIT)[1]?.trim();
+              if (mvSql) {
+                await buildClient.query(mvSql);
                 console.log(`✅ Successfully rebuilt ${v.mv_name}`);
               }
             }

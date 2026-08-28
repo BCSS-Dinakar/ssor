@@ -7,7 +7,7 @@ PostgreSQL relational schema derived from the [CCTNS-V2 Data Relay API](api-1.ya
 | File | Description |
 |------|-------------|
 | [api-1.yaml](api-1.yaml) | Source OpenAPI spec (read-only relay over CCTNS-v2) |
-| [schema.sql](schema.sql) | Full DDL: tables, foreign keys, indexes, and views |
+| [cctns_schema.sql](cctns_schema.sql) | Full DDL reference derived from the OpenAPI spec |
 
 ## Quick start
 
@@ -15,7 +15,7 @@ Create a database and apply the schema:
 
 ```bash
 createdb cctns
-psql -d cctns -v ON_ERROR_STOP=1 -f schema.sql
+psql -d cctns -v ON_ERROR_STOP=1 -f cctns_schema.sql
 ```
 
 Verify:

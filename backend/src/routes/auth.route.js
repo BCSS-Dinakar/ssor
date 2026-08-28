@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, logout, getMe, deleteAccount, getDocument, getDocumentSignedUrl } from '../controllers/auth.controller.js';
+import { register, login, logout, getMe, getDocument, getDocumentSignedUrl } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { upload, persistUploads } from '../middleware/upload.middleware.js';
 
@@ -16,7 +16,6 @@ router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', requireAuth, getMe);
 
-router.delete('/delete', requireAuth, deleteAccount);
 router.get('/documents/:filename/url', requireAuth, getDocumentSignedUrl);
 router.get('/documents/:filename', requireAuth, getDocument);
 

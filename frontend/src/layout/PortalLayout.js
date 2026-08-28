@@ -22,7 +22,7 @@ function PortalLayout() {
 
   const brandBlock = (
     <Link
-      to="/"
+      to="/portal"
       className="flex min-w-0 items-center gap-2.5 rounded focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-accent"
       onClick={() => setMobileOpen(false)}
     >

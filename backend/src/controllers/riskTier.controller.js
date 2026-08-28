@@ -249,9 +249,3 @@ export const deleteSection = async (req, res) => {
     });
   }
 };
-
-// Backwards-compatible exports
-export const listRiskTiers = listSections;
-export const createRiskTier = createSection;
-export const updateRiskTier = updateSection;
-export const deleteRiskTier = deleteSection;
