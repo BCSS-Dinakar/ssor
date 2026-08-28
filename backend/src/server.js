@@ -4,14 +4,13 @@ import { connectDB } from './config/db.js';
 import { autoSetup } from './utils/autoSetup.js';
 import { ensureBucket, MINIO_BUCKET } from './config/minio.js';
 import getRedis from './config/redis.js';
-import { checkConnection as pingWhatsApp } from './services/whatsapp.service.js';
 
 const pingRedis = async () => {
   try {
     const pong = await getRedis().ping();
     return pong === 'PONG' ? 'Connected' : `Reachable (${pong})`;
   } catch (err) {
-    return 'Disconnected — OTP/cache features degraded (non-fatal)';
+    return 'Disconnected (non-fatal)';
   }
 };
 
@@ -61,9 +60,6 @@ const startServer = async () => {
   // 4. Check Redis (non-fatal)
   const redisStatus = await pingRedis();
 
-  // 4.5 Check WhatsApp config via API
-  const whatsappStatus = await pingWhatsApp();
-
   // 5. Start Express Server
   const { server, port } = await listenWithPortFallback(env.PORT, env.PORT_RETRY_LIMIT);
 
@@ -75,7 +71,6 @@ const startServer = async () => {
 🗄️ Database    : Connected
 🧠 Redis       : ${redisStatus}
 🪣 MinIO       : ${minioStatus}
-💬 WhatsApp    : ${whatsappStatus}
 ⚡ Prisma Client Ready
 ────────────────────────────────────
     `);

@@ -376,9 +376,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
               style={{ maxHeight: '430px' }}
             >
               <g className="transition-transform duration-700 ease-out">
-                {/* 33-district base map — shared by both slides. ePrisons reuses
-                    the exact offenders district boundaries; clicking one drills
-                    into its PS boundaries (below), like offenders reveals mandals. */}
+                {/* 33-district base map. Click a district to drill into mandals. */}
                 {filteredDistricts.map((d) => {
                   const isHovered = hoveredEntity && hoveredEntity.id === d.id && hoveredEntity.type === 'DISTRICT';
                   const isSelected = selectedDistrict && selectedDistrict.id === d.id;

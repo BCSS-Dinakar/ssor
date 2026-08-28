@@ -49,7 +49,6 @@ export const env = {
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
   COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE || 'lax',
-  PRIVATE_KEY: process.env.PRIVATE_KEY || '',
   MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || '127.0.0.1',
   MINIO_PORT: Number(process.env.MINIO_PORT || 9000),
   MINIO_USE_SSL: process.env.MINIO_USE_SSL === 'true',

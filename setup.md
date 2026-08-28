@@ -6,9 +6,8 @@ Follow these steps to set up the entire SSOR (State Sexual Offender Registry) st
 - **Node.js** (v18 or higher)
 - **npm** (comes with Node.js)
 - **PostgreSQL** database server running locally
-- **Redis** server running locally (for OTP caching)
+- **Redis** server running locally (optional; used for health checks and future caching)
 - **MinIO** server running locally (for secure document uploads and storage)
-- **Meta Developer Account** (for WhatsApp Cloud API setup)
 
 ---
 
@@ -25,7 +24,7 @@ npm install
 ```
 
 ### Environment Variables
-Create a `.env` file in the `backend` directory with the following contents. Make sure to update the credentials with your actual database, MinIO, and WhatsApp settings:
+Create a `.env` file in the `backend` directory with the following contents. Make sure to update the credentials with your actual database and MinIO settings:
 ```env
 # Database
 PORT=5001
@@ -45,12 +44,6 @@ MINIO_USE_SSL=false
 MINIO_ACCESS_KEY=your_minio_access_key
 MINIO_SECRET_KEY=your_minio_secret_key
 MINIO_BUCKET=ssor-documents
-
-# WhatsApp API
-WHATSAPP_TOKEN=your_whatsapp_token
-PHONE_NUMBER_ID=your_phone_number_id
-WABA_ID=your_waba_id
-GRAPH_VERSION=v23.0
 ```
 
 ### Database Setup (Prisma)
@@ -104,12 +97,5 @@ The frontend will automatically open in your browser at [http://localhost:3000](
 ## Troubleshooting
 - **CORS Issues**: Ensure the backend `.env` has `FRONTEND_URL="http://localhost:3000"`.
 - **MinIO/Uploads Failing**: Make sure your MinIO container is running, the credentials match `.env`, and the bucket has been created successfully. If MinIO is unreachable, backend falls back to local disk storage (`storage/media`).
-- **OTP/WhatsApp Issues**: 
-  - Ensure **Redis** is running (`redis-cli ping` returns `PONG`). Caching falls back to local files if Redis is down.
-  - Verify that the WhatsApp API details (`WHATSAPP_TOKEN`, `PHONE_NUMBER_ID`) in `.env` are valid. Invalid details will log a warning/error in the startup banner.
+- **Redis**: Ensure **Redis** is running (`redis-cli ping` returns `PONG`) if you rely on it for health checks. The app continues to run if Redis is unavailable.
 - **Prisma Errors**: If you get Prisma connection errors, double-check that your PostgreSQL server is active and the `DATABASE_URL` in `.env` is perfectly correct.
-
----
-
-## 📱 WhatsApp Meta Setup Reference
-For detailed instructions on configuring the Meta Developer Application and WhatsApp templates, please refer to the [WhatsApp Meta Setup Guide](./doc/whatsapp_meta_setup.md).

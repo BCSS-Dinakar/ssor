@@ -30,8 +30,8 @@ Located in the `frontend/` directory, the client is a **React.js Single Page App
 Located in the `backend/` directory, the API is built with **Node.js, Express, and Prisma ORM**.
 - **Role-Based Access Control (RBAC)**: Custom Express middlewares strictly guard routes (`requireAuth`, `requirePolice`) based on the JWT session.
 - **Secure File Storage**: Integrates **MinIO Object Storage** to safely store uploaded documents (such as government certificates and authorization letters). During storage outages, uploads seamlessly fall back to local disk storage (`storage/media`), with reconciliation scripts to sync them back.
-- **Advanced Authentication**: Uses JWTs signed and delivered via secure, HTTP-only cookies to prevent XSS attacks. Includes a **WhatsApp Cloud API** integration to deliver OTPs for verification, password recovery, and secure login alerts.
-- **Caching & Resilience**: Integrates **Redis** for fast OTP caching with an automated failover system that writes to local files if the Redis server goes down.
+- **Advanced Authentication**: Uses JWTs signed and delivered via secure, HTTP-only cookies to prevent XSS attacks. Password-based login with role-based access control.
+- **Caching & Resilience**: Integrates **Redis** for optional caching with an automated failover system that writes to local files if the Redis server goes down.
 
 ### 3. The Database (Data Layer)
 Powered by **PostgreSQL** (via Prisma) for robust, relational data storage.

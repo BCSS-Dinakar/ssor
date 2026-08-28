@@ -21,7 +21,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const url = error.config?.url || '';
       // Exclude auth check/login endpoints to prevent redirect loops or hiding login failures
-      if (!url.includes('/auth/me') && !url.includes('/auth/login') && !url.includes('/auth/login-otp')) {
+      if (!url.includes('/auth/me') && !url.includes('/auth/login')) {
         window.location.href = '/login';
       }
     }
