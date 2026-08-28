@@ -17,17 +17,47 @@ const TIER_ICONS = {
   GREEN: Info,
 };
 
-const COLOR_OPTIONS = [
-  { value: 'bg-red-600', label: 'Red' },
-  { value: 'bg-orange-500', label: 'Orange' },
-  { value: 'bg-neutral-800', label: 'Black' },
-  { value: 'bg-sky-600', label: 'Blue' },
-  { value: 'bg-pink-500', label: 'Pink' },
-  { value: 'bg-green-600', label: 'Green' },
-  { value: 'bg-purple-600', label: 'Purple' },
-  { value: 'bg-amber-600', label: 'Amber' },
-  { value: 'bg-slate-600', label: 'Slate' },
-];
+const TAILWIND_TO_HEX = {
+  'bg-red-600': '#dc2626',
+  'bg-orange-500': '#f97316',
+  'bg-neutral-800': '#262626',
+  'bg-sky-600': '#0284c7',
+  'bg-pink-500': '#ec4899',
+  'bg-green-600': '#16a34a',
+  'bg-purple-600': '#9333ea',
+  'bg-amber-600': '#d97706',
+  'bg-slate-600': '#475569',
+};
+
+function colorClassToHex(colorClass) {
+  if (!colorClass) return '#475569';
+  if (colorClass.startsWith('#')) return colorClass.length === 7 ? colorClass : '#475569';
+  return TAILWIND_TO_HEX[colorClass] || '#475569';
+}
+
+function hexToRgba(hex, alpha) {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return `rgba(71, 85, 105, ${alpha})`;
+  const r = Number.parseInt(h.slice(0, 2), 16);
+  const g = Number.parseInt(h.slice(2, 4), 16);
+  const b = Number.parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function resolveTierColor(colorClass) {
+  const hex = colorClassToHex(colorClass);
+  const isHex = colorClass?.startsWith('#');
+  return {
+    hex,
+    isHex,
+    iconStyle: isHex ? { backgroundColor: hex } : undefined,
+    iconClass: isHex ? '' : colorClass,
+    badgeStyle: isHex
+      ? { backgroundColor: hexToRgba(hex, 0.12), color: hex, borderColor: hexToRgba(hex, 0.35) }
+      : undefined,
+    badgeClass: isHex ? '' : `${colorClass.replace('bg-', 'bg-opacity-10 text-')} bg-opacity-10 border border-current`,
+  };
+}
 
 const emptySectionForm = () => ({
   act_name: '',
@@ -44,7 +74,7 @@ const emptyTierForm = () => ({
   description: '',
   nature: '',
   retention: '',
-  colorClass: 'bg-slate-600',
+  colorClass: '#475569',
   defaultRank: '50',
   sortOrder: '0',
 });
@@ -55,14 +85,14 @@ function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className={`w-full ${maxWidth} rounded-2xl bg-white shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+      <div className={`flex w-full ${maxWidth} max-h-[90vh] flex-col rounded-2xl bg-white shadow-2xl`}>
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );
@@ -119,8 +149,59 @@ function SectionForm({ form, setForm, tiers, onSubmit, saving, error, submitLabe
   );
 }
 
+function TierColorPreview({ form }) {
+  const hex = colorClassToHex(form.colorClass);
+  const Icon = TIER_ICONS[form.code] || Shield;
+  const colors = resolveTierColor(form.colorClass);
+
+  return (
+    <div className="rounded-xl border border-slate-200 overflow-hidden bg-white">
+      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400 bg-slate-50 border-b border-slate-100">
+        Preview
+      </p>
+      <div className="p-4 space-y-3">
+        <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
+          <div
+            className={`p-2 rounded-lg text-white shadow-sm shrink-0 ${colors.iconClass}`}
+            style={colors.iconStyle}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-extrabold text-slate-800">{form.name || 'Tier name'} Tier</p>
+            <p className="text-sm font-bold text-slate-500">{form.category || 'Category'}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-bold ${colors.badgeClass}`}
+            style={colors.badgeStyle}
+          >
+            {form.code || 'CODE'}
+          </span>
+          <span
+            className={`inline-block px-2.5 py-1 rounded-md text-sm font-bold ${colors.badgeClass}`}
+            style={colors.badgeStyle}
+          >
+            {form.retention || 'Retention period'}
+          </span>
+        </div>
+        <p className="text-xs text-slate-400 font-mono">{hex}</p>
+      </div>
+    </div>
+  );
+}
+
 function TierForm({ form, setForm, onSubmit, saving, error, submitLabel, codeLocked = false }) {
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  const hex = colorClassToHex(form.colorClass);
+
+  const handleHexInput = (value) => {
+    const cleaned = value.startsWith('#') ? value : `#${value}`;
+    if (/^#[0-9A-Fa-f]{0,6}$/.test(cleaned)) {
+      set('colorClass', cleaned.length === 7 ? cleaned : cleaned);
+    }
+  };
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -147,18 +228,28 @@ function TierForm({ form, setForm, onSubmit, saving, error, submitLabel, codeLoc
         <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Nature of offence</label>
         <textarea required rows={2} className={inputCls} value={form.nature} onChange={(e) => set('nature', e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Retention</label>
-          <input required className={inputCls} value={form.retention} onChange={(e) => set('retention', e.target.value)} placeholder="e.g. Lifetime" />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Colour</label>
-          <select className={inputCls} value={form.colorClass} onChange={(e) => set('colorClass', e.target.value)}>
-            {COLOR_OPTIONS.map((c) => (
-              <option key={c.value} value={c.value}>{c.label}</option>
-            ))}
-          </select>
+      <div>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Retention</label>
+        <input required className={inputCls} value={form.retention} onChange={(e) => set('retention', e.target.value)} placeholder="e.g. Lifetime" />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Colour</label>
+        <div className="flex items-center gap-3">
+          <input
+            type="color"
+            value={hex}
+            onChange={(e) => set('colorClass', e.target.value)}
+            className="h-11 w-14 shrink-0 cursor-pointer rounded-xl border border-slate-200 bg-white p-1"
+            aria-label="Pick tier colour"
+          />
+          <input
+            type="text"
+            value={form.colorClass.startsWith('#') ? form.colorClass : hex}
+            onChange={(e) => handleHexInput(e.target.value)}
+            className={inputCls}
+            placeholder="#dc2626"
+            maxLength={7}
+          />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -171,12 +262,37 @@ function TierForm({ form, setForm, onSubmit, saving, error, submitLabel, codeLoc
           <input required type="number" className={inputCls} value={form.sortOrder} onChange={(e) => set('sortOrder', e.target.value)} />
         </div>
       </div>
+      <TierColorPreview form={form} />
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={saving} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
           {saving ? 'Saving…' : submitLabel}
         </button>
       </div>
     </form>
+  );
+}
+
+function SectionDescription({ text }) {
+  const [expanded, setExpanded] = useState(false);
+  const needsToggle = text.length > 48;
+
+  if (!text) return null;
+
+  return (
+    <div className="mt-1">
+      <p className={`text-[11px] text-slate-500 leading-snug ${expanded ? '' : 'line-clamp-2'}`}>
+        {text}
+      </p>
+      {needsToggle && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-0.5 text-[10px] font-semibold text-blue-600 hover:text-blue-700"
+        >
+          {expanded ? 'See less' : 'See more'}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -248,7 +364,7 @@ function RiskTier() {
       description: tier.description,
       nature: tier.nature,
       retention: tier.retention,
-      colorClass: tier.colorClass,
+      colorClass: colorClassToHex(tier.colorClass),
       defaultRank: String(tier.defaultRank),
       sortOrder: String(tier.sortOrder),
     });
@@ -278,12 +394,16 @@ function RiskTier() {
     setEditSection(row);
   };
 
+  const normalizeColorForSave = (colorClass) => (
+    /^#[0-9A-Fa-f]{6}$/.test(colorClass) ? colorClass : colorClassToHex(colorClass)
+  );
+
   const handleCreateTier = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     try {
-      const res = await riskTierApi.createDefinition(tierForm);
+      const res = await riskTierApi.createDefinition({ ...tierForm, colorClass: normalizeColorForSave(tierForm.colorClass) });
       if (res.success) {
         setDefinitions((prev) => [...prev, res.data].sort((a, b) => a.sortOrder - b.sortOrder));
         setCreateTierOpen(false);
@@ -300,7 +420,7 @@ function RiskTier() {
     setSaving(true);
     setError('');
     try {
-      const res = await riskTierApi.updateDefinition(editTier.id, tierForm);
+      const res = await riskTierApi.updateDefinition(editTier.id, { ...tierForm, colorClass: normalizeColorForSave(tierForm.colorClass) });
       if (res.success) {
         setDefinitions((prev) => prev.map((t) => (t.id === editTier.id ? res.data : t)).sort((a, b) => a.sortOrder - b.sortOrder));
         if (res.data.code !== editTier.code) {
@@ -423,13 +543,17 @@ function RiskTier() {
           {definitions.map((tier) => {
             const Icon = TIER_ICONS[tier.code] || Shield;
             const tierSections = sectionsByTier[tier.code] || [];
+            const colors = resolveTierColor(tier.colorClass);
 
             return (
               <div key={tier.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
                 <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className={`p-2 rounded-lg text-white shrink-0 ${tier.colorClass} shadow-sm`}>
+                      <div
+                        className={`p-2 rounded-lg text-white shrink-0 shadow-sm ${colors.iconClass}`}
+                        style={colors.iconStyle}
+                      >
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
@@ -476,26 +600,26 @@ function RiskTier() {
                       )}
                     </div>
 
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-0.5">
                       {tierSections.length === 0 ? (
-                        <span className="text-sm text-slate-400">No sections mapped yet.</span>
+                        <span className="col-span-2 text-sm text-slate-400">No sections mapped yet.</span>
                       ) : (
                         tierSections.map((row) => (
-                          <div key={row.id} className="flex items-start justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-700">{row.act_name} {row.section_code}</p>
-                              {row.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{row.description}</p>}
+                          <div key={row.id} className="rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2">
+                            <div className="flex items-start justify-between gap-1">
+                              <p className="text-xs font-bold text-slate-700 leading-tight">{row.act_name} {row.section_code}</p>
+                              {canEdit && (
+                                <div className="flex shrink-0 gap-0.5">
+                                  <button type="button" onClick={() => openEditSection(row)} className="rounded p-1 text-slate-500 hover:bg-white hover:text-blue-600" title="Edit section">
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button type="button" onClick={() => { setError(''); setDeleteSection(row); }} className="rounded p-1 text-slate-500 hover:bg-white hover:text-red-600" title="Delete section">
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            {canEdit && (
-                              <div className="flex shrink-0 gap-1">
-                                <button type="button" onClick={() => openEditSection(row)} className="rounded p-1.5 text-slate-500 hover:bg-white hover:text-blue-600" title="Edit section">
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </button>
-                                <button type="button" onClick={() => { setError(''); setDeleteSection(row); }} className="rounded p-1.5 text-slate-500 hover:bg-white hover:text-red-600" title="Delete section">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            )}
+                            <SectionDescription text={row.description} />
                           </div>
                         ))
                       )}
@@ -506,7 +630,10 @@ function RiskTier() {
                     <h4 className="text-sm tracking-wide font-bold text-slate-400 mb-2 flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Retention Limit
                     </h4>
-                    <span className={`inline-block px-2.5 py-1 rounded-md text-sm font-bold ${tier.colorClass.replace('bg-', 'bg-opacity-10 text-')} bg-opacity-10 border border-current`}>
+                    <span
+                      className={`inline-block px-2.5 py-1 rounded-md text-sm font-bold ${colors.badgeClass}`}
+                      style={colors.badgeStyle}
+                    >
                       {tier.retention}
                     </span>
                   </div>
@@ -517,11 +644,11 @@ function RiskTier() {
         </div>
       )}
 
-      <Modal open={createTierOpen} onClose={() => setCreateTierOpen(false)} title="New risk tier">
+      <Modal open={createTierOpen} onClose={() => setCreateTierOpen(false)} title="New risk tier" maxWidth="max-w-xl">
         <TierForm form={tierForm} setForm={setTierForm} onSubmit={handleCreateTier} saving={saving} error={error} submitLabel="Create tier" />
       </Modal>
 
-      <Modal open={!!editTier} onClose={() => setEditTier(null)} title="Edit risk tier">
+      <Modal open={!!editTier} onClose={() => setEditTier(null)} title="Edit risk tier" maxWidth="max-w-xl">
         <TierForm form={tierForm} setForm={setTierForm} onSubmit={handleUpdateTier} saving={saving} error={error} submitLabel="Save tier" codeLocked />
       </Modal>
 
