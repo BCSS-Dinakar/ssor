@@ -5,6 +5,7 @@
 .env.test.local
 .env.production.local
 credentials.txt
+ssor_application_credetails.txt
 
 # Node modules
 node_modules/
