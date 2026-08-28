@@ -173,45 +173,10 @@ model ssor_kb {
 }
 
 model District {
-  distCode             String                        @id
-  distName             String
-  stateCode            String?
-  isActive             Boolean                       @default(true)
-  clearances           CandidateVerification[]
-  notificationSettings DistrictNotificationSettings?
-  notificationHistory  NotificationHistory[]
-  users                User[]
-}
-
-model DistrictNotificationSettings {
-  id                Int      @id @default(autoincrement())
-  distCode          String   @unique
-  primaryWhatsApp   String?
-  secondaryWhatsApp String?
-  alertsEnabled     Boolean  @default(true)
-  updatedAt         DateTime @updatedAt
-  createdAt         DateTime @default(now())
-  district          District @relation(fields: [distCode], references: [distCode], onDelete: Cascade)
-
-  @@index([distCode])
-}
-
-model NotificationHistory {
-  id            Int      @id @default(autoincrement())
-  distCode      String
-  prisonerId    String?
-  caseNumber    String?
-  prisonerName  String?
-  policeStation String?
-  prisonName    String?
-  releaseDate   String?
-  recipient     String
-  status        String
-  apiResponse   String?
-  errorMessage  String?
-  sentAt        DateTime @default(now())
-  district      District @relation(fields: [distCode], references: [distCode], onDelete: Cascade)
-
-  @@index([distCode])
-  @@index([sentAt])
+  distCode   String                  @id
+  distName   String
+  stateCode  String?
+  isActive   Boolean                 @default(true)
+  clearances CandidateVerification[]
+  users      User[]
 }

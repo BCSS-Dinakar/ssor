@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, Eye, Pencil, KeyRound, X, ChevronUp, ChevronDown, UserCheck, MapPin, Calendar, AlertCircle, CheckCircle, Shield, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from '../../../utils/axios';
-import WhatsAppIcon from '../../../components/icons/WhatsAppIcon';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Helpers
@@ -46,7 +45,7 @@ function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
    Create District Admin modal
 ───────────────────────────────────────────────────────────────────────────── */
 function CreateModal({ open, onClose, unassignedDistricts, allDistrictsAssigned, onCreated }) {
-  const [form, setForm] = useState({ loginId: '', password: '', name: '', distCode: '', whatsapp: '' });
+  const [form, setForm] = useState({ loginId: '', password: '', name: '', distCode: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,24 +57,10 @@ function CreateModal({ open, onClose, unassignedDistricts, allDistrictsAssigned,
     setError('');
     setSaving(true);
     try {
-      const { whatsapp, ...userForm } = form;
-      const res = await axios.post('/api/admin/district-admins', userForm);
+      const res = await axios.post('/api/admin/district-admins', form);
       if (res.data.success) {
-        // WhatsApp alert number is optional at creation time and can be added/edited later
-        // from Settings — don't let a failure here block the (already successful) admin creation.
-        if (whatsapp.trim()) {
-          try {
-            await axios.put('/api/notifications/settings', {
-              distCode: form.distCode,
-              primaryWhatsApp: whatsapp.trim(),
-              alertsEnabled: true,
-            });
-          } catch (err) {
-            console.error('Failed to save WhatsApp alert number:', err);
-          }
-        }
         onCreated(res.data.user);
-        setForm({ loginId: '', password: '', name: '', distCode: '', whatsapp: '' });
+        setForm({ loginId: '', password: '', name: '', distCode: '' });
         onClose();
       }
     } catch (err) {
@@ -121,19 +106,6 @@ function CreateModal({ open, onClose, unassignedDistricts, allDistrictsAssigned,
                 </select>
               )
           }
-        </FormField>
-        <FormField label="WhatsApp Alert Number">
-          <div className="relative">
-            <WhatsAppIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
-            <input
-              type="tel"
-              className={`${inputCls} pl-9`}
-              value={form.whatsapp}
-              onChange={e => set('whatsapp', e.target.value)}
-              placeholder="91XXXXXXXXXX"
-            />
-          </div>
-          <p className="mt-1 text-xs text-slate-400">Optional — not required to create the account. Can be added or changed anytime from Settings.</p>
         </FormField>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
@@ -192,10 +164,7 @@ function ViewModal({ open, onClose, user, onEdit, onResetPassword }) {
    Edit modal
 ───────────────────────────────────────────────────────────────────────────── */
 function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
-  const [form, setForm] = useState({ name: '', loginId: '', distCode: '', status: '', whatsapp: '' });
-  // Preserves fields upsertSettings requires but this form doesn't expose, so saving
-  // primaryWhatsApp here can't silently wipe an existing secondary number / alerts flag.
-  const [notifMeta, setNotifMeta] = useState({ secondaryWhatsApp: '', alertsEnabled: true });
+  const [form, setForm] = useState({ name: '', loginId: '', distCode: '', status: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -206,27 +175,10 @@ function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
         loginId: user.loginId || '',
         distCode: user.distCode || '',
         status:  user.status || 'approved',
-        whatsapp: '',
       });
       setError('');
     }
   }, [user]);
-
-  // Load the assigned district's current WhatsApp alert settings whenever the modal opens
-  // or the selected district changes (same source Settings.js reads/writes).
-  useEffect(() => {
-    if (!open || !form.distCode) return;
-    let cancelled = false;
-    axios.get('/api/notifications/settings', { params: { distCode: form.distCode } })
-      .then(res => {
-        if (cancelled) return;
-        const s = res.data?.data;
-        setForm(f => ({ ...f, whatsapp: s?.primaryWhatsApp || '' }));
-        setNotifMeta({ secondaryWhatsApp: s?.secondaryWhatsApp || '', alertsEnabled: s?.alertsEnabled !== false });
-      })
-      .catch(err => console.error('Failed to load notification settings:', err));
-    return () => { cancelled = true; };
-  }, [open, form.distCode]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -243,20 +195,8 @@ function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
     setError('');
     setSaving(true);
     try {
-      const { whatsapp, ...userForm } = form;
-      const res = await axios.put(`/api/admin/district-admins/${user.id}`, userForm);
+      const res = await axios.put(`/api/admin/district-admins/${user.id}`, form);
       if (res.data.success) {
-        // Same non-blocking treatment as Create: the account update already succeeded.
-        try {
-          await axios.put('/api/notifications/settings', {
-            distCode: form.distCode,
-            primaryWhatsApp: whatsapp,
-            secondaryWhatsApp: notifMeta.secondaryWhatsApp,
-            alertsEnabled: notifMeta.alertsEnabled,
-          });
-        } catch (err) {
-          console.error('Failed to save WhatsApp alert number:', err);
-        }
         onUpdated(res.data.user);
         onClose();
       }
@@ -296,19 +236,6 @@ function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
             <option value="approved">Active</option>
             <option value="suspended">Suspended</option>
           </select>
-        </FormField>
-        <FormField label="WhatsApp Alert Number">
-          <div className="relative">
-            <WhatsAppIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
-            <input
-              type="tel"
-              className={`${inputCls} pl-9`}
-              value={form.whatsapp}
-              onChange={e => set('whatsapp', e.target.value)}
-              placeholder="91XXXXXXXXXX"
-            />
-          </div>
-          <p className="mt-1 text-xs text-slate-400">Optional. Also editable anytime from Settings.</p>
         </FormField>
         <div className="flex justify-end gap-3 pt-2">
           <button type="button" onClick={onClose} className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>

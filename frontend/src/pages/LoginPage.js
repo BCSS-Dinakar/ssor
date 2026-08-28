@@ -25,8 +25,6 @@ import {
   ORG_TYPES,
   ORG_REG_STEPS,
 } from '../utils/data/authData';
-import { otpApi } from '../api/otp.api';
-import { authApi } from '../api/auth.api';
 import SearchableSelect from '../components/SearchableSelect';
 import locationData from '../utils/data/locationData.json';
 
@@ -62,7 +60,6 @@ const emptyOrgReg = () => ({
   acceptTerms: false,
   acceptPrivacy: false,
   confirmInfo: false,
-  otp: '',
   captcha: '',
 });
 
@@ -219,7 +216,7 @@ function StepIndicator({ steps, currentStep }) {
 function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, requestLoginOtp, verifyLoginOtp, registerOrganization } = useAuth();
+  const { login, registerOrganization } = useAuth();
   const roleParam = searchParams.get('role');
   const modeParam = searchParams.get('mode');
 
@@ -235,31 +232,9 @@ function LoginPage() {
   const [loginCaptcha, setLoginCaptcha] = useState(initialCaptcha);
   const [loginAlert, setLoginAlert] = useState(null);
 
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
-  const [loginOtp, setLoginOtp] = useState('');
-  const [loginOtpTimer, setLoginOtpTimer] = useState(0);
-  const [loginDevOtp, setLoginDevOtp] = useState(null);
-  const [loginOtpSent, setLoginOtpSent] = useState(false);
-
-  // Recovery States
-  const [recoverStep, setRecoverStep] = useState(1);
-  const [recoverMobile, setRecoverMobile] = useState('');
-  const [recoverOtp, setRecoverOtp] = useState('');
-  const [recoverOtpTimer, setRecoverOtpTimer] = useState(0);
-  const [recoverDevOtp, setRecoverDevOtp] = useState(null);
-  const [recoverLoginId, setRecoverLoginId] = useState(null);
-  const [recoveryToken, setRecoveryToken] = useState(null);
-  const [recoverNewPassword, setRecoverNewPassword] = useState('');
-  const [recoverConfirmPassword, setRecoverConfirmPassword] = useState('');
-  const [recoverAlert, setRecoverAlert] = useState(null);
-  const [isRecovering, setIsRecovering] = useState(false);
-
   const [orgReg, setOrgReg] = useState(emptyOrgReg());
   const [regCaptcha, setRegCaptcha] = useState(makeCaptcha());
   const [regAlert, setRegAlert] = useState(null);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpTimer, setOtpTimer] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [regStep, setRegStep] = useState(1);
 
@@ -271,16 +246,8 @@ function LoginPage() {
     setLoginAlert(null);
     setRegAlert(null);
     setRegStep(1);
-    setOtpSent(false);
-    setOtpVerified(false);
-    setOtpTimer(0);
     setOrgReg(emptyOrgReg());
     setRegCaptcha(makeCaptcha());
-    setLoginMethod('password');
-    setLoginOtp('');
-    setLoginOtpTimer(0);
-    setLoginDevOtp(null);
-    setLoginOtpSent(false);
   }, [role]);
 
   useEffect(() => {
@@ -324,181 +291,6 @@ function LoginPage() {
     }
   };
 
-  useEffect(() => {
-    let t;
-    if (loginOtpTimer > 0) {
-      t = setInterval(() => setLoginOtpTimer((x) => x - 1), 1000);
-    }
-    return () => clearInterval(t);
-  }, [loginOtpTimer]);
-
-  useEffect(() => {
-    let t;
-    if (recoverOtpTimer > 0) {
-      t = setInterval(() => setRecoverOtpTimer((x) => x - 1), 1000);
-    }
-    return () => clearInterval(t);
-  }, [recoverOtpTimer]);
-
-  const handleSendLoginOtp = async () => {
-    const idLabel = role === 'police' ? 'Officer username' : 'Login ID';
-    if (!loginForm.userId.trim()) return setLoginAlert({ type: 'error', message: `${idLabel} is required to send OTP.` });
-
-    try {
-      setLoginAlert({ type: 'info', message: 'Requesting OTP...' });
-      const data = await requestLoginOtp(role, loginForm.userId.trim());
-      if (data.success) {
-        setLoginOtpSent(true);
-        setLoginOtpTimer(120);
-        setLoginDevOtp(data.devOtp || null);
-        setLoginAlert({ type: 'success', message: data.message });
-      }
-    } catch (err) {
-      setLoginAlert({ type: 'error', message: err.message || 'Failed to send OTP.' });
-    }
-  };
-
-  const handleVerifyLoginOtp = async (e) => {
-    e.preventDefault();
-    if (!loginOtp.trim()) return setLoginAlert({ type: 'error', message: 'OTP is required.' });
-
-    try {
-      setLoginAlert({ type: 'info', message: 'Verifying OTP...' });
-      await verifyLoginOtp(role, loginForm.userId.trim(), loginOtp.trim());
-      setLoginAlert({ type: 'success', message: 'Sign in successful! Redirecting...' });
-      setTimeout(() => navigate('/portal'), 700);
-    } catch (err) {
-      setLoginAlert({ type: 'error', message: err.response?.data?.message || 'Login failed.' });
-    }
-  };
-
-  const handleRecoverRequest = async () => {
-    if (!recoverMobile.trim() || recoverMobile.length !== 10) {
-      setRecoverAlert({ type: 'error', message: 'Please enter a valid 10-digit mobile number.' });
-      return;
-    }
-    setIsRecovering(true);
-    setRecoverAlert(null);
-    try {
-      const res = await authApi.recoverRequest({ role, mobile: recoverMobile });
-      if (res.success) {
-        setRecoverAlert({ type: 'success', message: res.message });
-        setRecoverStep(2);
-        setRecoverOtpTimer(120);
-        if (res.devOtp) setRecoverDevOtp(res.devOtp);
-      }
-    } catch (err) {
-      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Failed to request recovery.' });
-    } finally {
-      setIsRecovering(false);
-    }
-  };
-
-  const handleRecoverVerify = async () => {
-    if (!recoverOtp || recoverOtp.length !== 6) {
-      setRecoverAlert({ type: 'error', message: 'Please enter a valid 6-digit OTP.' });
-      return;
-    }
-    setIsRecovering(true);
-    setRecoverAlert(null);
-    try {
-      const res = await authApi.recoverVerify({ mobile: recoverMobile, otp: recoverOtp });
-      if (res.success) {
-        setRecoverLoginId(res.loginId);
-        setRecoveryToken(res.recoveryToken);
-        setRecoverStep(3);
-        setRecoverAlert({ type: 'success', message: 'Account verified successfully!' });
-      }
-    } catch (err) {
-      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Invalid OTP.' });
-    } finally {
-      setIsRecovering(false);
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    if (!recoverNewPassword || recoverNewPassword.length < 8) {
-      setRecoverAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
-      return;
-    }
-    if (recoverNewPassword !== recoverConfirmPassword) {
-      setRecoverAlert({ type: 'error', message: 'Passwords do not match.' });
-      return;
-    }
-    setIsRecovering(true);
-    setRecoverAlert(null);
-    try {
-      const res = await authApi.resetPassword({ recoveryToken, newPassword: recoverNewPassword });
-      if (res.success) {
-        setRecoverAlert({ type: 'success', message: 'Password reset successfully. Please log in.' });
-        setTimeout(() => {
-          setMode('login');
-          setLoginForm({ userId: recoverLoginId, password: '', captcha: initialCaptcha });
-          refreshLoginCaptcha();
-          setRecoverStep(1);
-          setRecoverMobile('');
-          setRecoverOtp('');
-        }, 3000);
-      }
-    } catch (err) {
-      setRecoverAlert({ type: 'error', message: err.response?.data?.message || 'Failed to reset password.' });
-    } finally {
-      setIsRecovering(false);
-    }
-  };
-
-  // OTP countdown timer
-  useEffect(() => {
-    if (otpTimer <= 0) return;
-    const tick = setTimeout(() => setOtpTimer((t) => t - 1), 1000);
-    return () => clearTimeout(tick);
-  }, [otpTimer]);
-
-  const sendOtp = async (mobile) => {
-    if (!/^\d{10}$/.test(mobile.trim())) {
-      return setRegAlert({ type: 'error', message: 'Enter a valid 10-digit mobile number to receive an OTP.' });
-    }
-    try {
-      setRegAlert({ type: 'info', message: 'Sending OTP...' });
-      const data = await otpApi.send(orgReg.mobile.replace(/-/g, ''));
-      if (data.success) {
-        setOtpSent(true);
-        setOtpVerified(false);
-        setOtpTimer(60);
-        setOrgReg((r) => ({ ...r, otp: '' }));
-        const hint = data.devOtp ? ` (dev OTP: ${data.devOtp})` : '';
-        setRegAlert({ type: 'info', message: `OTP sent to ${mobile.trim()}${hint}.` });
-      } else {
-        setRegAlert({ type: 'error', message: data.message || 'Failed to send OTP.' });
-      }
-    } catch (err) {
-      setRegAlert({ type: 'error', message: err.response?.data?.message || err.message || 'Failed to send OTP.' });
-    }
-  };
-
-  const verifyOtpApi = useCallback(async (mobile, otp) => {
-    try {
-      const data = await otpApi.verify(mobile.trim(), otp.trim());
-      if (data.success) {
-        setOtpVerified(true);
-        setOtpTimer(0);
-        setRegAlert({ type: 'success', message: 'Mobile number verified successfully.' });
-      } else {
-        setOtpVerified(false);
-        setRegAlert({ type: 'error', message: data.message || 'Invalid OTP.' });
-      }
-    } catch (err) {
-      setRegAlert({ type: 'error', message: err.response?.data?.message || err.message || 'OTP verification failed.' });
-    }
-  }, []);
-
-  const validateOtp = () => {
-    if (!otpSent) return setRegAlert({ type: 'error', message: 'Please request an OTP for your mobile number.' });
-    if (!otpVerified) return setRegAlert({ type: 'error', message: 'Please verify your OTP before continuing.' });
-    return true;
-  };
-
   const validateOrgStep1 = () => {
     if (!orgReg.orgName.trim()) return setRegAlert({ type: 'error', message: 'Organization name is required.' });
     if (!orgReg.orgType) return setRegAlert({ type: 'error', message: 'Organization type is required.' });
@@ -539,7 +331,6 @@ function LoginPage() {
     if (orgReg.password.length < 8) return setRegAlert({ type: 'error', message: 'Password must be at least 8 characters.' });
     if (!orgReg.confirm) return setRegAlert({ type: 'error', message: 'Please confirm your password.' });
     if (orgReg.password !== orgReg.confirm) return setRegAlert({ type: 'error', message: 'Passwords do not match.' });
-    if (!validateOtp()) return false;
     return true;
   };
 
@@ -654,8 +445,8 @@ function LoginPage() {
                   <KeyRound className="h-[50%] w-[50%] text-blue-100" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug">OTP-verified sign-in</h3>
-                  <p className="text-blue-200/70 text-[clamp(0.75rem,1.5vh,0.875rem)] leading-relaxed mt-0.5">Every login is confirmed with a one-time passcode for added security.</p>
+                  <h3 className="text-white font-semibold text-[clamp(0.875rem,1.8vh,1rem)] leading-snug">Secure credential sign-in</h3>
+                  <p className="text-blue-200/70 text-[clamp(0.75rem,1.5vh,0.875rem)] leading-relaxed mt-0.5">Sign in with your registered username and password.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -727,7 +518,7 @@ function LoginPage() {
               <div className="px-2 sm:px-6 lg:px-8">
                 {/* Login */}
                 {mode === 'login' && (
-                  <form onSubmit={loginMethod === 'password' ? handleLogin : handleVerifyLoginOtp} className="space-y-[min(2.5vh,1.25rem)]">
+                  <form onSubmit={handleLogin} className="space-y-[min(2.5vh,1.25rem)]">
                     <div className="mb-[2vh]">
                       <h2 className="text-[clamp(1.25rem,3vh,1.5rem)] font-bold text-primary font-heading tracking-tight leading-none">
                         {role === 'police' ? 'Officer Sign In' : role === 'organization' ? 'Organization Sign In' : 'Sign In'}
@@ -737,23 +528,6 @@ function LoginPage() {
                           ? 'Restricted to authorised officers with recorded clearance. Every action is audited.'
                           : 'Sign in to submit clearance requests, track verifications, and manage your institution account.'}
                       </p>
-                    </div>
-
-                    <div className="flex bg-slate-100 rounded-lg p-1 w-max mb-4 border border-slate-200">
-                      <button
-                        type="button"
-                        onClick={() => { setLoginMethod('password'); setLoginAlert(null); setLoginOtpSent(false); }}
-                        className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'password' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Use Password
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setLoginMethod('otp'); setLoginAlert(null); }}
-                        className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${loginMethod === 'otp' ? 'bg-white shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Use OTP
-                      </button>
                     </div>
 
                     <Alert type={loginAlert?.type} message={loginAlert?.message} />
@@ -770,83 +544,40 @@ function LoginPage() {
                       </div>
                     </Field>
 
-                    {loginMethod === 'password' ? (
-                      <>
-                        <Field label="Password" required>
-                          <div className="relative">
-                            <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                            <input
-                              type={showPassword ? 'text' : 'password'}
-                              className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
-                              placeholder="Enter your password"
-                              value={loginForm.password}
-                              onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword((s) => !s)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
-                              aria-label="Toggle password visibility"
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </Field>
-
-                        <Captcha
-                          value={loginForm.captcha}
-                          code={loginCaptcha}
-                          onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
-                          onRefresh={refreshLoginCaptcha}
+                    <Field label="Password" required>
+                      <div className="relative">
+                        <Lock className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          className={getInputClass(loginForm.password, 'text') + ' pl-9 pr-10'}
+                          placeholder="Enter your password"
+                          value={loginForm.password}
+                          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         />
-                      </>
-                    ) : (
-                      <>
-                        {!loginOtpSent ? (
-                          <button type="button" onClick={handleSendLoginOtp} className="btn-secondary w-full justify-center py-3.5 rounded-xl shadow-sm text-base">
-                            Send OTP to Mobile
-                          </button>
-                        ) : (
-                          <Field label="Enter OTP" required>
-                            {loginDevOtp && (
-                              <div className="mb-2 text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-200 w-max">
-                                [Dev] devotp - {loginDevOtp}
-                              </div>
-                            )}
-                            <div className="flex gap-2">
-                              <input
-                                className={getInputClass(loginOtp, 'pin') + ' tracking-widest text-lg'}
-                                placeholder="6-digit OTP"
-                                value={loginOtp}
-                                onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                maxLength={6}
-                              />
-                              {loginOtpTimer > 0 ? (
-                                <div className="btn-secondary px-4 py-3 shrink-0 flex justify-center items-center opacity-70 cursor-not-allowed">
-                                  <span className="font-mono text-secondary font-bold">{loginOtpTimer}s</span>
-                                </div>
-                              ) : (
-                                <button type="button" onClick={handleSendLoginOtp} className="btn-secondary px-4 py-3 shrink-0 text-sm">
-                                  Resend
-                                </button>
-                              )}
-                            </div>
-                          </Field>
-                        )}
-                      </>
-                    )}
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((s) => !s)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-secondary"
+                          aria-label="Toggle password visibility"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </Field>
 
-                    {loginMethod === 'password' || loginOtpSent ? (
-                      <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
-                        <LogIn className="h-5 w-5" />
-                        Sign In
-                      </button>
-                    ) : null}
+                    <Captcha
+                      value={loginForm.captcha}
+                      code={loginCaptcha}
+                      onChange={(v) => setLoginForm({ ...loginForm, captcha: v })}
+                      onRefresh={refreshLoginCaptcha}
+                    />
 
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-base pt-1">
-                      <button type="button" onClick={() => { setMode('recover'); setRecoverAlert(null); setRecoverStep(1); }} className="text-secondary font-medium hover:text-blue-700 transition-colors text-left">
-                        Forgot Login Details?
-                      </button>
+                    <button type="submit" className="btn-primary w-full justify-center py-3.5 sm:py-4 rounded-xl shadow-lg shadow-primary/20 text-base">
+                      <LogIn className="h-5 w-5" />
+                      Sign In
+                    </button>
+
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2 text-base pt-1">
                       {canRegister ? (
                         <button type="button" onClick={() => setMode('register')} className="text-secondary font-medium hover:text-blue-700 transition-colors text-left sm:text-right">
                           New user? Create account
@@ -859,129 +590,6 @@ function LoginPage() {
                       )}
                     </div>
                   </form>
-                )}
-
-
-                {/* Recovery Flow */}
-                {mode === 'recover' && (
-                  <div className="space-y-5 animate-fadeIn">
-                    <div className="mb-6 flex items-center gap-3">
-                      <button onClick={() => setMode('login')} className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
-                        <ArrowLeft className="h-5 w-5" />
-                      </button>
-                      <div>
-                        <h2 className="text-2xl font-bold text-primary font-heading tracking-tight">Account Recovery</h2>
-                        <p className="text-sm text-slate-500 mt-1">Recover your Login ID or reset your password.</p>
-                      </div>
-                    </div>
-
-                    <Alert type={recoverAlert?.type} message={recoverAlert?.message} />
-
-                    {recoverStep === 1 && (
-                      <div className="space-y-5">
-                        <Field label="Registered Mobile Number" required>
-                          <input
-                            type="tel"
-                            className={getInputClass(recoverMobile, 'phone')}
-                            placeholder="10-digit mobile number"
-                            value={recoverMobile}
-                            onChange={(e) => setRecoverMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                            maxLength={10}
-                          />
-                        </Field>
-                        <button
-                          type="button"
-                          onClick={handleRecoverRequest}
-                          disabled={isRecovering}
-                          className="btn-primary w-full justify-center py-3.5 rounded-xl text-base"
-                        >
-                          {isRecovering ? 'Searching...' : 'Find My Account'}
-                        </button>
-                      </div>
-                    )}
-
-                    {recoverStep === 2 && (
-                      <div className="space-y-5">
-                        <Field label="Enter OTP sent to your mobile" required>
-                          {recoverDevOtp && (
-                            <div className="mb-2 text-sm font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-md border border-blue-200 w-max">
-                              [Dev] devotp - {recoverDevOtp}
-                            </div>
-                          )}
-                          <div className="flex gap-2">
-                            <input
-                              className={getInputClass(recoverOtp, 'pin') + ' tracking-widest text-lg'}
-                              placeholder="6-digit OTP"
-                              value={recoverOtp}
-                              onChange={(e) => setRecoverOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                              maxLength={6}
-                            />
-                            {recoverOtpTimer > 0 ? (
-                              <div className="btn-secondary px-4 py-3 shrink-0 flex justify-center items-center opacity-70 cursor-not-allowed">
-                                <span className="font-mono text-secondary font-bold">{recoverOtpTimer}s</span>
-                              </div>
-                            ) : (
-                              <button type="button" onClick={handleRecoverRequest} disabled={isRecovering} className="btn-secondary px-4 py-3 shrink-0 text-sm">
-                                Resend
-                              </button>
-                            )}
-                          </div>
-                        </Field>
-                        <button
-                          type="button"
-                          onClick={handleRecoverVerify}
-                          disabled={isRecovering}
-                          className="btn-primary w-full justify-center py-3.5 rounded-xl text-base"
-                        >
-                          {isRecovering ? 'Verifying...' : 'Verify OTP'}
-                        </button>
-                      </div>
-                    )}
-
-                    {recoverStep === 3 && (
-                      <div className="space-y-6">
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
-                          <p className="text-sm text-emerald-800 font-bold mb-1">Your Login ID is</p>
-                          <p className="text-2xl font-black text-emerald-900 tracking-wide font-mono bg-white inline-block px-4 py-1.5 rounded-lg border border-emerald-100 shadow-sm">{recoverLoginId}</p>
-                        </div>
-
-                        <div className="border-t border-slate-200 pt-5 space-y-5">
-                          <h3 className="font-bold text-slate-700">Optional: Reset Password</h3>
-                          <form onSubmit={handleResetPassword} className="space-y-5">
-                            <Field label="New Password" required>
-                              <input
-                                type="password"
-                                className={getInputClass(recoverNewPassword, 'password')}
-                                placeholder="Min 8 characters"
-                                value={recoverNewPassword}
-                                onChange={(e) => setRecoverNewPassword(e.target.value)}
-                              />
-                            </Field>
-                            <Field label="Confirm New Password" required>
-                              <input
-                                type="password"
-                                className={getInputClass(recoverConfirmPassword, 'confirm', recoverNewPassword)}
-                                placeholder="Confirm new password"
-                                value={recoverConfirmPassword}
-                                onChange={(e) => setRecoverConfirmPassword(e.target.value)}
-                              />
-                            </Field>
-                            <button
-                              type="submit"
-                              disabled={isRecovering}
-                              className="btn-primary w-full justify-center py-3.5 rounded-xl text-base shadow-sm"
-                            >
-                              {isRecovering ? 'Resetting...' : 'Reset Password'}
-                            </button>
-                          </form>
-                        </div>
-
-                        <button onClick={() => { setMode('login'); setLoginForm(f => ({ ...f, userId: recoverLoginId })); }} className="w-full text-center text-sm font-bold text-slate-500 hover:text-primary transition-colors py-2">
-                          Back to Login
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 )}
 
                 {/* Organization registration */}
@@ -1134,51 +742,13 @@ function LoginPage() {
                             <input className={getInputClass(orgReg.empId, 'text')} value={orgReg.empId} onChange={(e) => setOrgReg({ ...orgReg, empId: e.target.value })} placeholder="Staff ID" />
                           </Field>
                           <Field label="Mobile Number" required>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
-                                onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
-                                placeholder="10-digit mobile"
-                                inputMode="numeric"
-                                maxLength={11}
-                                disabled={otpVerified}
-                              />
-                              {otpTimer > 0 ? (
-                                <div className="btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 flex justify-center items-center gap-1 opacity-70 cursor-not-allowed w-full sm:w-auto">
-                                  <span className="font-mono text-secondary font-bold">{otpTimer}s</span>
-                                </div>
-                              ) : (
-                                <button type="button" onClick={() => sendOtp(orgReg.mobile.replace(/-/g, ''))} disabled={otpVerified}
-                                  className={`btn-secondary whitespace-nowrap px-3 py-2 sm:py-3 text-sm shrink-0 justify-center w-full sm:w-auto ${otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                  {otpSent && !otpVerified ? 'Resend OTP' : 'Send OTP'}
-                                </button>
-                              )}
-                            </div>
+                            <input className={getInputClass(orgReg.mobile, 'phone')} value={orgReg.mobile}
+                              onChange={(e) => setOrgReg({ ...orgReg, mobile: e.target.value.replace(/\D/g, '').slice(0, 10).replace(/(\d{5})(?=\d)/g, '$1-') })}
+                              placeholder="10-digit mobile"
+                              inputMode="numeric"
+                              maxLength={11}
+                            />
                           </Field>
-                          {otpSent && !otpVerified && (
-                            <Field label="OTP Verification" required hint="Enter the 6-digit OTP sent to your mobile.">
-                              <div className="relative">
-                                <input
-                                  className={getInputClass(orgReg.otp, 'pin')}
-                                  value={orgReg.otp}
-                                  onChange={(e) => {
-                                    const val = e.target.value.replace(/-/g, '').slice(0, 6);
-                                    setOrgReg({ ...orgReg, otp: val });
-                                    if (val.length === 6) verifyOtpApi(orgReg.mobile.replace(/-/g, ''), val);
-                                  }}
-                                  placeholder="Enter 6-digit OTP"
-                                  inputMode="numeric"
-                                  maxLength={6}
-                                />
-                              </div>
-                            </Field>
-                          )}
-                          {otpVerified && (
-                            <div className="flex items-center gap-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 text-base font-semibold">
-                              <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                              Mobile verified ✓
-                            </div>
-                          )}
-
                           <Field label="Official Email" required>
                             <input className={inputClass} type="email" value={orgReg.adminEmail} onChange={(e) => setOrgReg({ ...orgReg, adminEmail: e.target.value })} placeholder="admin@institution.edu" />
                           </Field>
