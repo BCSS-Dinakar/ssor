@@ -172,6 +172,21 @@ model ssor_kb {
   @@unique([act_name, section_code])
 }
 
+model RiskTierDefinition {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  category    String
+  description String
+  nature      String
+  retention   String
+  colorClass  String   @default("bg-slate-600")
+  defaultRank Int      @default(50)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model District {
   distCode   String                  @id
   distName   String

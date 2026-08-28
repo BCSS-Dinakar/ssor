@@ -1,4 +1,4 @@
-import { DetailSkeleton } from '../../../components/ui/index';
+import { DetailSkeleton } from '../../../components/ui/Skeleton';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {

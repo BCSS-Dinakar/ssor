@@ -5,7 +5,7 @@ import {
   Calendar, Mail, Phone, Clock, FileText, 
   CheckCircle, AlertOctagon, Info, MapPin, Hash, CheckSquare, Image as ImageIcon, Download
 } from 'lucide-react';
-import { DetailSkeleton } from '../../../components/ui/index';
+import { DetailSkeleton } from '../../../components/ui/Skeleton';
 import { StatusPill } from '../../../components/portal/Badges';
 import { organizationApi } from '../../../api/organization.api';
 import { useToast } from '../../../components/ui/Toast';

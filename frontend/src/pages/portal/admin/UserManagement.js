@@ -3,9 +3,6 @@ import { Search, Plus, Eye, Pencil, KeyRound, X, ChevronUp, ChevronDown, UserChe
 import { Link } from 'react-router-dom';
 import axios from '../../../utils/axios';
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Helpers
-───────────────────────────────────────────────────────────────────────────── */
 function formatDate(d) {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -21,9 +18,6 @@ function StatusBadge({ status }) {
   return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Modal base
-───────────────────────────────────────────────────────────────────────────── */
 function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
   if (!open) return null;
   return (
@@ -41,9 +35,6 @@ function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Create District Admin modal
-───────────────────────────────────────────────────────────────────────────── */
 function CreateModal({ open, onClose, unassignedDistricts, allDistrictsAssigned, onCreated }) {
   const [form, setForm] = useState({ loginId: '', password: '', name: '', distCode: '' });
   const [saving, setSaving] = useState(false);
@@ -122,9 +113,6 @@ function CreateModal({ open, onClose, unassignedDistricts, allDistrictsAssigned,
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   View / Details modal
-───────────────────────────────────────────────────────────────────────────── */
 function ViewModal({ open, onClose, user, onEdit, onResetPassword }) {
   if (!user) return null;
   return (
@@ -160,9 +148,6 @@ function ViewModal({ open, onClose, user, onEdit, onResetPassword }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Edit modal
-───────────────────────────────────────────────────────────────────────────── */
 function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
   const [form, setForm] = useState({ name: '', loginId: '', distCode: '', status: '' });
   const [saving, setSaving] = useState(false);
@@ -248,9 +233,6 @@ function EditModal({ open, onClose, user, unassignedDistricts, onUpdated }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Reset Password modal
-───────────────────────────────────────────────────────────────────────────── */
 function ResetPasswordModal({ open, onClose, user }) {
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -316,9 +298,6 @@ function ResetPasswordModal({ open, onClose, user }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Shared form atoms
-───────────────────────────────────────────────────────────────────────────── */
 const inputCls = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100';
 
 function FormField({ label, required, children }) {
@@ -343,9 +322,6 @@ function DetailItem({ label, value, icon }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Sort header
-───────────────────────────────────────────────────────────────────────────── */
 function SortHeader({ col, label, sortCol, sortDir, onSort }) {
   const active = sortCol === col;
   return (
@@ -361,9 +337,6 @@ function SortHeader({ col, label, sortCol, sortDir, onSort }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   Main component
-───────────────────────────────────────────────────────────────────────────── */
 function UserManagement() {
   const [admins, setAdmins] = useState([]);
   const [districts, setDistricts] = useState([]);

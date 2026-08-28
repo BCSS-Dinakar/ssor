@@ -1,14 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { MapPin, ZoomOut, RotateCcw, Layers, ShieldAlert, RefreshCw, Calendar } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { MapPin, RotateCcw, Layers } from 'lucide-react';
 import { TELANGANA_DISTRICTS, TELANGANA_BOUNDS } from '../../../utils/data/telanganaDistrictsMandals';
-import { TELANGANA_POLICE_STATIONS } from '../../../utils/data/telanganaPoliceStations';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody } from '../../ui/Dialog';
 import { Button } from '../../ui/Button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { Link } from 'react-router-dom';
-import { policeApi } from '../../../api/police.api';
-import SearchableCombobox from '../../ui/SearchableCombobox';
 
 /**
  * Calculates a bounding box [minX, minY, width, height] from an SVG path string ('M ... L ... Z')
@@ -46,49 +42,41 @@ const getTierColor = (tier) => {
   }
 };
 
+const normDist = (s) => (s || '').toLowerCase().replace(/[-_]/g, ' ').trim();
+
+const getDistrictDynamicTier = (distName, districtStats) => {
+  if (!districtStats || districtStats.length === 0) return 'Red';
+  const dStat = districtStats.find(s => normDist(s.name) === normDist(distName));
+  if (!dStat || dStat.totalOffenders === 0) return 'Green';
+
+  if (dStat.redCount >= dStat.orangeCount && dStat.redCount >= dStat.greenCount && dStat.redCount > 0) return 'Red';
+  if (dStat.orangeCount >= dStat.greenCount && dStat.orangeCount > 0) return 'Orange';
+  if (dStat.greenCount > 0) return 'Green';
+
+  return 'Red';
+};
+
+const getDistrictDynamicTotal = (distName, districtStats) => {
+  if (!districtStats || districtStats.length === 0) {
+    const staticDist = TELANGANA_DISTRICTS.find(s => normDist(s.name) === normDist(distName));
+    return staticDist?.totalOffenders || 0;
+  }
+  const dStat = districtStats.find(s => normDist(s.name) === normDist(distName));
+  return dStat?.totalOffenders || 0;
+};
+
 const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedMandal, setSelectedMandal] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [tierFilter, setTierFilter] = useState('ALL');
   const [hoveredEntity, setHoveredEntity] = useState(null);
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
 
-  const normDist = (s) => (s || '').toLowerCase().replace(/[-_]/g, ' ').trim();
+  const districtStats = stateStats?.districtStats;
 
-
-
-
-  // Helper to determine dynamic district tier based on live stats
-  const getDistrictDynamicTier = (distName) => {
-    if (!stateStats?.districtStats || stateStats.districtStats.length === 0) return 'Red'; // fallback to static config if no live data
-    const dStat = stateStats.districtStats.find(s => normDist(s.name) === normDist(distName));
-    if (!dStat || dStat.totalOffenders === 0) return 'Green';
-    
-    // Majority Rule logic or fallback
-    if (dStat.redCount >= dStat.orangeCount && dStat.redCount >= dStat.greenCount && dStat.redCount > 0) return 'Red';
-    if (dStat.orangeCount >= dStat.greenCount && dStat.orangeCount > 0) return 'Orange';
-    if (dStat.greenCount > 0) return 'Green';
-    
-    // If we have total offenders but they don't have a tier, fallback to red
-    return 'Red'; 
-  };
-
-  const getDistrictDynamicTotal = (distName) => {
-    if (!stateStats?.districtStats || stateStats.districtStats.length === 0) {
-      // Fallback to static
-      const staticDist = TELANGANA_DISTRICTS.find(s => normDist(s.name) === normDist(distName));
-      return staticDist?.totalOffenders || 0;
-    }
-    const dStat = stateStats.districtStats.find(s => normDist(s.name) === normDist(distName));
-    return dStat?.totalOffenders || 0;
-  };
-
-  // Calculate State-wide District Risk Tier Data for Left Circle Graph
   const stateDistrictTierData = useMemo(() => {
     let red = 0, orange = 0, green = 0;
     TELANGANA_DISTRICTS.forEach(d => {
-      const tier = getDistrictDynamicTier(d.name);
+      const tier = getDistrictDynamicTier(d.name, districtStats);
       if (tier === 'Red') red++;
       else if (tier === 'Orange') orange++;
       else if (tier === 'Green') green++;
@@ -98,15 +86,14 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       { name: 'Orange Tier', value: orange, color: '#F97316' },
       { name: 'Green Tier', value: green, color: '#10B981' }
     ];
-  }, [stateStats?.districtStats]);
+  }, [districtStats]);
 
-  // Top high-density risk districts sorted by dynamic totalOffenders
   const topDistricts = useMemo(() => {
     return [...TELANGANA_DISTRICTS]
-      .map(d => ({ ...d, dynamicTotal: getDistrictDynamicTotal(d.name) }))
+      .map(d => ({ ...d, dynamicTotal: getDistrictDynamicTotal(d.name, districtStats) }))
       .sort((a, b) => b.dynamicTotal - a.dynamicTotal)
       .slice(0, 5);
-  }, [stateStats?.districtStats]);
+  }, [districtStats]);
 
   const handleMouseMove = (e, entity, type = 'DISTRICT') => {
     const svg = e.currentTarget.ownerSVGElement || e.currentTarget.closest('svg');
@@ -130,26 +117,8 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
       return calcBoundingBox(selectedDistrict.path, 60);
     }
     return TELANGANA_BOUNDS.viewBox;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict]);
 
-  // Filter districts based on search query or risk tier
-  const filteredDistricts = useMemo(() => {
-    return TELANGANA_DISTRICTS.filter((d) => {
-      const matchesSearch =
-        !searchQuery ||
-        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.hq.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.mandals.some((m) => m.name.toLowerCase().includes(searchQuery.toLowerCase()));
-      const dynamicTier = getDistrictDynamicTier(d.name);
-      const matchesTier = tierFilter === 'ALL' || dynamicTier.toUpperCase() === tierFilter;
-      return matchesSearch && matchesTier;
-    });
-  }, [searchQuery, tierFilter, stateStats?.districtStats]);
-
-
-
-  // Handle clicking a district
   const handleMapClick = (district) => {
     setSelectedDistrict(district);
     setSelectedMandal(null);
@@ -171,8 +140,6 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
   const handleResetZoom = () => {
     setSelectedDistrict(null);
     setSelectedMandal(null);
-    setSearchQuery('');
-    setTierFilter('ALL');
     if (onSelectJurisdiction) {
       onSelectJurisdiction({ type: 'STATE', data: null });
     }
@@ -197,7 +164,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
 
 
           <div className="flex flex-wrap items-center gap-2">
-            {(selectedDistrict || searchQuery || tierFilter !== 'ALL') && (
+            {selectedDistrict && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -377,12 +344,12 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
             >
               <g className="transition-transform duration-700 ease-out">
                 {/* 33-district base map. Click a district to drill into mandals. */}
-                {filteredDistricts.map((d) => {
+                {TELANGANA_DISTRICTS.map((d) => {
                   const isHovered = hoveredEntity && hoveredEntity.id === d.id && hoveredEntity.type === 'DISTRICT';
                   const isSelected = selectedDistrict && selectedDistrict.id === d.id;
                   
                   const isNeighborBlackout = selectedDistrict && !isSelected;
-                  const tierStyle = getTierColor(getDistrictDynamicTier(d.name));
+                  const tierStyle = getTierColor(getDistrictDynamicTier(d.name, districtStats));
 
                   if (selectedDistrict && selectedMandal) return null;
 
@@ -399,7 +366,7 @@ const TelanganaOfficialMap = ({ onSelectJurisdiction, stateStats }) => {
                       className="transition-all duration-300 cursor-pointer"
                       onClick={() => handleMapClick(d)}
                       onMouseMove={(e) => {
-                          handleMouseMove(e, { ...d, dynamicTotal: getDistrictDynamicTotal(d.name), dynamicRiskTier: getDistrictDynamicTier(d.name) }, 'DISTRICT');
+                          handleMouseMove(e, { ...d, dynamicTotal: getDistrictDynamicTotal(d.name, districtStats), dynamicRiskTier: getDistrictDynamicTier(d.name, districtStats) }, 'DISTRICT');
                       }}
                       onMouseLeave={handleMouseLeave}
                     />

@@ -6,7 +6,6 @@ Follow these steps to set up the entire SSOR (State Sexual Offender Registry) st
 - **Node.js** (v18 or higher)
 - **npm** (comes with Node.js)
 - **PostgreSQL** database server running locally
-- **Redis** server running locally (optional; used for health checks and future caching)
 - **MinIO** server running locally (for secure document uploads and storage)
 
 ---
@@ -33,10 +32,6 @@ JWT_SECRET="your_super_secret_jwt_key_here"
 NODE_ENV="development"
 FRONTEND_URL="http://localhost:3000"
 
-# Redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-
 # MinIO Storage
 MINIO_ENDPOINT=127.0.0.1
 MINIO_PORT=9000
@@ -53,16 +48,10 @@ npx prisma generate
 npx prisma db push
 ```
 
-### Create Test Accounts & Seed Data (Optional)
-Run the provided npm script to seed the database with test user accounts:
-```bash
-npm run db:seed-users
-```
-To create custom test accounts directly (e.g. `dinakar@org` & `dinakar@police`), you can run:
-```bash
-node scripts/createTestUsers.js
-```
-*(Check `credentials.txt` in the backend folder or the console output for credentials details).*
+### Create Test Accounts (Development Only)
+When `NODE_ENV` is not `production` and the user table is empty, the server automatically seeds default dev accounts (`police@ssor` / `org@ssor`, password `ssor@123`) on startup via `autoSetup.js`.
+
+Police and admin accounts in production must be created through the admin portal, not public registration.
 
 ### Start the Server
 Start the backend development server:
@@ -97,5 +86,4 @@ The frontend will automatically open in your browser at [http://localhost:3000](
 ## Troubleshooting
 - **CORS Issues**: Ensure the backend `.env` has `FRONTEND_URL="http://localhost:3000"`.
 - **MinIO/Uploads Failing**: Make sure your MinIO container is running, the credentials match `.env`, and the bucket has been created successfully. If MinIO is unreachable, backend falls back to local disk storage (`storage/media`).
-- **Redis**: Ensure **Redis** is running (`redis-cli ping` returns `PONG`) if you rely on it for health checks. The app continues to run if Redis is unavailable.
 - **Prisma Errors**: If you get Prisma connection errors, double-check that your PostgreSQL server is active and the `DATABASE_URL` in `.env` is perfectly correct.

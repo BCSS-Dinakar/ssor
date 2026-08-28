@@ -1,4 +1,4 @@
-import { DetailSkeleton } from '../../../components/ui/index';
+import { DetailSkeleton } from '../../../components/ui/Skeleton';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Database, MapPin } from 'lucide-react';

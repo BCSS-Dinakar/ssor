@@ -10,5 +10,8 @@ logs
 
 /src/generated/prisma
 
+credentials.txt
+.fallback-cache.json
+
 # Local media disk fallback (reconciled into MinIO)
 storage/

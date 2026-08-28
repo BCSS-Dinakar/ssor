@@ -104,13 +104,7 @@ const fuzzyConfidence = (similarity) => {
   return Math.max(40, Math.min(75, Math.round(40 + sim * 35)));
 };
 
-// mv_clearance_accused_search.highest_risk_tier comes straight from
-// ssor_kb.tier, which is UPPERCASE ('RED'/'ORANGE'/'BLUE'/'BLACK'/'PINK').
-// The frontend's tier-color map (VerificationVetting.js) keys on TitleCase
-// ('Red'/'Orange'/...), so reformat here rather than push that knowledge
-// into the UI. Falls back to 'Orange' — same default as before this was wired
-// up — for the ~25% of rows with no computed tier, or the live-CTE fallback
-// path which doesn't compute one at all.
+// Map ssor_kb.tier (UPPERCASE) to TitleCase for the frontend tier-color map.
 const KNOWN_RISK_TIERS = new Set(['RED', 'ORANGE', 'BLUE', 'BLACK', 'PINK', 'GREEN']);
 const formatRiskTier = (tier) => {
   const upper = String(tier || '').trim().toUpperCase();
@@ -178,12 +172,7 @@ const isTimeoutError = (error) => {
   return text.includes('timeout') || text.includes('timed out') || text.includes('sockettimeout');
 };
 
-// Prefer the materialized view (fast, indexed); fall back to the plain view
-// (always live, no build/refresh needed) if the MV isn't built yet — same
-// pg_matviews-check-and-cache pattern as getActiveView() in
-// police.controller.js and getEpettyView() in epetty.service.js. Both views
-// expose identical column names (see db/clearance_accused_search_view.sql),
-// so nothing downstream needs to know which one is active.
+// Prefer materialized view when built; fall back to live view (same columns).
 let clearanceViewReady = false;
 const getClearanceView = async () => {
   if (clearanceViewReady) return Prisma.raw(CLEARANCE_ACCUSED_MV);
@@ -452,5 +441,3 @@ export const searchCctnsCandidate = async ({
     };
   }
 };
-
-export const shouldSkipEpettyAfterCctns = (cctnsOutcome) => false;

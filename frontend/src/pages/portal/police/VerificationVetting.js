@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, XCircle, FileText, User, Building, Loader2, Sh
 import { policeApi } from '../../../api/police.api';
 import PageHeader from '../../../components/portal/PageHeader';
 import { StatusPill } from '../../../components/portal/Badges';
-import { DetailSkeleton } from '../../../components/ui/index';
+import { DetailSkeleton } from '../../../components/ui/Skeleton';
 import { useToast } from '../../../components/ui/Toast';
 
 function InfoRow({ icon: Icon, label, value }) {

@@ -17,12 +17,6 @@ GIT_BRANCH="${GIT_BRANCH:-main}"
 FRONTEND_URL="${FRONTEND_URL:-http://${APP_HOST}:${FRONTEND_PORT}}"
 API_BASE_URL="${API_BASE_URL:-http://${APP_HOST}:${BACKEND_PORT}/api}"
 
-# Redis (OTP / cache) — local server expected on this host.
-REDIS_HOST="${REDIS_HOST:-127.0.0.1}"
-REDIS_PORT="${REDIS_PORT:-6379}"
-ENSURE_REDIS="${ENSURE_REDIS:-1}"
-INSTALL_REDIS="${INSTALL_REDIS:-1}"
-
 # MinIO (document storage) — local Docker Compose service.
 # Access/secret MUST already be set in backend/.env (non-default). Deploy will not
 # invent minioadmin credentials (production validateEnv rejects them).
@@ -40,7 +34,6 @@ ENSURE_MINIO="${ENSURE_MINIO:-1}"
 # If MinIO is up but .env keys don't match the volume root user, recreate volume.
 # DANGEROUS: deletes all MinIO objects. Default off; set 1 only when safe to wipe.
 MINIO_RESET_ON_AUTH_FAIL="${MINIO_RESET_ON_AUTH_FAIL:-0}"
-REQUIRE_REDIS="${REQUIRE_REDIS:-0}"
 REQUIRE_MINIO="${REQUIRE_MINIO:-1}"
 
 log() {
@@ -85,72 +78,6 @@ get_env() {
   else
     printf '%s' "$default"
   fi
-}
-
-redis_ping() {
-  command -v redis-cli >/dev/null 2>&1 || return 1
-  redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping 2>/dev/null | grep -qx PONG
-}
-
-install_redis_if_needed() {
-  if command -v redis-cli >/dev/null 2>&1 && command -v redis-server >/dev/null 2>&1; then
-    return 0
-  fi
-  if [[ "$INSTALL_REDIS" != "1" ]]; then
-    return 1
-  fi
-  if ! command -v apt-get >/dev/null 2>&1; then
-    warn "Cannot auto-install Redis (apt-get not available)."
-    return 1
-  fi
-  log "Installing redis-server via apt"
-  sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server
-}
-
-ensure_redis() {
-  log "Ensuring Redis is reachable at ${REDIS_HOST}:${REDIS_PORT}"
-
-  install_redis_if_needed || true
-
-  if ! command -v redis-cli >/dev/null 2>&1; then
-    if [[ "$REQUIRE_REDIS" == "1" ]]; then
-      die "redis-cli not found. Install redis-server or set REQUIRE_REDIS=0."
-    fi
-    warn "redis-cli not found — OTP/cache will use file fallback."
-    return 0
-  fi
-
-  if redis_ping; then
-    log "Redis OK"
-    return 0
-  fi
-
-  if command -v systemctl >/dev/null 2>&1; then
-    if systemctl list-unit-files redis-server.service >/dev/null 2>&1; then
-      log "Enabling + starting redis-server"
-      sudo systemctl enable --now redis-server || sudo systemctl start redis-server || true
-    elif systemctl list-unit-files redis.service >/dev/null 2>&1; then
-      log "Enabling + starting redis"
-      sudo systemctl enable --now redis || sudo systemctl start redis || true
-    fi
-  elif command -v service >/dev/null 2>&1; then
-    sudo service redis-server start || sudo service redis start || true
-  fi
-
-  local i
-  for i in 1 2 3 4 5 6 7 8 9 10; do
-    if redis_ping; then
-      log "Redis OK"
-      return 0
-    fi
-    sleep 1
-  done
-
-  if [[ "$REQUIRE_REDIS" == "1" ]]; then
-    die "Redis not reachable at ${REDIS_HOST}:${REDIS_PORT}."
-  fi
-  warn "Redis not reachable at ${REDIS_HOST}:${REDIS_PORT} — OTP/cache will use file fallback."
 }
 
 minio_ready() {
@@ -271,11 +198,6 @@ ensure_minio() {
 ensure_backend_service_env() {
   local env_file="$ROOT_DIR/backend/.env"
 
-  # Redis/MinIO API talk to local daemons — always pin loopback unless explicitly overridden
-  # via REDIS_HOST / MINIO_ENDPOINT in the environment or .deploy.local.
-  # (Binding Redis to 127.0.0.1 means APP_HOST/public IP cannot be used as REDIS_HOST.)
-  set_env "$env_file" "REDIS_HOST" "$REDIS_HOST"
-  set_env "$env_file" "REDIS_PORT" "$REDIS_PORT"
   set_env "$env_file" "MINIO_ENDPOINT" "$MINIO_ENDPOINT"
   set_env "$env_file" "MINIO_PORT" "$MINIO_PORT"
   if [[ -z "$(get_env "$env_file" "MINIO_USE_SSL")" ]]; then
@@ -303,7 +225,7 @@ validate_production_backend_env() {
   secret="$(get_env "$env_file" "MINIO_SECRET_KEY" "")"
   pub="$(get_env "$env_file" "MINIO_PUBLIC_ENDPOINT" "")"
 
-  log "Validating production backend/.env (Redis / MinIO requirements)"
+  log "Validating production backend/.env (MinIO requirements)"
 
   if [[ -z "$access" || -z "$secret" ]]; then
     die "MINIO_ACCESS_KEY / MINIO_SECRET_KEY required in backend/.env."
@@ -387,23 +309,15 @@ else
 fi
 set_env "$ROOT_DIR/frontend/.env" "REACT_APP_API_BASE_URL" "$API_BASE_URL"
 
-log "Ensuring Redis / MinIO backend env defaults"
+log "Ensuring MinIO backend env defaults"
 ensure_backend_service_env
 validate_production_backend_env
 
 # Refresh locals from .env so compose / health checks use the same values.
-REDIS_HOST="$(get_env "$ROOT_DIR/backend/.env" "REDIS_HOST" "$REDIS_HOST")"
-REDIS_PORT="$(get_env "$ROOT_DIR/backend/.env" "REDIS_PORT" "$REDIS_PORT")"
 MINIO_ENDPOINT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_ENDPOINT" "$MINIO_ENDPOINT")"
 MINIO_PORT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_PORT" "$MINIO_PORT")"
 MINIO_BUCKET="$(get_env "$ROOT_DIR/backend/.env" "MINIO_BUCKET" "$MINIO_BUCKET")"
 MINIO_PUBLIC_ENDPOINT="$(get_env "$ROOT_DIR/backend/.env" "MINIO_PUBLIC_ENDPOINT" "$MINIO_PUBLIC_ENDPOINT")"
-
-if [[ "$ENSURE_REDIS" == "1" ]]; then
-  ensure_redis
-else
-  log "Skipping Redis check (ENSURE_REDIS=0)"
-fi
 
 if [[ "$ENSURE_MINIO" == "1" ]]; then
   ensure_minio
@@ -446,7 +360,6 @@ echo
 echo "Frontend : ${FRONTEND_URL}"
 echo "Backend  : http://${APP_HOST}:${BACKEND_PORT}"
 echo "Health   : http://${APP_HOST}:${BACKEND_PORT}/api/health"
-echo "Redis    : ${REDIS_HOST}:${REDIS_PORT}$(redis_ping && echo ' (up)' || echo ' (down — file fallback)')"
 echo "MinIO    : ${MINIO_ENDPOINT}:${MINIO_PORT}$(minio_ready && echo ' (up)' || echo ' (down — disk fallback)')"
 echo "MinIO UI : http://${MINIO_PUBLIC_ENDPOINT}:9001"
 echo

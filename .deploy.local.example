@@ -10,10 +10,7 @@ GIT_BRANCH=main
 # FRONTEND_URL=http://10.121.9.177:3000
 # API_BASE_URL=http://10.121.9.177:5000/api
 
-# --- Redis / MinIO (deploy.sh ensures these) ---
-# ENSURE_REDIS=1
-# INSTALL_REDIS=1          # apt-install redis-server if missing
-# REQUIRE_REDIS=0          # set 1 to fail deploy when Redis is down
+# --- MinIO (deploy.sh ensures this) ---
 # ENSURE_MINIO=1
 # REQUIRE_MINIO=1          # fail deploy if MinIO is down / creds mismatch
 # MINIO_PUBLIC_ENDPOINT=10.121.9.177

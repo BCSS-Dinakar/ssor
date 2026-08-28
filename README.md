@@ -31,7 +31,7 @@ Located in the `backend/` directory, the API is built with **Node.js, Express, a
 - **Role-Based Access Control (RBAC)**: Custom Express middlewares strictly guard routes (`requireAuth`, `requirePolice`) based on the JWT session.
 - **Secure File Storage**: Integrates **MinIO Object Storage** to safely store uploaded documents (such as government certificates and authorization letters). During storage outages, uploads seamlessly fall back to local disk storage (`storage/media`), with reconciliation scripts to sync them back.
 - **Advanced Authentication**: Uses JWTs signed and delivered via secure, HTTP-only cookies to prevent XSS attacks. Password-based login with role-based access control.
-- **Caching & Resilience**: Integrates **Redis** for optional caching with an automated failover system that writes to local files if the Redis server goes down.
+- **Resilient Storage**: MinIO object storage with automatic local-disk fallback when MinIO is unavailable; reconciliation scripts sync disk files back to MinIO.
 
 ### 3. The Database (Data Layer)
 Powered by **PostgreSQL** (via Prisma) for robust, relational data storage.
@@ -43,7 +43,7 @@ Powered by **PostgreSQL** (via Prisma) for robust, relational data storage.
 
 ## 🚦 Getting Started
 
-Please refer to the [`setup.md`](./setup.md) file in the root directory for full, step-by-step instructions on setting up the environment variables, initializing the PostgreSQL database, installing Redis, and starting both servers.
+Please refer to the [`setup.md`](./setup.md) file in the root directory for full, step-by-step instructions on setting up the environment variables, initializing the PostgreSQL database, and starting both servers.
 
 ---
 

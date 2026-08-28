@@ -1,7 +1,7 @@
 import prisma from '../config/db.js';
 import { Prisma } from '@prisma/client';
 import { searchEpettyCandidate } from '../services/epetty.service.js';
-import { searchCctnsCandidate, shouldSkipEpettyAfterCctns } from '../services/cctns.service.js';
+import { searchCctnsCandidate } from '../services/cctns.service.js';
 import { generateClearanceReport } from '../services/gemini.service.js';
 import { streamDocument, getPresignedUrl, SIGNED_URL_EXPIRY_SECONDS } from '../services/storage.service.js';
 import { withVerificationUrls, withVerificationUrlsList, guardDocumentAccess } from '../services/media.service.js';
@@ -178,15 +178,14 @@ export const scanVerificationById = async (req, res) => {
       return { matchCategory: 'epetty_custom', matchCategoryLabel: 'Custom filter match', matchParams: [], confidence: 50 };
     };
 
-    if (!shouldSkipEpettyAfterCctns(cctnsOutcome)) {
-      epettyOutcome = await searchEpettyCandidate({
-        candidateName: verification.candidateName,
-        candidatePhone: verification.phone,
-        fatherName: verification.fatherName,
-        occupation: verification.role,
-      });
-      const epettyMeta = mapEpettyMatchMeta(epettyOutcome.priorityLabel || '');
-      epettySuspects = epettyOutcome.matches.map(m => ({
+    epettyOutcome = await searchEpettyCandidate({
+      candidateName: verification.candidateName,
+      candidatePhone: verification.phone,
+      fatherName: verification.fatherName,
+      occupation: verification.role,
+    });
+    const epettyMeta = mapEpettyMatchMeta(epettyOutcome.priorityLabel || '');
+    epettySuspects = epettyOutcome.matches.map(m => ({
         id: m.recordId || m.caseNumber || '—',
         name: m.name || m.offenderName || '—',
         alias: m.alias || '—',
@@ -206,7 +205,6 @@ export const scanVerificationById = async (req, res) => {
         priority: epettyOutcome.priorityLabel || 'ePetty Match',
         ...epettyMeta
       }));
-    }
 
     const suspects = [...cctnsSuspects, ...epettySuspects];
     const matchedSources = [
@@ -236,9 +234,7 @@ export const scanVerificationById = async (req, res) => {
       },
       cctnsStatus: cctnsOutcome.lookupError ? 'unavailable' : 'checked',
       cctnsError: cctnsOutcome.lookupError || null,
-      epettyStatus: shouldSkipEpettyAfterCctns(cctnsOutcome)
-        ? 'skipped'
-        : (epettyOutcome.lookupError ? 'unavailable' : 'checked'),
+      epettyStatus: epettyOutcome.lookupError ? 'unavailable' : 'checked',
       epettyError: epettyOutcome.lookupError || null,
       cctnsMatches: cctnsSuspects,
       epettyMatches: epettySuspects,

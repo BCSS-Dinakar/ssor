@@ -14,17 +14,5 @@ export const ORG_TYPES = [
   'Other child-facing institution',
 ];
 
-export const SIGNATORY_ID_TYPES = ['Aadhaar', 'PAN', 'Driving licence'];
-
-export const SECURITY_QUESTIONS = [
-  'Your first school',
-  'City of birth',
-  'Driving licence number',
-  'PAN',
-  "Mother's maiden name",
-  'Your first vehicle',
-  'Your last college',
-];
-
 export const ORG_REG_STEPS = ['Organization', 'Address', 'Contact', 'Administrator', 'Documents', 'Review', 'Declaration'];
 
