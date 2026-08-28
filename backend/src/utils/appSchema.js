@@ -18,6 +18,10 @@ export const initAppSchema = async () => {
       cwd: backendDir,
       stdio: 'inherit'
     });
+    execSync('npx prisma generate', {
+      cwd: backendDir,
+      stdio: 'inherit'
+    });
     console.log('✅ SSOR app tables are perfectly in sync with schema.prisma!');
   } catch (error) {
     console.error('❌ Failed to push Prisma schema:', error);

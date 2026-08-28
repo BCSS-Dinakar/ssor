@@ -28,7 +28,7 @@
 -- persons/crimes independently. mv_offender_details is the single source of
 -- truth already used for the officer's full-dossier "Inspect" view
 -- (getOffenderById) — building the search index off the same view means:
---   - highest_risk_tier is now real (ssor_kb-derived, ~75% filled) instead of
+--   - highest_risk_tier is now real (RiskTierSection-derived, ~75% filled) instead of
 --     the hardcoded 'Orange' every match previously showed in the UI.
 --   - father/phone JSONB extraction logic isn't duplicated between two views.
 -- mv_offender_details aggregates ALL of a person's crimes into one JSONB
@@ -116,7 +116,7 @@ WITH accused_latest AS (
     LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM ssor_kb kb
+        FROM "RiskTierSection" kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1

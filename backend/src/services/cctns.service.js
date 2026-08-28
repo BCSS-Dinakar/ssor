@@ -104,7 +104,7 @@ const fuzzyConfidence = (similarity) => {
   return Math.max(40, Math.min(75, Math.round(40 + sim * 35)));
 };
 
-// Map ssor_kb.tier (UPPERCASE) to TitleCase for the frontend tier-color map.
+// Map RiskTierSection.tier (UPPERCASE) to TitleCase for the frontend tier-color map.
 const KNOWN_RISK_TIERS = new Set(['RED', 'ORANGE', 'BLUE', 'BLACK', 'PINK', 'GREEN']);
 const formatRiskTier = (tier) => {
   const upper = String(tier || '').trim().toUpperCase();

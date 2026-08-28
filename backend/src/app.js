@@ -14,6 +14,7 @@ import verifyRoutes from './routes/verify.route.js';
 import adminRoutes from './routes/admin.routes.js';
 import districtRoutes from './routes/district.routes.js';
 import riskTierRoutes from './routes/riskTier.route.js';
+import riskTierSectionRoutes from './routes/riskTierSection.route.js';
 import logger from './utils/logger.js';
 
 const app = express();
@@ -59,6 +60,7 @@ app.use('/api/e-petty', epettyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/districts', districtRoutes);
 app.use('/api/risk-tiers', riskTierRoutes);
+app.use('/api/risk-tier-sections', riskTierSectionRoutes);
 app.get('/', (req, res) => {
   res.send('SSOR Backend Running');
 });

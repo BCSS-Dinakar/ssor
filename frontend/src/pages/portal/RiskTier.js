@@ -84,7 +84,7 @@ const inputCls = 'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 p
 function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg' }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className={`flex w-full ${maxWidth} max-h-[90vh] flex-col rounded-2xl bg-white shadow-2xl`}>
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-900">{title}</h2>
@@ -520,7 +520,7 @@ function RiskTier() {
           <strong>Overview:</strong> The registry uses a colour-coded scheme allowing officers to grade offenders by the seriousness of their conduct and the risk they carry.
         </p>
         <p className="text-slate-500">
-          <strong>Note:</strong> Juveniles (Silver Tier) are dealt with under the Juvenile Justice Act, 2015, and are placed in a non-disclosable list. Statutory provisions are loaded from the live knowledge base used in clearance searches.
+          <strong>Note:</strong> Juveniles (Silver Tier) are dealt with under the Juvenile Justice Act, 2015, and are placed in a non-disclosable list. Statutory provisions are loaded from the risk tier section registry used in clearance searches.
         </p>
         {!canEdit && (
           <p className="mt-2 text-sm text-amber-700">You have read-only access. Contact a registry administrator to add or change tiers.</p>
@@ -590,7 +590,7 @@ function RiskTier() {
                   <div className="pt-4 border-t border-slate-100">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm tracking-wide font-bold text-slate-400 flex items-center gap-1">
-                        <Scale className="h-3 w-3" /> Statutory Provisions
+                        <Scale className="h-3 w-3" /> Risk Tier Sections
                         <span className="ml-1 font-normal normal-case text-slate-400">({tierSections.length})</span>
                       </h4>
                       {canEdit && (
@@ -655,7 +655,7 @@ function RiskTier() {
       <Modal open={!!deleteTier} onClose={() => setDeleteTier(null)} title="Delete risk tier">
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
-            Delete <strong>{deleteTier?.name}</strong> ({deleteTier?.code})? All section mappings under this tier must be removed first.
+            Delete <strong>{deleteTier?.name}</strong> ({deleteTier?.code})? All risk tier sections under this tier must be removed first.
           </p>
           <ErrorBox message={error} />
           <div className="flex justify-end gap-2">
@@ -667,15 +667,15 @@ function RiskTier() {
         </div>
       </Modal>
 
-      <Modal open={createSectionOpen} onClose={() => setCreateSectionOpen(false)} title="Add section mapping">
+      <Modal open={createSectionOpen} onClose={() => setCreateSectionOpen(false)} title="Add risk tier section">
         <SectionForm form={sectionForm} setForm={setSectionForm} tiers={definitions} onSubmit={handleCreateSection} saving={saving} error={error} submitLabel="Add section" tierLocked />
       </Modal>
 
-      <Modal open={!!editSection} onClose={() => setEditSection(null)} title="Edit section mapping">
+      <Modal open={!!editSection} onClose={() => setEditSection(null)} title="Edit risk tier section">
         <SectionForm form={sectionForm} setForm={setSectionForm} tiers={definitions} onSubmit={handleUpdateSection} saving={saving} error={error} submitLabel="Save section" />
       </Modal>
 
-      <Modal open={!!deleteSection} onClose={() => setDeleteSection(null)} title="Delete section mapping">
+      <Modal open={!!deleteSection} onClose={() => setDeleteSection(null)} title="Delete risk tier section">
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
             Delete <strong>{deleteSection?.act_name} §{deleteSection?.section_code}</strong>?

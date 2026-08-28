@@ -7,7 +7,7 @@ export { WRITE_ROLES };
 const normalizeCode = (code) => (code || '').trim().toUpperCase();
 
 async function getValidTierCodes() {
-  const rows = await prisma.riskTierDefinition.findMany({ select: { code: true } });
+  const rows = await prisma.riskTier.findMany({ select: { code: true } });
   return rows.map((r) => r.code);
 }
 
@@ -59,14 +59,14 @@ const parseDefinition = (body) => {
 
 export const listDefinitions = async (req, res) => {
   try {
-    const rows = await prisma.riskTierDefinition.findMany({
+    const rows = await prisma.riskTier.findMany({
       orderBy: [{ sortOrder: 'asc' }, { code: 'asc' }],
     });
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to load risk tier definitions.',
+      message: 'Failed to load risk tiers.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -79,7 +79,7 @@ export const createDefinition = async (req, res) => {
       return res.status(400).json({ success: false, message: parsed.error });
     }
 
-    const row = await prisma.riskTierDefinition.create({ data: parsed });
+    const row = await prisma.riskTier.create({ data: parsed });
     res.status(201).json({ success: true, data: row });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -100,7 +100,7 @@ export const updateDefinition = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid tier id.' });
     }
 
-    const existing = await prisma.riskTierDefinition.findUnique({ where: { id } });
+    const existing = await prisma.riskTier.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Tier not found.' });
     }
@@ -112,12 +112,12 @@ export const updateDefinition = async (req, res) => {
 
     const row = await prisma.$transaction(async (tx) => {
       if (parsed.code !== existing.code) {
-        await tx.ssor_kb.updateMany({
+        await tx.riskTierSection.updateMany({
           where: { tier: existing.code },
           data: { tier: parsed.code },
         });
       }
-      return tx.riskTierDefinition.update({ where: { id }, data: parsed });
+      return tx.riskTier.update({ where: { id }, data: parsed });
     });
 
     res.status(200).json({ success: true, data: row });
@@ -140,20 +140,20 @@ export const deleteDefinition = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid tier id.' });
     }
 
-    const existing = await prisma.riskTierDefinition.findUnique({ where: { id } });
+    const existing = await prisma.riskTier.findUnique({ where: { id } });
     if (!existing) {
       return res.status(404).json({ success: false, message: 'Tier not found.' });
     }
 
-    const sectionCount = await prisma.ssor_kb.count({ where: { tier: existing.code } });
+    const sectionCount = await prisma.riskTierSection.count({ where: { tier: existing.code } });
     if (sectionCount > 0) {
       return res.status(409).json({
         success: false,
-        message: `Cannot delete tier with ${sectionCount} section mapping(s). Remove sections first.`,
+        message: `Cannot delete tier with ${sectionCount} risk tier section${sectionCount === 1 ? '' : 's'}. Remove them first.`,
       });
     }
 
-    await prisma.riskTierDefinition.delete({ where: { id } });
+    await prisma.riskTier.delete({ where: { id } });
     res.status(200).json({ success: true, message: 'Tier deleted.' });
   } catch (error) {
     res.status(500).json({
@@ -166,14 +166,14 @@ export const deleteDefinition = async (req, res) => {
 
 export const listSections = async (req, res) => {
   try {
-    const rows = await prisma.ssor_kb.findMany({
+    const rows = await prisma.riskTierSection.findMany({
       orderBy: [{ tier: 'asc' }, { severity_rank: 'desc' }, { act_name: 'asc' }, { section_code: 'asc' }],
     });
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to load section mappings.',
+      message: 'Failed to load risk tier sections.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -186,7 +186,7 @@ export const createSection = async (req, res) => {
       return res.status(400).json({ success: false, message: parsed.error });
     }
 
-    const row = await prisma.ssor_kb.create({ data: parsed });
+    const row = await prisma.riskTierSection.create({ data: parsed });
     res.status(201).json({ success: true, data: row });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -194,7 +194,7 @@ export const createSection = async (req, res) => {
     }
     res.status(500).json({
       success: false,
-      message: 'Failed to create section mapping.',
+      message: 'Failed to create risk tier section.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -212,7 +212,7 @@ export const updateSection = async (req, res) => {
       return res.status(400).json({ success: false, message: parsed.error });
     }
 
-    const row = await prisma.ssor_kb.update({ where: { id }, data: parsed });
+    const row = await prisma.riskTierSection.update({ where: { id }, data: parsed });
     res.status(200).json({ success: true, data: row });
   } catch (error) {
     if (error.code === 'P2025') {
@@ -223,7 +223,7 @@ export const updateSection = async (req, res) => {
     }
     res.status(500).json({
       success: false,
-      message: 'Failed to update section mapping.',
+      message: 'Failed to update risk tier section.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
@@ -236,7 +236,7 @@ export const deleteSection = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid entry id.' });
     }
 
-    await prisma.ssor_kb.delete({ where: { id } });
+    await prisma.riskTierSection.delete({ where: { id } });
     res.status(200).json({ success: true, message: 'Entry deleted.' });
   } catch (error) {
     if (error.code === 'P2025') {
@@ -244,7 +244,7 @@ export const deleteSection = async (req, res) => {
     }
     res.status(500).json({
       success: false,
-      message: 'Failed to delete section mapping.',
+      message: 'Failed to delete risk tier section.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

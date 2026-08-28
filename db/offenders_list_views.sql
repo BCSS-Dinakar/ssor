@@ -23,7 +23,7 @@ WITH LatestOffences AS (
     LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM ssor_kb kb
+        FROM "RiskTierSection" kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1
@@ -60,7 +60,7 @@ WITH LatestOffences AS (
     LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM ssor_kb kb
+        FROM "RiskTierSection" kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1
@@ -95,7 +95,7 @@ WITH LatestOffences AS (
     LEFT JOIN cctns_etl.hierarchy h ON c.ps_code = h.ps_code
     LEFT JOIN LATERAL (
         SELECT kb.tier
-        FROM ssor_kb kb
+        FROM "RiskTierSection" kb
         WHERE c.acts_sections ILIKE '%' || kb.section_code || '%'
         ORDER BY kb.severity_rank DESC
         LIMIT 1

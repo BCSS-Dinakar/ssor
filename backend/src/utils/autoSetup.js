@@ -12,6 +12,21 @@ const __dirname = path.dirname(__filename);
 
 const { Client, Pool } = pg;
 
+/** Split view SQL files into standard-view vs materialized-view sections. */
+const MV_SECTION_SPLIT = /-- \d+\. MATERIALIZED VIEW/i;
+
+async function matviewReferencesLegacyKb(client, matviewName) {
+  const res = await client.query(
+    `SELECT pg_get_viewdef(c.oid, true) AS def
+     FROM pg_class c
+     JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE c.relname = $1 AND n.nspname = 'public' AND c.relkind = 'm'`,
+    [matviewName]
+  );
+  const def = res.rows[0]?.def || '';
+  return def.includes('ssor_kb');
+}
+
 /**
  * Parses the DATABASE_URL to extract connection components.
  * e.g. postgresql://sadhudinakar@localhost:5432/ssor
@@ -65,7 +80,7 @@ const ensureDatabaseExists = async () => {
 };
 
 /**
- * Ensures FDW schemas, foreign tables, ssor_kb seed, and materialized views exist.
+ * Ensures FDW schemas, foreign tables, RiskTierSection seed, and materialized views exist.
  */
 const ensureFdwAndViews = async () => {
   const { user, password, host, port, database } = parseDbUrl(env.DATABASE_URL);
@@ -120,9 +135,9 @@ const ensureFdwAndViews = async () => {
       END IF; END $$;
     `);
 
-    // 2. Run ssor_kb_seed.sql to ensure ssor_kb has the latest tiers and sections
-    console.log('⚙️  Seeding ssor_kb...');
-    const seedPath = path.join(__dirname, '../../prisma/ssor_kb_seed.sql');
+    // 2. Run risk_tier_section_seed.sql to ensure RiskTierSection has the latest tiers and sections
+    console.log('⚙️  Seeding RiskTierSection...');
+    const seedPath = path.join(__dirname, '../../prisma/risk_tier_section_seed.sql');
     if (fs.existsSync(seedPath)) {
       const sql = fs.readFileSync(seedPath, 'utf-8');
       await client.query(sql);
@@ -133,7 +148,8 @@ const ensureFdwAndViews = async () => {
       { v_name: 'v_offenders_list', file: 'offenders_list_views.sql' },
       { v_name: 'v_offender_details', file: 'offender_details_views.sql' },
       { v_name: 'v_e_cases_list', file: 'e_cases_list_views.sql' },
-      { v_name: 'v_e_cases_details', file: 'e_cases_details_views.sql' }
+      { v_name: 'v_e_cases_details', file: 'e_cases_details_views.sql' },
+      { v_name: 'v_clearance_accused_search', file: 'clearance_accused_search_view.sql' },
     ];
 
     const materializedViews = [
@@ -149,7 +165,7 @@ const ensureFdwAndViews = async () => {
       const sqlPath = path.join(__dirname, '../../../db/', v.file);
       if (fs.existsSync(sqlPath)) {
         const sql = fs.readFileSync(sqlPath, 'utf-8');
-        const parts = sql.split(/-- 3\. MATERIALIZED VIEW.*/i);
+        const parts = sql.split(MV_SECTION_SPLIT);
         if (parts.length > 0 && parts[0].trim().length > 0) {
           await client.query(parts[0]);
           console.log(`✅ Ensured standard view: ${v.v_name}`);
@@ -162,11 +178,10 @@ const ensureFdwAndViews = async () => {
     // Release the single client before running background builds
     client.release();
 
-    // 4. Ensure materialized views exist (IN THE BACKGROUND)
-    console.log('⚙️  Checking for missing materialized views in the background...');
+    // 4. Ensure materialized views exist and use RiskTierSection (rebuild stale ssor_kb refs)
+    console.log('⚙️  Checking materialized views in the background...');
 
-    // Background task to build missing views
-    const buildMissingViews = async () => {
+    const buildMaterializedViews = async () => {
       const buildPool = new Pool({
         user,
         password: password || undefined,
@@ -180,18 +195,24 @@ const ensureFdwAndViews = async () => {
         const buildPromises = materializedViews.map(async (v) => {
           const buildClient = await buildPool.connect();
           try {
-            const res = await buildClient.query(`SELECT 1 FROM pg_matviews WHERE matviewname = $1`, [v.mv_name]);
-            if (res.rowCount === 0) {
-              console.log(`🔨 [BACKGROUND] Building missing view: ${v.mv_name}... (This may take a few minutes)`);
-              const sqlPath = path.join(__dirname, '../../../db/', v.file);
-              if (fs.existsSync(sqlPath)) {
-                const sql = fs.readFileSync(sqlPath, 'utf-8');
-                const parts = sql.split(/-- 3\. MATERIALIZED VIEW.*/i);
-                // Execute ONLY the materialized view portion in the background
-                if (parts.length > 1 && parts[1].trim().length > 0) {
-                  await buildClient.query(parts[1]);
-                  console.log(`✅ Successfully built ${v.mv_name}`);
-                }
+            const exists = await buildClient.query(
+              `SELECT 1 FROM pg_matviews WHERE matviewname = $1`,
+              [v.mv_name]
+            );
+            const needsRebuild = exists.rowCount === 0
+              || await matviewReferencesLegacyKb(buildClient, v.mv_name);
+
+            if (!needsRebuild) return;
+
+            const reason = exists.rowCount === 0 ? 'missing' : 'legacy ssor_kb reference';
+            console.log(`🔨 [BACKGROUND] Rebuilding ${v.mv_name} (${reason})... (This may take a few minutes)`);
+            const sqlPath = path.join(__dirname, '../../../db/', v.file);
+            if (fs.existsSync(sqlPath)) {
+              const sql = fs.readFileSync(sqlPath, 'utf-8');
+              const parts = sql.split(MV_SECTION_SPLIT);
+              if (parts.length > 1 && parts[1].trim().length > 0) {
+                await buildClient.query(parts[1]);
+                console.log(`✅ Successfully rebuilt ${v.mv_name}`);
               }
             }
           } catch (err) {
@@ -209,13 +230,41 @@ const ensureFdwAndViews = async () => {
       }
     };
 
-    // Fire and forget
-    buildMissingViews().catch(err => console.error('Background view build failed:', err));
+    buildMaterializedViews().catch(err => console.error('Background view build failed:', err));
 
   } catch (error) {
     console.error('❌ Error during FDW and Views setup:', error);
   } finally {
     await pool.end();
+  }
+};
+
+/**
+ * Renames legacy risk-tier tables before Prisma db push on existing databases.
+ */
+const ensureRiskTierTableRenames = async () => {
+  const { user, password, host, port, database } = parseDbUrl(env.DATABASE_URL);
+  const client = new Client({
+    user,
+    password: password || undefined,
+    host,
+    port,
+    database,
+  });
+
+  try {
+    await client.connect();
+    const sqlPath = path.join(__dirname, '../../prisma/rename_risk_tier_tables.sql');
+    if (fs.existsSync(sqlPath)) {
+      const sql = fs.readFileSync(sqlPath, 'utf-8');
+      await client.query(sql);
+      console.log('✅ Risk tier table renames applied (if needed).');
+    }
+  } catch (err) {
+    console.error('❌ Error renaming risk tier tables:', err);
+    throw err;
+  } finally {
+    await client.end();
   }
 };
 
@@ -227,6 +276,7 @@ export const autoSetup = async () => {
   await ensureDatabaseExists();
 
   if (env.AUTO_DB_PUSH) {
+    await ensureRiskTierTableRenames();
     console.log('⚙️  Ensuring SSOR app-owned tables exist...');
     await initAppSchema();
   } else {
@@ -236,7 +286,7 @@ export const autoSetup = async () => {
   console.log('⚙️  Ensuring Data Views & Schemas exist...');
   await ensureFdwAndViews();
 
-  await ensureRiskTierDefinitions();
+  await ensureRiskTiers();
 
   if (env.NODE_ENV !== 'production') {
     await ensureDefaultUsers();
@@ -252,16 +302,16 @@ const DEFAULT_RISK_TIERS = [
   { code: 'GREEN', name: 'Green', category: 'Isolated / low', description: 'Isolated or low-severity offenders. Lower risk and shorter retention rather than a distinct offence category.', nature: 'Single, non-aggravated incident by a person with no earlier record.', retention: '15 years', colorClass: 'bg-green-600', defaultRank: 20, sortOrder: 6 },
 ];
 
-async function ensureRiskTierDefinitions() {
+async function ensureRiskTiers() {
   try {
-    const count = await prisma.riskTierDefinition.count();
+    const count = await prisma.riskTier.count();
     if (count > 0) return;
 
-    console.log('⚙️  Seeding default risk tier definitions...');
-    await prisma.riskTierDefinition.createMany({ data: DEFAULT_RISK_TIERS });
-    console.log('✅ Risk tier definitions seeded.');
+    console.log('⚙️  Seeding default risk tiers...');
+    await prisma.riskTier.createMany({ data: DEFAULT_RISK_TIERS });
+    console.log('✅ Risk tiers seeded.');
   } catch (err) {
-    console.error('❌ Error seeding risk tier definitions:', err);
+    console.error('❌ Error seeding risk tiers:', err);
   }
 }
 

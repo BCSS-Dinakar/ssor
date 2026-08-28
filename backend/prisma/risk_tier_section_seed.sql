@@ -1,7 +1,7 @@
--- Seed data for ssor_kb
+-- Seed data for RiskTierSection
 -- Excludes 65(1), 65(2), 70(2) to align with migration 002 simplifications
 
-INSERT INTO public.ssor_kb (act_name, section_code, tier, severity_rank, description) VALUES
+INSERT INTO public."RiskTierSection" (act_name, section_code, tier, severity_rank, description) VALUES
     -- RED -- dangerous predator / gang offender
     ('BNS', '63', 'RED', 100, 'Rape - definition'),
     ('BNS', '64', 'RED', 100, 'Rape - punishment'),
